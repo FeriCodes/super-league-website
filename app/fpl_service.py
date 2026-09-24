@@ -1,4 +1,5 @@
 from collections import Counter
+import re
 from typing import Any, Dict, List
 import httpx
 
@@ -6,7 +7,14 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 BASE_URL = "https://fantasy.premierleague.com/api"
 
 
+def parse_manager_ids(raw_text: str) -> List[int]:
+    """Extract integer manager IDs from messy text."""
+    numbers = re.findall(r"\b\d+\b", raw_text)
+    return [int(n) for n in numbers]
+
+
 def get_players_dict() -> Dict[int, Dict[str, str]]:
+    """Fetch all Premier League players and map ID to name and position."""
     url = f"{BASE_URL}/bootstrap-static/"
     response = httpx.get(url, headers=HEADERS)
 
@@ -28,46 +36,39 @@ def get_players_dict() -> Dict[int, Dict[str, str]]:
     return players_dict
 
 
-def get_manager_gw_data(manager_id: int, gameweek: int) -> dict:
-    url = f"https://fantasy.premierleague.com/api/entry/{manager_id}/event/{gameweek}/picks/"
+def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
+    """Fetch manager's score, hits, and squad picks with captain multipliers."""
+    url = f"{BASE_URL}/entry/{manager_id}/event/{gameweek}/picks/"
     response = httpx.get(url, headers=HEADERS)
 
-    if response.status_code == 200:
-        data = response.json()
+    if response.status_code != 200:
+        return {"status": "error", "manager_id": manager_id}
 
-        # ۱. حساب کردن امتیازها (تیکه اول)
-        history = data["entry_history"]
-        gross_points = history["points"]
-        hits = history["event_transfers_cost"]
-        net_points = gross_points - hits
+    data = response.json()
+    history = data["entry_history"]
 
-        # ۲. بیرون کشیدن آیدی بازیکن‌ها (تیکه دوم)
-        player_ids = []
-        for pick in data["picks"]:
-            player_ids.append(pick["element"])
+    points = history["points"]
+    hits = history["event_transfers_cost"]
+    gw_points = points - hits
 
-        # ۳. تحویل همه‌چیز با هم
-        return {
-            "manager_id": manager_id,
-            "gameweek": gameweek,
-            "gw_points": net_points,
-            "hits": hits,
-            "player_ids": player_ids,
-            "status": "success",
-        }
+    picks_summary = [
+        {"element_id": pick["element"], "multiplier": pick["multiplier"]} for pick in data.get("picks", [])
+    ]
 
     return {
         "manager_id": manager_id,
         "gameweek": gameweek,
-        "status": "error",
-        "message": f"Failed with status code {response.status_code}",
+        "gw_points": gw_points,
+        "hits": hits,
+        "picks": picks_summary,
+        "status": "success",
     }
 
 
 def get_team_summary(manager_ids: List[int], gameweek: int, players_dict: Dict[int, Dict[str, str]]) -> Dict[str, Any]:
-    """Aggregate total points and count player ownership across a list of managers."""
+    """Aggregate total points and count effective player ownership (accounting for captains)."""
     managers_data = []
-    all_player_ids = []
+    player_counts = Counter()
     total_team_points = 0
 
     for m_id in manager_ids:
@@ -75,12 +76,12 @@ def get_team_summary(manager_ids: List[int], gameweek: int, players_dict: Dict[i
         if data.get("status") == "success":
             managers_data.append(data)
             total_team_points += data["gw_points"]
-            all_player_ids.extend(data["player_ids"])
 
-    # Count player occurrences
-    player_counts = Counter(all_player_ids)
+            for item in data["picks"]:
+                if item["multiplier"] > 0:
+                    player_counts[item["element_id"]] += item["multiplier"]
+
     ownership_list = []
-
     for p_id, count in player_counts.most_common():
         player_info = players_dict.get(p_id, {"name": "Unknown", "position": "Unknown"})
         ownership_list.append(
