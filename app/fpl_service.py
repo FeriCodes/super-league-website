@@ -1,9 +1,12 @@
 from collections import Counter
 import re
-from typing import Any, Dict, List
+import time
+from typing import Any, Dict, List, Optional
 import httpx
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
 BASE_URL = "https://fantasy.premierleague.com/api"
 
 
@@ -23,7 +26,7 @@ def get_players_dict() -> Dict[int, Dict[str, str]]:
                 return {}
             data = response.json()
     except Exception as e:
-        print(f"Warning: could not fetch player phonebook: {e}")
+        print(f"Warning: could not fetch player cache: {e}")
         return {}
 
     position_map = {1: "GKP", 2: "DEF", 3: "MID", 4: "FWD"}
@@ -39,50 +42,75 @@ def get_players_dict() -> Dict[int, Dict[str, str]]:
     return players_dict
 
 
-def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
-    """Fetch manager's score, hits, and squad picks with captain multipliers."""
-    url = f"{BASE_URL}/entry/{manager_id}/event/{gameweek}/picks/"
-    response = httpx.get(url, headers=HEADERS)
+def get_manager_gw_data(
+    manager_id: int,
+    gameweek: int,
+    client: Optional[httpx.Client] = None,
+) -> Dict[str, Any]:
+    """Fetch manager's gameweek score, transfer hits, and squad picks."""
+    picks_url = f"{BASE_URL}/entry/{manager_id}/event/{gameweek}/picks/"
 
-    if response.status_code != 200:
+    def _fetch(http_client: httpx.Client) -> Dict[str, Any]:
+        response = http_client.get(picks_url)
+        if response.status_code != 200:
+            print(f"Manager {manager_id} GW {gameweek} failed with status {response.status_code}")
+            return {"status": "error", "manager_id": manager_id}
+
+        data = response.json()
+        entry_history = data.get("entry_history") or {}
+
+        # Pure gameweek points (excluding hits)
+        raw_points = entry_history.get("points", 0)
+        hits = entry_history.get("event_transfers_cost", 0)
+        net_gw_points = raw_points - hits
+
+        picks_summary = [
+            {"element_id": pick["element"], "multiplier": pick["multiplier"]} for pick in data.get("picks", [])
+        ]
+
+        return {
+            "manager_id": manager_id,
+            "gameweek": gameweek,
+            "gw_points": net_gw_points,
+            "hits": hits,
+            "picks": picks_summary,
+            "status": "success",
+        }
+
+    try:
+        if client is not None:
+            return _fetch(client)
+        with httpx.Client(headers=HEADERS, timeout=20.0, verify=False, follow_redirects=True) as local_client:
+            return _fetch(local_client)
+    except Exception as exc:
+        print(f"Error fetching manager {manager_id} GW {gameweek}: {exc}")
         return {"status": "error", "manager_id": manager_id}
 
-    data = response.json()
-    history = data["entry_history"]
 
-    points = history["points"]
-    hits = history["event_transfers_cost"]
-    gw_points = points - hits
-
-    picks_summary = [
-        {"element_id": pick["element"], "multiplier": pick["multiplier"]} for pick in data.get("picks", [])
-    ]
-
-    return {
-        "manager_id": manager_id,
-        "gameweek": gameweek,
-        "gw_points": gw_points,
-        "hits": hits,
-        "picks": picks_summary,
-        "status": "success",
-    }
-
-
-def get_team_summary(manager_ids: List[int], gameweek: int, players_dict: Dict[int, Dict[str, str]]) -> Dict[str, Any]:
-    """Aggregate total points and count effective player ownership (accounting for captains)."""
+def get_team_summary(
+    manager_ids: List[int],
+    gameweek: int,
+    players_dict: Dict[int, Dict[str, str]],
+) -> Dict[str, Any]:
+    """Aggregate total points, hit costs, and count effective player ownership."""
     managers_data = []
     player_counts = Counter()
     total_team_points = 0
+    total_hits_cost = 0
 
-    for m_id in manager_ids:
-        data = get_manager_gw_data(m_id, gameweek)
-        if data.get("status") == "success":
-            managers_data.append(data)
-            total_team_points += data["gw_points"]
+    with httpx.Client(headers=HEADERS, timeout=25.0, verify=False, follow_redirects=True) as client:
+        for m_id in manager_ids:
+            data = get_manager_gw_data(m_id, gameweek, client=client)
+            if data.get("status") == "success":
+                managers_data.append(data)
+                total_team_points += data["gw_points"]
+                total_hits_cost += data["hits"]
 
-            for item in data["picks"]:
-                if item["multiplier"] > 0:
-                    player_counts[item["element_id"]] += item["multiplier"]
+                for item in data["picks"]:
+                    if item["multiplier"] > 0:
+                        player_counts[item["element_id"]] += item["multiplier"]
+            # Small delay to prevent FPL rate limiting (429)
+            time.sleep(0.05)
 
     ownership_list = []
     for p_id, count in player_counts.most_common():
@@ -99,6 +127,7 @@ def get_team_summary(manager_ids: List[int], gameweek: int, players_dict: Dict[i
     return {
         "gameweek": gameweek,
         "total_team_points": total_team_points,
+        "total_hits_cost": total_hits_cost,
         "managers_count": len(managers_data),
         "managers": managers_data,
         "ownership": ownership_list,
