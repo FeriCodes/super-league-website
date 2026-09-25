@@ -3,20 +3,23 @@ from pathlib import Path
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
 from .fpl_service import get_players_dict, get_team_summary
 
 app = FastAPI(title="Super League H2H")
 
 templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-TEAMS_FILE = Path(__file__).resolve().parent / "fpl_teams.json"
+TEAMS_FILE = Path(__file__).resolve().parent / "sl_teams.json"
 
 # In-memory cache for player info (ID -> name, position)
 PLAYERS_CACHE = {}
 
 
 def load_teams() -> dict:
-    """Read and parse the local fpl_teams.json file into a Python dictionary."""
+    """Read and parse the local sl_teams.json file into a Python dictionary."""
     if not TEAMS_FILE.exists():
         return {}
     with open(TEAMS_FILE, "r", encoding="utf-8") as f:
@@ -76,8 +79,22 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
         if pos in grouped:
             grouped[pos].append(row)
 
+    def sort_key(item):
+        diff = item.get("diff", 0)
+        total_owners = item.get("count_a", 0) + item.get("count_b", 0)
+
+        # 1. Team A advantages (diff > 0): highest diff first
+        if diff > 0:
+            return (1, diff, total_owners)
+        # 2. Shared players (diff == 0): most owned first
+        elif diff == 0:
+            return (0, 0, total_owners)
+        # 3. Team B advantages (diff < 0): highest negative diff last
+        else:
+            return (-1, diff, total_owners)
+
     for pos in grouped:
-        grouped[pos].sort(key=lambda item: abs(item["diff"]), reverse=True)
+        grouped[pos].sort(key=sort_key, reverse=True)
 
     return grouped
 
