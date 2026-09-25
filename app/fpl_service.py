@@ -16,14 +16,17 @@ def parse_manager_ids(raw_text: str) -> List[int]:
 def get_players_dict() -> Dict[int, Dict[str, str]]:
     """Fetch all Premier League players and map ID to name and position."""
     url = f"{BASE_URL}/bootstrap-static/"
-    response = httpx.get(url, headers=HEADERS)
-
-    if response.status_code != 200:
+    try:
+        with httpx.Client(headers=HEADERS, timeout=20.0, verify=False, follow_redirects=True) as client:
+            response = client.get(url)
+            if response.status_code != 200:
+                return {}
+            data = response.json()
+    except Exception as e:
+        print(f"Warning: could not fetch player phonebook: {e}")
         return {}
 
-    data = response.json()
     position_map = {1: "GKP", 2: "DEF", 3: "MID", 4: "FWD"}
-
     players_dict = {}
     for element in data.get("elements", []):
         player_id = element["id"]
