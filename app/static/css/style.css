@@ -6,6 +6,7 @@
   --text-main: #abb2bf;
   --text-bright: #ffffff;
   --accent-cyan: #56b6c2;
+  --accent-blue-soft: #61afef;
   --accent-green: #98c379;
   --accent-red: #e06c75;
 }
@@ -13,8 +14,17 @@
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'JetBrains Mono', monospace, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
+}
+
+/* Bright Cyan Heading with Subtle Glow */
+h1, .page-title {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  letter-spacing: -0.5px;
+  text-shadow: 0 0 16px rgba(86, 182, 194, 0.25);
 }
 
 .subtitle-text {
@@ -30,28 +40,55 @@ body {
   border-radius: 8px;
 }
 
+/* Base Form Controls */
 .form-select,
 .form-control {
   background-color: var(--bg-main);
   border: 1px solid var(--border-color);
   color: var(--text-bright);
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+/* Soft Light-Blue Hover & Focus on Inputs/Selects */
+.form-select:hover,
+.form-control:hover {
+  background-color: #232832;
+  border-color: rgba(97, 175, 239, 0.45);
 }
 
 .form-select:focus,
 .form-control:focus {
   background-color: var(--bg-main);
-  border-color: var(--accent-cyan);
+  border-color: var(--accent-blue-soft);
   color: var(--text-bright);
-  box-shadow: 0 0 0 0.25rem rgba(86, 182, 194, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(97, 175, 239, 0.18) !important;
+  outline: none;
 }
 
-/* Gameweek Dropdown Centering */
-#gameweek {
-  text-align-last: center;
-  max-width: 140px;
+/* Custom Styled form-select Arrow & Spacing */
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2361afef' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.85rem center !important;
+  background-size: 14px 10px !important;
+  padding-right: 2.25rem !important;
+  cursor: pointer;
 }
 
-/* Compare Button - Compact Size & High Contrast */
+/* Native Option Dropdown Backgrounds */
+.form-select option {
+  background-color: var(--bg-card);
+  color: var(--text-bright);
+}
+
+.form-select option:checked,
+.form-select option:hover {
+  background-color: #313845 !important;
+  color: var(--accent-blue-soft) !important;
+}
+
+/* Compare Button */
 .btn-compare {
   background-color: var(--accent-cyan);
   border: 1px solid var(--accent-cyan);
@@ -65,11 +102,24 @@ body {
 }
 
 .btn-compare:hover {
-  background-color: #61afef;
-  border-color: #61afef;
+  background-color: var(--accent-blue-soft);
+  border-color: var(--accent-blue-soft);
   color: #181a1f !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.btn-compare:disabled,
+.btn-compare[disabled] {
+  background-color: var(--accent-cyan) !important;
+  border-color: var(--accent-cyan) !important;
+  color: #181a1f !important;
+  opacity: 0.85 !important;
+  cursor: not-allowed;
+}
+
+.btn-compare .spinner-border {
+  color: #181a1f !important;
 }
 
 .score-points {
@@ -101,7 +151,16 @@ body {
   font-size: 0.88rem;
 }
 
-/* Distinct Mobile-Friendly Badges */
+/* Subtle Row Hover on Table */
+.table-dark-custom tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.table-dark-custom tbody tr:hover {
+  background-color: rgba(97, 175, 239, 0.07) !important;
+}
+
+/* Distinct Badges */
 .diff-badge {
   display: inline-block;
   padding: 3px 8px;
@@ -129,16 +188,114 @@ body {
   border: 1px solid rgba(171, 178, 191, 0.25);
 }
 
-/* Keep button clearly visible and high contrast when disabled/loading */
-.btn-compare:disabled,
-.btn-compare[disabled] {
-  background-color: var(--accent-cyan) !important;
-  border-color: var(--accent-cyan) !important;
-  color: #181a1f !important;
-  opacity: 0.85 !important;
-  cursor: not-allowed;
+/* Accordion Component */
+.accordion-item {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+  margin-bottom: 8px;
 }
 
-.btn-compare .spinner-border {
-  color: #181a1f !important;
+.accordion-button {
+  background-color: var(--bg-table-header) !important;
+  color: var(--text-bright) !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 600;
+  padding: 12px 16px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.accordion-button:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.accordion-button:hover {
+  background-color: #252b35 !important;
+  color: var(--accent-blue-soft) !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #2c313a !important;
+  color: var(--accent-cyan) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.accordion-button::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2356b6c2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-size: 1.1rem;
+  transition: transform 0.25s ease-in-out;
+}
+
+.accordion-button:not(.collapsed)::after {
+  transform: rotate(-180deg);
+}
+
+.accordion-body {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+/* Gameweek Dropdown Custom Sizing */
+#gameweek {
+  max-width: 110px;
+  text-align: center;
+  text-align-last: center;
+  padding: 6px 28px 6px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background-position: right 0.5rem center !important;
+  background-size: 11px 8px !important;
+}
+
+/* Clean Custom Scrollbar */
+#gameweek::-webkit-scrollbar,
+select::-webkit-scrollbar,
+.custom-card::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+#gameweek::-webkit-scrollbar-track,
+select::-webkit-scrollbar-track,
+.custom-card::-webkit-scrollbar-track {
+  background: var(--bg-main);
+  border-radius: 4px;
+}
+
+#gameweek::-webkit-scrollbar-thumb,
+select::-webkit-scrollbar-thumb,
+.custom-card::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+#gameweek::-webkit-scrollbar-thumb:hover,
+select::-webkit-scrollbar-thumb:hover,
+.custom-card::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue-soft);
+}
+
+#gameweek,
+select,
+.custom-card {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--bg-main);
+}
+
+/* Hits Cost Indicator Styling */
+.hits-text {
+  color: #abb2bf !important;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+.hits-value {
+  color: var(--accent-red);
+  font-weight: 700;
 }
