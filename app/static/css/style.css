@@ -160,7 +160,7 @@ h1, .page-title {
   background-color: rgba(97, 175, 239, 0.07) !important;
 }
 
-/* Distinct Badges */
+/* Distinct Mobile-Friendly Badges */
 .diff-badge {
   display: inline-block;
   padding: 3px 8px;
@@ -170,18 +170,21 @@ h1, .page-title {
   letter-spacing: 0.2px;
 }
 
+/* Team A Advantage (Soft Green) */
 .badge-advantage {
   background-color: rgba(152, 195, 121, 0.15);
   color: var(--accent-green) !important;
   border: 1px solid rgba(152, 195, 121, 0.35);
 }
 
+/* Team B Advantage (Soft Blue) */
 .badge-disadvantage {
-  background-color: rgba(224, 108, 117, 0.15);
-  color: var(--accent-red) !important;
-  border: 1px solid rgba(224, 108, 117, 0.35);
+  background-color: rgba(97, 175, 239, 0.15);
+  color: var(--accent-blue-soft) !important;
+  border: 1px solid rgba(97, 175, 239, 0.35);
 }
 
+/* Shared Players */
 .badge-shared {
   background-color: rgba(171, 178, 191, 0.1);
   color: var(--text-main) !important;

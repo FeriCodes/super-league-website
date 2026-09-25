@@ -126,7 +126,7 @@
                           </span>
                         {% elif p.diff < 0 %}
                           <span class="diff-badge badge-disadvantage">
-                            ▼ {{ p.diff }} {{ results.team_b_name }}
+                            ▲ +{{ p.diff|abs }} {{ results.team_b_name }}
                           </span>
                         {% else %}
                           <span class="diff-badge badge-shared">
