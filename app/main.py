@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse
+from typing import Optional
+from fastapi import FastAPI, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
@@ -99,30 +100,34 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
     return grouped
 
 
-@app.post("/compare", response_class=HTMLResponse)
+@app.get("/compare", response_class=HTMLResponse)
 def compare_teams(
     request: Request,
-    team_a_name: str = Form(...),
-    team_b_name: str = Form(...),
-    gameweek: int = Form(...),
+    team_a_name: Optional[str] = Query(None),
+    team_b_name: Optional[str] = Query(None),
+    gameweek: Optional[int] = Query(None),
 ):
-    """Process team comparison form submitted by user."""
+    """Handle comparisons and seamless browser reloads via clean GET query params."""
+    # 1. If user visits /compare directly without query data, redirect home
+    if not team_a_name or not team_b_name or not gameweek:
+        return RedirectResponse(url="/", status_code=303)
+
     global PLAYERS_CACHE
 
-    # 1. Fetch player details once and store in cache
+    # 2. Fetch player details once and store in memory cache
     if not PLAYERS_CACHE:
         PLAYERS_CACHE = get_players_dict()
 
-    # 2. Load teams and lookup manager IDs by team name
+    # 3. Load teams and lookup manager IDs
     teams = load_teams()
     team_a_ids = teams.get(team_a_name, [])
     team_b_ids = teams.get(team_b_name, [])
 
-    # 3. Fetch summary metrics for both teams from FPL API
+    # 4. Fetch metrics for both teams from FPL
     summary_a = get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE)
     summary_b = get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE)
 
-    # 4. Compute head-to-head player differentials
+    # 5. Compute sorted differentials
     grouped_comparison = build_head_to_head_comparison(summary_a, summary_b)
 
     results = {
@@ -134,7 +139,7 @@ def compare_teams(
         "gameweek": gameweek,
     }
 
-    # 5. Return updated page with results and maintain form state
+    # 6. Render template preserving selections across browser reloads
     return templates.TemplateResponse(
         request=request,
         name="index.html",
