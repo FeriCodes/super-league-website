@@ -1,0 +1,144 @@
+:root {
+  --bg-main: #1e2227;
+  --bg-card: #282c34;
+  --bg-table-header: #21252b;
+  --border-color: #3b4048;
+  --text-main: #abb2bf;
+  --text-bright: #ffffff;
+  --accent-cyan: #56b6c2;
+  --accent-green: #98c379;
+  --accent-red: #e06c75;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+.subtitle-text {
+  color: var(--text-main);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  opacity: 0.95;
+}
+
+.custom-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.form-select,
+.form-control {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-bright);
+}
+
+.form-select:focus,
+.form-control:focus {
+  background-color: var(--bg-main);
+  border-color: var(--accent-cyan);
+  color: var(--text-bright);
+  box-shadow: 0 0 0 0.25rem rgba(86, 182, 194, 0.25);
+}
+
+/* Gameweek Dropdown Centering */
+#gameweek {
+  text-align-last: center;
+  max-width: 140px;
+}
+
+/* Compare Button - Compact Size & High Contrast */
+.btn-compare {
+  background-color: var(--accent-cyan);
+  border: 1px solid var(--accent-cyan);
+  color: #181a1f !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-compare:hover {
+  background-color: #61afef;
+  border-color: #61afef;
+  color: #181a1f !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.score-points {
+  font-size: clamp(1.3rem, 3.5vw, 2.1rem);
+  color: var(--accent-cyan);
+}
+
+/* Force Dark Styling on Tables */
+.table-dark-custom {
+  --bs-table-bg: #282c34 !important;
+  --bs-table-color: var(--text-bright) !important;
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.table-dark-custom thead tr th {
+  background-color: var(--bg-table-header) !important;
+  color: var(--text-bright) !important;
+  border-bottom: 2px solid var(--border-color) !important;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+}
+
+.table-dark-custom tbody tr td {
+  background-color: transparent !important;
+  color: var(--text-bright) !important;
+  border-color: var(--border-color) !important;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+}
+
+/* Distinct Mobile-Friendly Badges */
+.diff-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.badge-advantage {
+  background-color: rgba(152, 195, 121, 0.15);
+  color: var(--accent-green) !important;
+  border: 1px solid rgba(152, 195, 121, 0.35);
+}
+
+.badge-disadvantage {
+  background-color: rgba(224, 108, 117, 0.15);
+  color: var(--accent-red) !important;
+  border: 1px solid rgba(224, 108, 117, 0.35);
+}
+
+.badge-shared {
+  background-color: rgba(171, 178, 191, 0.1);
+  color: var(--text-main) !important;
+  border: 1px solid rgba(171, 178, 191, 0.25);
+}
+
+/* Keep button clearly visible and high contrast when disabled/loading */
+.btn-compare:disabled,
+.btn-compare[disabled] {
+  background-color: var(--accent-cyan) !important;
+  border-color: var(--accent-cyan) !important;
+  color: #181a1f !important;
+  opacity: 0.85 !important;
+  cursor: not-allowed;
+}
+
+.btn-compare .spinner-border {
+  color: #181a1f !important;
+}
