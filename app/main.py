@@ -40,3 +40,48 @@ def home(request: Request):
             "gw": 5,
         },
     )
+
+
+def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
+    """Group players by position and calculate head-to-head differentials."""
+    # 1. Initialize buckets for positions
+    grouped = {
+        "GKP": [],
+        "DEF": [],
+        "MID": [],
+        "FWD": [],
+    }
+
+    # 2. Fast lookup dictionaries by player ID
+    a_dict = {p["id"]: p for p in summary_a.get("ownership", [])}
+    b_dict = {p["id"]: p for p in summary_b.get("ownership", [])}
+
+    # 3. All unique player IDs across both teams
+    all_player_ids = set(a_dict.keys()) | set(b_dict.keys())
+
+    # 4. Calculate differential for each player
+    for pid in all_player_ids:
+        info = a_dict.get(pid) or b_dict.get(pid)
+        name = info["name"]
+        pos = info["position"]
+
+        count_a = a_dict[pid]["count"] if pid in a_dict else 0
+        count_b = b_dict[pid]["count"] if pid in b_dict else 0
+        diff = count_a - count_b
+
+        row = {
+            "name": name,
+            "pos": pos,
+            "count_a": count_a,
+            "count_b": count_b,
+            "diff": diff,
+        }
+
+        if pos in grouped:
+            grouped[pos].append(row)
+
+    # 5. Sort each position group: highest differential first
+    for pos in grouped:
+        grouped[pos].sort(key=lambda item: abs(item["diff"]), reverse=True)
+
+    return grouped
