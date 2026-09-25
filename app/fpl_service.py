@@ -63,9 +63,15 @@ def get_manager_gw_data(
         raw_points = entry_history.get("points", 0)
         hits = entry_history.get("event_transfers_cost", 0)
         net_gw_points = raw_points - hits
+        active_chip = data.get("active_chip")
 
         picks_summary = [
-            {"element_id": pick["element"], "multiplier": pick["multiplier"]} for pick in data.get("picks", [])
+            {
+                "element_id": pick["element"],
+                "position": pick.get("position", idx + 1),
+                "multiplier": pick.get("multiplier", 0),
+            }
+            for idx, pick in enumerate(data.get("picks", []))
         ]
 
         return {
@@ -73,6 +79,7 @@ def get_manager_gw_data(
             "gameweek": gameweek,
             "gw_points": net_gw_points,
             "hits": hits,
+            "active_chip": active_chip,
             "picks": picks_summary,
             "status": "success",
         }
@@ -106,9 +113,22 @@ def get_team_summary(
                 total_team_points += data["gw_points"]
                 total_hits_cost += data["hits"]
 
-                for item in data["picks"]:
-                    if item["multiplier"] > 0:
-                        player_counts[item["element_id"]] += item["multiplier"]
+                is_bench_boost = data.get("active_chip") == "bboost"
+
+                for item in data.get("picks", []):
+                    pos = item.get("position", 0)
+                    mult = item.get("multiplier", 0)
+
+                    # Bench Boost counts all 15 players
+                    if is_bench_boost:
+                        player_counts[item["element_id"]] += 1
+                    else:
+                        # Only starting XI counts: multiplier > 0 (standard active) OR position 1 to 11
+                        if mult > 0 or (1 <= pos <= 11 and mult != 0):
+                            player_counts[item["element_id"]] += 1
+                        elif mult > 0:
+                            player_counts[item["element_id"]] += 1
+
             # Small delay to prevent FPL rate limiting (429)
             time.sleep(0.05)
 
