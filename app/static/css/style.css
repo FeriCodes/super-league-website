@@ -132,22 +132,89 @@ body {
   cursor: not-allowed;
 }
 
-/* Score Summary Cards */
-.score-points {
-  font-size: clamp(1.4rem, 3.8vw, 2.3rem);
-  color: var(--accent-cyan);
-  line-height: 1.2;
-  margin: 6px 0;
+/* Dual Card Architecture */
+.team-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
-.hits-text {
-  color: var(--text-main);
-  font-size: 0.86rem;
+.main-score-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.team-card-title {
+  color: var(--text-bright);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.team-score-num {
+  font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+  font-weight: 800;
+  color: var(--accent-green);
+  line-height: 1.1;
+  margin: 0.35rem 0;
+}
+
+.team-score-lbl {
+  font-size: 0.72rem;
+  letter-spacing: 1.2px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sub-details-card {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.meta-label {
+  color: var(--accent-cyan);
   font-weight: 500;
 }
 
-.hits-value {
+.meta-value {
+  color: var(--text-bright);
+  font-family: inherit;
+  text-align: right;
+}
+
+.meta-value.hits {
   color: var(--accent-red);
+  font-weight: 700;
+}
+
+.meta-value.chips {
+  color: var(--accent-blue-soft);
+  font-weight: 600;
+}
+
+.meta-value.captains {
+  color: var(--accent-yellow);
+  font-weight: 600;
+}
+
+.meta-value.left-to-play {
+  color: var(--accent-yellow);
   font-weight: 700;
 }
 
