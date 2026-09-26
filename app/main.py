@@ -46,8 +46,7 @@ def home(request: Request):
     )
 
 
-def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
-    """Group players by position and calculate head-to-head differentials."""
+def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: dict) -> dict:
     grouped = {
         "GKP": [],
         "DEF": [],
@@ -69,6 +68,9 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
         count_b = b_dict[pid]["count"] if pid in b_dict else 0
         diff = count_a - count_b
 
+        # Extract live points for this specific player
+        player_points = live_data.get(pid, {}).get("points", 0)
+
         row = {
             "id": pid,
             "name": name,
@@ -76,6 +78,7 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
             "count_a": count_a,
             "count_b": count_b,
             "diff": diff,
+            "player_points": player_points,
         }
 
         if pos in grouped:
@@ -124,7 +127,7 @@ def compare_teams(
     # Hook up live service directly
     live_data = get_live_scores_and_status(gameweek)
 
-    grouped_comparison = build_head_to_head_comparison(summary_a, summary_b)
+    grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data)
 
     results = {
         "team_a_name": team_a_name,

@@ -108,6 +108,7 @@
                 <thead>
                   <tr>
                     <th style="min-width: 130px;">Player</th>
+                    <th class="text-center" style="width: 70px;">Pts</th>
                     <th class="text-center">{{ results.team_a_name }}</th>
                     <th class="text-center">{{ results.team_b_name }}</th>
                     <th class="text-center" style="min-width: 140px;">Difference (Diff)</th>
@@ -117,6 +118,9 @@
                   {% for p in players %}
                     <tr>
                       <td class="fw-semibold text-light text-nowrap">{{ p.name }}</td>
+                      <td class="text-center font-monospace fw-bold" style="color: var(--accent-cyan);">
+                        {{ p.player_points }}
+                      </td>
                       <td class="text-center font-monospace">{{ p.count_a }}</td>
                       <td class="text-center font-monospace">{{ p.count_b }}</td>
                       <td class="text-center text-nowrap">
