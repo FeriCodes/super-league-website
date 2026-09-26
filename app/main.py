@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from .fpl_service import get_players_dict, get_team_summary
+from .fpl_service import get_players_dict, get_team_summary, get_live_scores_and_status
 
 app = FastAPI(title="Super League H2H")
 
@@ -70,6 +70,7 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
         diff = count_a - count_b
 
         row = {
+            "id": pid,
             "name": name,
             "pos": pos,
             "count_a": count_a,
@@ -84,13 +85,10 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict) -> dict:
         diff = item.get("diff", 0)
         total_owners = item.get("count_a", 0) + item.get("count_b", 0)
 
-        # 1. Team A advantages (diff > 0): highest diff first
         if diff > 0:
             return (1, diff, total_owners)
-        # 2. Shared players (diff == 0): most owned first
         elif diff == 0:
             return (0, 0, total_owners)
-        # 3. Team B advantages (diff < 0): highest negative diff last
         else:
             return (-1, diff, total_owners)
 
@@ -107,27 +105,25 @@ def compare_teams(
     team_b_name: Optional[str] = Query(None),
     gameweek: Optional[int] = Query(None),
 ):
-    """Handle comparisons and seamless browser reloads via clean GET query params."""
-    # 1. If user visits /compare directly without query data, redirect home
+    """Handle comparisons and fetch live stats without attaching extra table fields."""
     if not team_a_name or not team_b_name or not gameweek:
         return RedirectResponse(url="/", status_code=303)
 
     global PLAYERS_CACHE
 
-    # 2. Fetch player details once and store in memory cache
     if not PLAYERS_CACHE:
         PLAYERS_CACHE = get_players_dict()
 
-    # 3. Load teams and lookup manager IDs
     teams = load_teams()
     team_a_ids = teams.get(team_a_name, [])
     team_b_ids = teams.get(team_b_name, [])
 
-    # 4. Fetch metrics for both teams from FPL
     summary_a = get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE)
     summary_b = get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE)
 
-    # 5. Compute sorted differentials
+    # Hook up live service directly
+    live_data = get_live_scores_and_status(gameweek)
+
     grouped_comparison = build_head_to_head_comparison(summary_a, summary_b)
 
     results = {
@@ -136,10 +132,10 @@ def compare_teams(
         "summary_a": summary_a,
         "summary_b": summary_b,
         "grouped": grouped_comparison,
+        "live_data": live_data,
         "gameweek": gameweek,
     }
 
-    # 6. Render template preserving selections across browser reloads
     return templates.TemplateResponse(
         request=request,
         name="index.html",
