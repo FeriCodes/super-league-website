@@ -100,9 +100,10 @@ def get_team_summary(
     gameweek: int,
     players_dict: Dict[int, Dict[str, str]],
 ) -> Dict[str, Any]:
-    """Aggregate total points, hit costs, active chips, and count effective player ownership."""
+    """Aggregate total points, hit costs, active chips, captains, and count effective player ownership."""
     managers_data = []
     player_counts = Counter()
+    captain_counts = Counter()
     total_team_points = 0
     total_hits_cost = 0
     active_chips = []
@@ -133,6 +134,10 @@ def get_team_summary(
                     pos = item.get("position", 0)
                     mult = item.get("multiplier", 0)
 
+                    # Track captain selection (multiplier >= 2)
+                    if mult >= 2:
+                        captain_counts[item["element_id"]] += 1
+
                     # Bench Boost counts all 15 players
                     if is_bench_boost:
                         player_counts[item["element_id"]] += 1
@@ -141,7 +146,6 @@ def get_team_summary(
                         if mult > 0 or (1 <= pos <= 11 and mult != 0):
                             player_counts[item["element_id"]] += 1
 
-            # Small delay to prevent FPL rate limiting (429)
             time.sleep(0.05)
 
     ownership_list = []
@@ -156,18 +160,26 @@ def get_team_summary(
             }
         )
 
-    # Format chips display text with counts (e.g., "2x Bench Boost, 1x Free Hit" or "None")
+    # Format chips display text
     if active_chips:
         chip_counts = Counter(active_chips)
         chips_display = ", ".join(f"{count}x {name}" for name, count in chip_counts.items())
     else:
         chips_display = "None"
 
+    # Format captains display text (e.g., "Haaland (4x), Salah (3x)")
+    captains_formatted = []
+    for p_id, count in captain_counts.most_common():
+        player_name = players_dict.get(p_id, {}).get("name", "Unknown")
+        captains_formatted.append(f"{player_name} ({count}x)")
+    captains_display = ", ".join(captains_formatted) if captains_formatted else "None"
+
     return {
         "gameweek": gameweek,
         "total_team_points": total_team_points,
         "total_hits_cost": total_hits_cost,
         "active_chips": chips_display,
+        "captains": captains_display,
         "managers_count": len(managers_data),
         "managers": managers_data,
         "ownership": ownership_list,
