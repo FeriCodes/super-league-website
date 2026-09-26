@@ -1,27 +1,35 @@
 :root {
   --bg-main: #1e2227;
   --bg-card: #282c34;
+  --bg-card-subtle: #21252b;
   --bg-table-header: #21252b;
   --border-color: #3b4048;
+  --border-light: rgba(255, 255, 255, 0.08);
+
   --text-main: #abb2bf;
   --text-bright: #ffffff;
+  --text-muted: #5c6370;
+
   --accent-cyan: #56b6c2;
   --accent-blue-soft: #61afef;
   --accent-green: #98c379;
   --accent-red: #e06c75;
+  --accent-yellow: #e5c07b;
+  --accent-purple: #c678dd;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: 'JetBrains Mono', monospace, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Bright Cyan Heading with Subtle Glow */
-h1, .page-title {
+/* Header & Titles */
+.page-title {
   color: var(--accent-cyan);
-  font-weight: 700;
+  font-weight: 800;
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   letter-spacing: -0.5px;
   text-shadow: 0 0 16px rgba(86, 182, 194, 0.25);
@@ -31,26 +39,28 @@ h1, .page-title {
   color: var(--text-main);
   font-weight: 500;
   letter-spacing: 0.3px;
-  opacity: 0.95;
+  opacity: 0.9;
 }
 
+/* Card Styling */
 .custom-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Base Form Controls */
+/* Form Controls */
 .form-select,
 .form-control {
   background-color: var(--bg-main);
   border: 1px solid var(--border-color);
   color: var(--text-bright);
   font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
-/* Soft Light-Blue Hover & Focus on Inputs/Selects */
 .form-select:hover,
 .form-control:hover {
   background-color: #232832;
@@ -66,7 +76,6 @@ h1, .page-title {
   outline: none;
 }
 
-/* Custom Styled form-select Arrow & Spacing */
 .form-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2361afef' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
@@ -76,16 +85,21 @@ h1, .page-title {
   cursor: pointer;
 }
 
-/* Native Option Dropdown Backgrounds */
 .form-select option {
   background-color: var(--bg-card);
   color: var(--text-bright);
 }
 
-.form-select option:checked,
-.form-select option:hover {
-  background-color: #313845 !important;
-  color: var(--accent-blue-soft) !important;
+/* Gameweek Dropdown Custom Sizing */
+#gameweek {
+  max-width: 120px;
+  text-align: center;
+  text-align-last: center;
+  padding: 6px 28px 6px 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  background-position: right 0.6rem center !important;
+  background-size: 11px 8px !important;
 }
 
 /* Compare Button */
@@ -106,7 +120,7 @@ h1, .page-title {
   border-color: var(--accent-blue-soft);
   color: #181a1f !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .btn-compare:disabled,
@@ -118,187 +132,134 @@ h1, .page-title {
   cursor: not-allowed;
 }
 
-.btn-compare .spinner-border {
-  color: #181a1f !important;
-}
-
+/* Score Summary Cards */
 .score-points {
-  font-size: clamp(1.3rem, 3.5vw, 2.1rem);
+  font-size: clamp(1.4rem, 3.8vw, 2.3rem);
   color: var(--accent-cyan);
+  line-height: 1.2;
+  margin: 6px 0;
 }
 
-/* Force Dark Styling on Tables */
+.hits-text {
+  color: var(--text-main);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.hits-value {
+  color: var(--accent-red);
+  font-weight: 700;
+}
+
+/* Table Architecture & Custom Grid Lines */
 .table-dark-custom {
-  --bs-table-bg: #282c34 !important;
+  --bs-table-bg: var(--bg-card) !important;
   --bs-table-color: var(--text-bright) !important;
   background-color: var(--bg-card) !important;
-  border-color: var(--border-color) !important;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
-.table-dark-custom thead tr th {
+.table-dark-custom th,
+.table-dark-custom td {
+  border-bottom: 1px solid var(--border-light) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.03) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+}
+
+.table-dark-custom thead th {
   background-color: var(--bg-table-header) !important;
   color: var(--text-bright) !important;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   border-bottom: 2px solid var(--border-color) !important;
-  padding: 9px 12px;
-  font-size: 0.85rem;
 }
 
-.table-dark-custom tbody tr td {
-  background-color: transparent !important;
-  color: var(--text-bright) !important;
-  border-color: var(--border-color) !important;
-  padding: 8px 12px;
-  font-size: 0.88rem;
+/* Subtle Column Tinting */
+.table-dark-custom th:nth-child(2),
+.table-dark-custom td:nth-child(2) {
+  background-color: rgba(86, 182, 194, 0.04) !important;
 }
 
-/* Subtle Row Hover on Table */
+.table-dark-custom th:nth-child(3),
+.table-dark-custom td:nth-child(3) {
+  background-color: rgba(152, 195, 121, 0.04) !important;
+}
+
+.table-dark-custom th:nth-child(4),
+.table-dark-custom td:nth-child(4) {
+  background-color: rgba(97, 175, 239, 0.04) !important;
+}
+
+.table-dark-custom th:nth-child(5),
+.table-dark-custom td:nth-child(5) {
+  background-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Row Hover */
 .table-dark-custom tbody tr {
-  transition: background-color 0.18s ease;
+  transition: background-color 0.15s ease;
 }
 
 .table-dark-custom tbody tr:hover {
-  background-color: rgba(97, 175, 239, 0.07) !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
-/* Distinct Mobile-Friendly Badges */
+/* Differential Badges */
 .diff-badge {
   display: inline-block;
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
-/* Team A Advantage (Soft Green) */
 .badge-advantage {
   background-color: rgba(152, 195, 121, 0.15);
   color: var(--accent-green) !important;
   border: 1px solid rgba(152, 195, 121, 0.35);
 }
 
-/* Team B Advantage (Soft Blue) */
 .badge-disadvantage {
   background-color: rgba(97, 175, 239, 0.15);
   color: var(--accent-blue-soft) !important;
   border: 1px solid rgba(97, 175, 239, 0.35);
 }
 
-/* Shared Players */
 .badge-shared {
   background-color: rgba(171, 178, 191, 0.1);
   color: var(--text-main) !important;
   border: 1px solid rgba(171, 178, 191, 0.25);
 }
 
-/* Accordion Component */
-.accordion-item {
-  background-color: var(--bg-card) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 6px !important;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.accordion-button {
-  background-color: var(--bg-table-header) !important;
-  color: var(--text-bright) !important;
-  border: none !important;
-  box-shadow: none !important;
-  font-weight: 600;
-  padding: 12px 16px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.accordion-button:focus {
-  box-shadow: none !important;
-  border-color: transparent !important;
-}
-
-.accordion-button:hover {
-  background-color: #252b35 !important;
-  color: var(--accent-blue-soft) !important;
-}
-
-.accordion-button:not(.collapsed) {
-  background-color: #2c313a !important;
-  color: var(--accent-cyan) !important;
-  border-bottom: 1px solid var(--border-color) !important;
-}
-
-.accordion-button::after {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2356b6c2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
-  background-size: 1.1rem;
-  transition: transform 0.25s ease-in-out;
-}
-
-.accordion-button:not(.collapsed)::after {
-  transform: rotate(-180deg);
-}
-
-.accordion-body {
-  background-color: var(--bg-card) !important;
-  color: var(--text-main) !important;
-}
-
-/* Gameweek Dropdown Custom Sizing */
-#gameweek {
-  max-width: 110px;
-  text-align: center;
-  text-align-last: center;
-  padding: 6px 28px 6px 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 6px;
-  background-position: right 0.5rem center !important;
-  background-size: 11px 8px !important;
-}
-
-/* Clean Custom Scrollbar */
-#gameweek::-webkit-scrollbar,
-select::-webkit-scrollbar,
-.custom-card::-webkit-scrollbar {
+/* Scrollbar */
+::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-#gameweek::-webkit-scrollbar-track,
-select::-webkit-scrollbar-track,
-.custom-card::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: var(--bg-main);
-  border-radius: 4px;
 }
 
-#gameweek::-webkit-scrollbar-thumb,
-select::-webkit-scrollbar-thumb,
-.custom-card::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
-#gameweek::-webkit-scrollbar-thumb:hover,
-select::-webkit-scrollbar-thumb:hover,
-.custom-card::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: var(--accent-blue-soft);
 }
 
-#gameweek,
-select,
-.custom-card {
+* {
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) var(--bg-main);
-}
-
-/* Hits Cost Indicator Styling */
-.hits-text {
-  color: #abb2bf !important;
-  font-size: 0.88rem;
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  margin-top: 4px;
-}
-
-.hits-value {
-  color: var(--accent-red);
-  font-weight: 700;
 }
