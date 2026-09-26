@@ -100,11 +100,19 @@ def get_team_summary(
     gameweek: int,
     players_dict: Dict[int, Dict[str, str]],
 ) -> Dict[str, Any]:
-    """Aggregate total points, hit costs, and count effective player ownership."""
+    """Aggregate total points, hit costs, active chips, and count effective player ownership."""
     managers_data = []
     player_counts = Counter()
     total_team_points = 0
     total_hits_cost = 0
+    active_chips = []
+
+    chip_name_map = {
+        "bboost": "Bench Boost",
+        "3xc": "Triple Captain",
+        "freehit": "Free Hit",
+        "wildcard": "Wildcard",
+    }
 
     with httpx.Client(headers=HEADERS, timeout=25.0, verify=False, follow_redirects=True) as client:
         for m_id in manager_ids:
@@ -114,7 +122,12 @@ def get_team_summary(
                 total_team_points += data["gw_points"]
                 total_hits_cost += data["hits"]
 
-                is_bench_boost = data.get("active_chip") == "bboost"
+                chip = data.get("active_chip")
+                if chip:
+                    readable_chip = chip_name_map.get(chip, chip.title())
+                    active_chips.append(readable_chip)
+
+                is_bench_boost = chip == "bboost"
 
                 for item in data.get("picks", []):
                     pos = item.get("position", 0)
@@ -143,10 +156,18 @@ def get_team_summary(
             }
         )
 
+    # Format chips display text with counts (e.g., "2x Bench Boost, 1x Free Hit" or "None")
+    if active_chips:
+        chip_counts = Counter(active_chips)
+        chips_display = ", ".join(f"{count}x {name}" for name, count in chip_counts.items())
+    else:
+        chips_display = "None"
+
     return {
         "gameweek": gameweek,
         "total_team_points": total_team_points,
         "total_hits_cost": total_hits_cost,
+        "active_chips": chips_display,
         "managers_count": len(managers_data),
         "managers": managers_data,
         "ownership": ownership_list,

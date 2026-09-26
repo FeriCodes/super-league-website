@@ -78,6 +78,7 @@
     {% if results %}
       <!-- Team Score Summary Cards -->
       <div class="row g-2 g-md-3 mb-4 text-center">
+        <!-- Team A Summary Card -->
         <div class="col-6">
           <div class="custom-card p-3">
             <h5 class="text-white text-truncate mb-1">{{ results.team_a_name }}</h5>
@@ -85,14 +86,22 @@
             <div class="hits-text">
               Hits: <span class="hits-value">-{{ results.summary_a.total_hits_cost }}</span> pts
             </div>
+            <div class="small mt-1 text-light">
+              Chips: <span class="text-info fw-semibold">{{ results.summary_a.active_chips }}</span>
+            </div>
           </div>
         </div>
+
+        <!-- Team B Summary Card -->
         <div class="col-6">
           <div class="custom-card p-3">
             <h5 class="text-white text-truncate mb-1">{{ results.team_b_name }}</h5>
             <div class="score-points fw-bold">{{ results.summary_b.total_team_points }} pts</div>
             <div class="hits-text">
               Hits: <span class="hits-value">-{{ results.summary_b.total_hits_cost }}</span> pts
+            </div>
+            <div class="small mt-1 text-light">
+              Chips: <span class="text-info fw-semibold">{{ results.summary_b.active_chips }}</span>
             </div>
           </div>
         </div>
