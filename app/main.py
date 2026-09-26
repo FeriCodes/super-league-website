@@ -46,6 +46,35 @@ def home(request: Request):
     )
 
 
+def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
+    """Calculate remaining players left to play out of total active squad slots."""
+    ownership = summary.get("ownership", [])
+    managers = summary.get("managers", [])
+
+    # Calculate total starting slots: 11 per manager, plus 4 extra for each Bench Boost
+    total_slots = 0
+    for m in managers:
+        if m.get("active_chip") == "bboost":
+            total_slots += 15
+        else:
+            total_slots += 11
+
+    # Count players who haven't kicked off yet
+    left_to_play = 0
+    for item in ownership:
+        p_id = item["id"]
+        count = item["count"]
+        status = live_data.get(p_id, {}).get("status", "Not Played Yet")
+
+        if status == "Not Played Yet":
+            left_to_play += count
+
+    return {
+        "left_to_play": left_to_play,
+        "total_slots": total_slots,
+    }
+
+
 def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: dict) -> dict:
     grouped = {
         "GKP": [],
@@ -126,6 +155,10 @@ def compare_teams(
 
     # Hook up live service directly
     live_data = get_live_scores_and_status(gameweek)
+
+    # Display players who played not yet
+    summary_a["status_counts"] = calculate_team_match_status(summary_a, live_data)
+    summary_b["status_counts"] = calculate_team_match_status(summary_b, live_data)
 
     grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data)
 
