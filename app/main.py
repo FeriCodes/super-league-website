@@ -1,14 +1,24 @@
 import json
 from pathlib import Path
 from typing import Optional
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
+from app.fpl_client import close_fpl_client
 from .fpl_service import get_players_dict, get_team_summary, get_live_scores_and_status
 
-app = FastAPI(title="Super League H2H")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await close_fpl_client()
+
+
+app = FastAPI(title="Super League H2H", lifespan=lifespan)
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -28,7 +38,7 @@ def load_teams() -> dict:
 
 
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request):
+async def home(request: Request):
     """Render the main page with team options in two dropdown columns."""
     teams = load_teams()
     team_names = sorted(list(teams.keys()))
@@ -51,7 +61,6 @@ def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
     ownership = summary.get("ownership", [])
     managers = summary.get("managers", [])
 
-    # Calculate total starting slots: 11 per manager, plus 4 extra for each Bench Boost
     total_slots = 0
     for m in managers:
         if m.get("active_chip") == "bboost":
@@ -59,7 +68,6 @@ def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
         else:
             total_slots += 11
 
-    # Count players who haven't kicked off yet
     left_to_play = 0
     for item in ownership:
         p_id = item["id"]
@@ -97,7 +105,6 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: d
         count_b = b_dict[pid]["count"] if pid in b_dict else 0
         diff = count_a - count_b
 
-        # Extract live points for this specific player
         player_points = live_data.get(pid, {}).get("points", 0)
 
         row = {
@@ -131,32 +138,30 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: d
 
 
 @app.get("/compare", response_class=HTMLResponse)
-def compare_teams(
+async def compare_teams(
     request: Request,
     team_a_name: Optional[str] = Query(None),
     team_b_name: Optional[str] = Query(None),
     gameweek: Optional[int] = Query(None),
 ):
-    """Handle comparisons and fetch live stats without attaching extra table fields."""
+    """Handle comparisons and fetch live stats with asynchronous cached endpoints."""
     if not team_a_name or not team_b_name or not gameweek:
         return RedirectResponse(url="/", status_code=303)
 
     global PLAYERS_CACHE
 
     if not PLAYERS_CACHE:
-        PLAYERS_CACHE = get_players_dict()
+        PLAYERS_CACHE = await get_players_dict()
 
     teams = load_teams()
     team_a_ids = teams.get(team_a_name, [])
     team_b_ids = teams.get(team_b_name, [])
 
-    summary_a = get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE)
-    summary_b = get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE)
+    summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE)
+    summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE)
 
-    # Hook up live service directly
-    live_data = get_live_scores_and_status(gameweek)
+    live_data = await get_live_scores_and_status(gameweek)
 
-    # Display players who played not yet
     summary_a["status_counts"] = calculate_team_match_status(summary_a, live_data)
     summary_b["status_counts"] = calculate_team_match_status(summary_b, live_data)
 

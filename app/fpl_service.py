@@ -1,14 +1,7 @@
 from collections import Counter
 import re
-import time
 from typing import Any, Dict, List, Optional
-import httpx
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
-BASE_URL = "https://fantasy.premierleague.com/api"
-FPL_LIVE_ENDPOINT = "https://fantasy.premierleague.com/api/event/{gw}/live/"
+from app.fpl_client import fetch_fpl_api
 
 
 def parse_manager_ids(raw_text: str) -> List[int]:
@@ -17,17 +10,10 @@ def parse_manager_ids(raw_text: str) -> List[int]:
     return [int(n) for n in numbers]
 
 
-def get_players_dict() -> Dict[int, Dict[str, str]]:
+async def get_players_dict() -> Dict[int, Dict[str, str]]:
     """Fetch all Premier League players and map ID to name and position."""
-    url = f"{BASE_URL}/bootstrap-static/"
-    try:
-        with httpx.Client(headers=HEADERS, timeout=20.0, verify=False, follow_redirects=True) as client:
-            response = client.get(url)
-            if response.status_code != 200:
-                return {}
-            data = response.json()
-    except Exception as e:
-        print(f"Warning: could not fetch player cache: {e}")
+    data = await fetch_fpl_api("bootstrap-static")
+    if not data:
         return {}
 
     position_map = {1: "GKP", 2: "DEF", 3: "MID", 4: "FWD"}
@@ -43,59 +29,43 @@ def get_players_dict() -> Dict[int, Dict[str, str]]:
     return players_dict
 
 
-def get_manager_gw_data(
-    manager_id: int,
-    gameweek: int,
-    client: Optional[httpx.Client] = None,
-) -> Dict[str, Any]:
+async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
     """Fetch manager's gameweek score, transfer hits, and squad picks."""
-    picks_url = f"{BASE_URL}/entry/{manager_id}/event/{gameweek}/picks/"
+    endpoint = f"entry/{manager_id}/event/{gameweek}/picks"
+    data = await fetch_fpl_api(endpoint)
 
-    def _fetch(http_client: httpx.Client) -> Dict[str, Any]:
-        response = http_client.get(picks_url)
-        if response.status_code != 200:
-            print(f"Manager {manager_id} GW {gameweek} failed with status {response.status_code}")
-            return {"status": "error", "manager_id": manager_id}
-
-        data = response.json()
-        entry_history = data.get("entry_history") or {}
-
-        # Pure gameweek points (excluding hits)
-        raw_points = entry_history.get("points", 0)
-        hits = entry_history.get("event_transfers_cost", 0)
-        net_gw_points = raw_points - hits
-        active_chip = data.get("active_chip")
-
-        picks_summary = [
-            {
-                "element_id": pick["element"],
-                "position": pick.get("position", idx + 1),
-                "multiplier": pick.get("multiplier", 0),
-            }
-            for idx, pick in enumerate(data.get("picks", []))
-        ]
-
-        return {
-            "manager_id": manager_id,
-            "gameweek": gameweek,
-            "gw_points": net_gw_points,
-            "hits": hits,
-            "active_chip": active_chip,
-            "picks": picks_summary,
-            "status": "success",
-        }
-
-    try:
-        if client is not None:
-            return _fetch(client)
-        with httpx.Client(headers=HEADERS, timeout=20.0, verify=False, follow_redirects=True) as local_client:
-            return _fetch(local_client)
-    except Exception as exc:
-        print(f"Error fetching manager {manager_id} GW {gameweek}: {exc}")
+    if not data:
+        print(f"Manager {manager_id} GW {gameweek} failed to fetch.")
         return {"status": "error", "manager_id": manager_id}
 
+    entry_history = data.get("entry_history") or {}
 
-def get_team_summary(
+    raw_points = entry_history.get("points", 0)
+    hits = entry_history.get("event_transfers_cost", 0)
+    net_gw_points = raw_points - hits
+    active_chip = data.get("active_chip")
+
+    picks_summary = [
+        {
+            "element_id": pick["element"],
+            "position": pick.get("position", idx + 1),
+            "multiplier": pick.get("multiplier", 0),
+        }
+        for idx, pick in enumerate(data.get("picks", []))
+    ]
+
+    return {
+        "manager_id": manager_id,
+        "gameweek": gameweek,
+        "gw_points": net_gw_points,
+        "hits": hits,
+        "active_chip": active_chip,
+        "picks": picks_summary,
+        "status": "success",
+    }
+
+
+async def get_team_summary(
     manager_ids: List[int],
     gameweek: int,
     players_dict: Dict[int, Dict[str, str]],
@@ -115,38 +85,35 @@ def get_team_summary(
         "wildcard": "Wildcard",
     }
 
-    with httpx.Client(headers=HEADERS, timeout=25.0, verify=False, follow_redirects=True) as client:
-        for m_id in manager_ids:
-            data = get_manager_gw_data(m_id, gameweek, client=client)
-            if data.get("status") == "success":
-                managers_data.append(data)
-                total_team_points += data["gw_points"]
-                total_hits_cost += data["hits"]
+    for m_id in manager_ids:
+        data = await get_manager_gw_data(m_id, gameweek)
+        if data.get("status") == "success":
+            managers_data.append(data)
+            total_team_points += data["gw_points"]
+            total_hits_cost += data["hits"]
 
-                chip = data.get("active_chip")
-                if chip:
-                    readable_chip = chip_name_map.get(chip, chip.title())
-                    active_chips.append(readable_chip)
+            chip = data.get("active_chip")
+            if chip:
+                readable_chip = chip_name_map.get(chip, chip.title())
+                active_chips.append(readable_chip)
 
-                is_bench_boost = chip == "bboost"
+            is_bench_boost = chip == "bboost"
 
-                for item in data.get("picks", []):
-                    pos = item.get("position", 0)
-                    mult = item.get("multiplier", 0)
+            for item in data.get("picks", []):
+                pos = item.get("position", 0)
+                mult = item.get("multiplier", 0)
 
-                    # Track captain selection (multiplier >= 2)
-                    if mult >= 2:
-                        captain_counts[item["element_id"]] += 1
+                # Track captain selection (multiplier >= 2)
+                if mult >= 2:
+                    captain_counts[item["element_id"]] += 1
 
-                    # Bench Boost counts all 15 players
-                    if is_bench_boost:
+                # Bench Boost counts all 15 players
+                if is_bench_boost:
+                    player_counts[item["element_id"]] += 1
+                else:
+                    # Only starting XI counts: multiplier > 0 OR position 1 to 11
+                    if mult > 0 or (1 <= pos <= 11 and mult != 0):
                         player_counts[item["element_id"]] += 1
-                    else:
-                        # Only starting XI counts: multiplier > 0 OR position 1 to 11
-                        if mult > 0 or (1 <= pos <= 11 and mult != 0):
-                            player_counts[item["element_id"]] += 1
-
-            time.sleep(0.05)
 
     ownership_list = []
     for p_id, count in player_counts.most_common():
@@ -167,7 +134,7 @@ def get_team_summary(
     else:
         chips_display = "None"
 
-    # Format captains display text (e.g., "Haaland (4x), Salah (3x)")
+    # Format captains display text
     captains_formatted = []
     for p_id, count in captain_counts.most_common():
         player_name = players_dict.get(p_id, {}).get("name", "Unknown")
@@ -186,14 +153,11 @@ def get_team_summary(
     }
 
 
-def fetch_raw_live_data(gw: int) -> Dict[str, Any]:
+async def fetch_raw_live_data(gw: int) -> Dict[str, Any]:
     """Fetch live gameweek events directly from the official FPL endpoint."""
-    url = FPL_LIVE_ENDPOINT.format(gw=gw)
-    with httpx.Client(headers=HEADERS, timeout=20.0, verify=False, follow_redirects=True) as client:
-        response = client.get(url)
-        if response.status_code != 200:
-            return {}
-        return response.json()
+    endpoint = f"event/{gw}/live"
+    data = await fetch_fpl_api(endpoint)
+    return data if data else {}
 
 
 def calculate_provisional_bps(elements: List[Dict[str, Any]]) -> Dict[int, int]:
@@ -236,9 +200,9 @@ def calculate_provisional_bps(elements: List[Dict[str, Any]]) -> Dict[int, int]:
     return provisional_bonuses
 
 
-def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
+async def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
     """Generate live points, provisional bonuses, and match status keyed by player ID."""
-    raw_data = fetch_raw_live_data(gw)
+    raw_data = await fetch_raw_live_data(gw)
     elements = raw_data.get("elements", [])
     provisional_bonuses = calculate_provisional_bps(elements)
 
