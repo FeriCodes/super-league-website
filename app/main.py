@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from app.fpl_client import close_fpl_client
-from .fpl_service import get_players_dict, get_team_summary, get_live_scores_and_status
+from .fpl_service import get_players_dict, get_team_summary, get_live_scores_and_status, get_gameweek_status
 
 
 @asynccontextmanager
@@ -148,12 +148,27 @@ async def compare_teams(
     if not team_a_name or not team_b_name or not gameweek:
         return RedirectResponse(url="/", status_code=303)
 
+    teams = load_teams()
+    gw_status = await get_gameweek_status(gameweek)
+    if not gw_status["valid"]:
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={
+                "team_names": sorted(list(teams.keys())),
+                "results": None,
+                "error_message": gw_status["message"],
+                "selected_team_a": team_a_name,
+                "selected_team_b": team_b_name,
+                "gw": gameweek,
+            },
+        )
+
     global PLAYERS_CACHE
 
     if not PLAYERS_CACHE:
         PLAYERS_CACHE = await get_players_dict()
 
-    teams = load_teams()
     team_a_ids = teams.get(team_a_name, [])
     team_b_ids = teams.get(team_b_name, [])
 

@@ -80,6 +80,18 @@
         </form>
       </div>
 
+      <!-- Gameweek Not Started Alert Box -->
+      {% if error_message %}
+        <div class="custom-card p-3 mb-4 text-center"
+             style="border: 1px solid #d29922;
+                    background: rgba(210, 153, 34, 0.1)">
+          <div class="d-inline-flex align-items-center justify-content-center gap-2">
+            <span style="font-size: 1.25rem;">⏳</span>
+            <span class="text-warning fw-semibold">{{ error_message }}</span>
+          </div>
+        </div>
+      {% endif %}
+
       <!-- Comparison Results Section -->
       {% if results %}
         <!-- Team Score Summary Cards (Split Design) -->

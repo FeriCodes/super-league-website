@@ -235,3 +235,26 @@ async def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
         }
 
     return live_summary
+
+
+async def get_gameweek_status(gameweek: int) -> dict:
+    """Check if the requested gameweek has kicked off or is in the future."""
+    data = await fetch_fpl_api("bootstrap-static")
+    if not data or "events" not in data:
+        return {"valid": True, "message": ""}
+
+    for event in data["events"]:
+        if event.get("id") == gameweek:
+            # Check if gameweek deadline has passed and matches have started
+            is_current = event.get("is_current", False)
+            is_finished = event.get("finished", False)
+            data_checked = event.get("data_checked", False)
+
+            if not is_current and not is_finished and not data_checked:
+                return {
+                    "valid": False,
+                    "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
+                }
+            return {"valid": True, "message": ""}
+
+    return {"valid": False, "message": f"Gameweek {gameweek} not found."}
