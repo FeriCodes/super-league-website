@@ -94,66 +94,70 @@
 
       <!-- Comparison Results Section -->
       {% if results %}
-        <!-- Team Score Summary Cards (Split Design) -->
-        <div class="row g-2 g-md-3 mb-4">
+        <!-- Team Score Summary Cards (Unified Attached Architecture) -->
+        <div class="row g-3 mb-4">
           <!-- Team A Column -->
-          <div class="col-12 col-md-6 team-column">
-            <!-- Main Card -->
-            <div class="main-score-card">
-              <div class="team-card-title text-truncate">{{ results.team_a_name }}</div>
-              <div class="team-score-num">{{ results.summary_a.total_team_points }}</div>
-              <div class="team-score-lbl">TOTAL POINTS</div>
-            </div>
-            <!-- Sub Card -->
-            <div class="sub-details-card">
-              <div class="meta-row">
-                <span class="meta-label">Transfer Hits:</span>
-                <span class="meta-value hits">-{{ results.summary_a.total_hits_cost }} pts</span>
+          <div class="col-12 col-md-6">
+            <div class="unified-team-card">
+              <!-- Upper: Main Score -->
+              <div class="main-score-section">
+                <div class="team-card-title text-truncate">{{ results.team_a_name }}</div>
+                <div class="team-score-num">{{ results.summary_a.total_team_points }}</div>
+                <div class="team-score-lbl">TOTAL POINTS</div>
               </div>
-              <div class="meta-row">
-                <span class="meta-label">Active Chips:</span>
-                <span class="meta-value chips">{{ results.summary_a.active_chips }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-label">Captains:</span>
-                <span class="meta-value captains">{{ results.summary_a.captains }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-label">Left to Play:</span>
-                <span class="meta-value left-to-play">
-                  {{ results.summary_a.status_counts.left_to_play }} / {{ results.summary_a.status_counts.total_slots }}
-                </span>
+              <!-- Lower: Attached Details -->
+              <div class="sub-details-section">
+                <div class="meta-row">
+                  <span class="meta-label">Transfer Hits:</span>
+                  <span class="meta-value hits">-{{ results.summary_a.total_hits_cost }} pts</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Active Chips:</span>
+                  <span class="meta-value chips">{{ results.summary_a.active_chips }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Captains:</span>
+                  <span class="meta-value captains">{{ results.summary_a.captains }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Left to Play:</span>
+                  <span class="meta-value left-to-play">
+                    {{ results.summary_a.status_counts.left_to_play }} / {{ results.summary_a.status_counts.total_slots }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Team B Column -->
-          <div class="col-12 col-md-6 team-column">
-            <!-- Main Card -->
-            <div class="main-score-card">
-              <div class="team-card-title text-truncate">{{ results.team_b_name }}</div>
-              <div class="team-score-num">{{ results.summary_b.total_team_points }}</div>
-              <div class="team-score-lbl">TOTAL POINTS</div>
-            </div>
-            <!-- Sub Card -->
-            <div class="sub-details-card">
-              <div class="meta-row">
-                <span class="meta-label">Transfer Hits:</span>
-                <span class="meta-value hits">-{{ results.summary_b.total_hits_cost }} pts</span>
+          <div class="col-12 col-md-6">
+            <div class="unified-team-card">
+              <!-- Upper: Main Score -->
+              <div class="main-score-section">
+                <div class="team-card-title text-truncate">{{ results.team_b_name }}</div>
+                <div class="team-score-num">{{ results.summary_b.total_team_points }}</div>
+                <div class="team-score-lbl">TOTAL POINTS</div>
               </div>
-              <div class="meta-row">
-                <span class="meta-label">Active Chips:</span>
-                <span class="meta-value chips">{{ results.summary_b.active_chips }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-label">Captains:</span>
-                <span class="meta-value captains">{{ results.summary_b.captains }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-label">Left to Play:</span>
-                <span class="meta-value left-to-play">
-                  {{ results.summary_b.status_counts.left_to_play }} / {{ results.summary_b.status_counts.total_slots }}
-                </span>
+              <!-- Lower: Attached Details -->
+              <div class="sub-details-section">
+                <div class="meta-row">
+                  <span class="meta-label">Transfer Hits:</span>
+                  <span class="meta-value hits">-{{ results.summary_b.total_hits_cost }} pts</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Active Chips:</span>
+                  <span class="meta-value chips">{{ results.summary_b.active_chips }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Captains:</span>
+                  <span class="meta-value captains">{{ results.summary_b.captains }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Left to Play:</span>
+                  <span class="meta-value left-to-play">
+                    {{ results.summary_b.status_counts.left_to_play }} / {{ results.summary_b.status_counts.total_slots }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
