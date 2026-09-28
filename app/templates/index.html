@@ -1,231 +1,202 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super League H2H</title>
+{% extends "base.html" %}
 
-    <!-- JetBrains Mono Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet">
+{% block title %}Super League H2H - Compare{% endblock %}
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-    <!-- Custom Dark Theme CSS -->
-    <link rel="stylesheet" href="/static/css/style.css">
-  </head>
-  <body class="py-3 py-md-4">
+{% block content %}
+<!-- Header (Only on Compare Page) -->
+<header class="text-center mb-3">
+  <h1 class="page-title mb-1">Super League H2H</h1>
+  <p class="subtitle-text small mb-0">7v7 Squad Head-to-Head & Player Differentials</p>
+</header>
 
-    <div class="container px-2 px-md-3">
-      <!-- Header -->
-      <header class="text-center mb-4">
-        <h1 class="page-title mb-1">Super League H2H</h1>
-        <p class="subtitle-text small mb-0">7v7 Squad Head-to-Head & Player Differentials</p>
-      </header>
+<!-- Selection Form Card -->
+<div class="custom-card p-3 p-md-4 mb-4 shadow-sm">
+  <form id="compare-form" action="/compare" method="get">
+    <div class="row g-2 g-md-3 align-items-end justify-content-center">
 
-      <!-- Selection Form Card -->
-      <div class="custom-card p-3 p-md-4 mb-4 shadow-sm">
-        <form id="compare-form" action="/compare" method="get">
-          <div class="row g-2 g-md-3 align-items-end justify-content-center">
-
-            <!-- Column 1: Team A -->
-            <div class="col-12 col-md-5">
-              <label for="team_a_name" class="form-label text-light fw-semibold small">Team A</label>
-              <select class="form-select" id="team_a_name" name="team_a_name" required>
-                <option value="" disabled {% if not selected_team_a %}selected{% endif %}>Select Team A</option>
-                {% for team in team_names %}
-                  <option value="{{ team }}"
-                          {% if selected_team_a == team %}selected{% endif %}>{{ team }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <!-- Column 2: Centered Gameweek -->
-            <div class="col-12 col-md-2 text-center">
-              <label for="gameweek"
-                     class="form-label text-light fw-semibold small w-100 text-center mb-1">Gameweek</label>
-              <select class="form-select text-center fw-bold mx-auto"
-                      id="gameweek"
-                      name="gameweek"
-                      required>
-                {% for week in range(1, 39) %}
-                  <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <!-- Column 3: Team B -->
-            <div class="col-12 col-md-5">
-              <label for="team_b_name" class="form-label text-light fw-semibold small">Team B</label>
-              <select class="form-select" id="team_b_name" name="team_b_name" required>
-                <option value="" disabled {% if not selected_team_b %}selected{% endif %}>Select Team B</option>
-                {% for team in team_names %}
-                  <option value="{{ team }}"
-                          {% if selected_team_b == team %}selected{% endif %}>{{ team }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="col-12 text-center mt-3">
-              <button type="submit" id="btn-submit" class="btn btn-compare px-4 py-2">
-                <span id="btn-text">Compare Teams ⚔️</span>
-              </button>
-            </div>
-
-          </div>
-        </form>
+      <!-- Column 1: Team A -->
+      <div class="col-12 col-md-5">
+        <label for="team_a_name" class="form-label text-light fw-semibold small">Team A</label>
+        <select class="form-select" id="team_a_name" name="team_a_name" required>
+          <option value="" disabled {% if not selected_team_a %}selected{% endif %}>Select Team A</option>
+          {% for team in team_names %}
+            <option value="{{ team }}" {% if selected_team_a == team %}selected{% endif %}>{{ team }}</option>
+          {% endfor %}
+        </select>
       </div>
 
-      <!-- Gameweek Not Started Alert Box -->
-      {% if error_message %}
-        <div class="custom-card p-3 mb-4 text-center"
-             style="border: 1px solid #d29922;
-                    background: rgba(210, 153, 34, 0.1)">
-          <div class="d-inline-flex align-items-center justify-content-center gap-2">
-            <span style="font-size: 1.25rem;">⏳</span>
-            <span class="text-warning fw-semibold">{{ error_message }}</span>
-          </div>
-        </div>
-      {% endif %}
+      <!-- Column 2: Centered Gameweek -->
+      <div class="col-12 col-md-2 text-center">
+        <label for="gameweek" class="form-label text-light fw-semibold small w-100 text-center mb-1">Gameweek</label>
+        <select class="form-select text-center fw-bold mx-auto" id="gameweek" name="gameweek" required>
+          {% for week in range(1, 39) %}
+            <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-      <!-- Comparison Results Section -->
-      {% if results %}
-        <!-- Team Score Summary Cards (Unified Attached Architecture) -->
-        <div class="row g-3 mb-4">
-          <!-- Team A Column -->
-          <div class="col-12 col-md-6">
-            <div class="unified-team-card">
-              <!-- Upper: Main Score -->
-              <div class="main-score-section">
-                <div class="team-card-title text-truncate">{{ results.team_a_name }}</div>
-                <div class="team-score-num">{{ results.summary_a.total_team_points }}</div>
-                <div class="team-score-lbl">TOTAL POINTS</div>
-              </div>
-              <!-- Lower: Attached Details -->
-              <div class="sub-details-section">
-                <div class="meta-row">
-                  <span class="meta-label">Transfer Hits:</span>
-                  <span class="meta-value hits">-{{ results.summary_a.total_hits_cost }} pts</span>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Active Chips:</span>
-                  <span class="meta-value chips">{{ results.summary_a.active_chips }}</span>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Captains:</span>
-                  <span class="meta-value captains">{{ results.summary_a.captains }}</span>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Left to Play:</span>
-                  <span class="meta-value left-to-play">
-                    {{ results.summary_a.status_counts.left_to_play }} / {{ results.summary_a.status_counts.total_slots }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- Column 3: Team B -->
+      <div class="col-12 col-md-5">
+        <label for="team_b_name" class="form-label text-light fw-semibold small">Team B</label>
+        <select class="form-select" id="team_b_name" name="team_b_name" required>
+          <option value="" disabled {% if not selected_team_b %}selected{% endif %}>Select Team B</option>
+          {% for team in team_names %}
+            <option value="{{ team }}" {% if selected_team_b == team %}selected{% endif %}>{{ team }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-          <!-- Team B Column -->
-          <div class="col-12 col-md-6">
-            <div class="unified-team-card">
-              <!-- Upper: Main Score -->
-              <div class="main-score-section">
-                <div class="team-card-title text-truncate">{{ results.team_b_name }}</div>
-                <div class="team-score-num">{{ results.summary_b.total_team_points }}</div>
-                <div class="team-score-lbl">TOTAL POINTS</div>
-              </div>
-              <!-- Lower: Attached Details -->
-              <div class="sub-details-section">
-                <div class="meta-row">
-                  <span class="meta-label">Transfer Hits:</span>
-                  <span class="meta-value hits">-{{ results.summary_b.total_hits_cost }} pts</span>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Active Chips:</span>
-                  <span class="meta-value chips">{{ results.summary_b.active_chips }}</span>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Captains:</span>
-                  <span class="meta-value captains">{{ results.summary_b.captains }}</span>
-                </div>
-                <div class="meta-row">
-                  <span class="meta-label">Left to Play:</span>
-                  <span class="meta-value left-to-play">
-                    {{ results.summary_b.status_counts.left_to_play }} / {{ results.summary_b.status_counts.total_slots }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Position Breakdown Tables -->
-        {% for pos, players in results.grouped.items() %}
-          {% if players %}
-            <div class="custom-card p-2 p-md-3 mb-4">
-              <h6 class="text-white mb-2 px-2 fw-bold text-uppercase">{{ pos }} Difference (Diff)</h6>
-              <div class="table-responsive">
-                <table class="table table-dark table-dark-custom align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th style="min-width: 130px;">Player</th>
-                      <th class="text-center" style="width: 70px;">Pts</th>
-                      <th class="text-center">{{ results.team_a_name }}</th>
-                      <th class="text-center">{{ results.team_b_name }}</th>
-                      <th class="text-center" style="min-width: 140px;">Difference (Diff)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for p in players %}
-                      <tr>
-                        <td class="fw-semibold text-light text-nowrap">{{ p.name }}</td>
-                        <td class="text-center font-monospace fw-bold"
-                            style="color: var(--accent-cyan)">{{ p.player_points }}</td>
-                        <td class="text-center font-monospace">{{ p.count_a }}</td>
-                        <td class="text-center font-monospace">{{ p.count_b }}</td>
-                        <td class="text-center text-nowrap">
-                          {% if p.diff > 0 %}
-                            <span class="diff-badge badge-advantage">▲ +{{ p.diff }} {{ results.team_a_name }}</span>
-                          {% elif p.diff < 0 %}
-                            <span class="diff-badge badge-disadvantage">▲ +{{ p.diff|abs }} {{ results.team_b_name }}</span>
-                          {% else %}
-                            <span class="diff-badge badge-shared">● Shared ({{ p.count_a }})</span>
-                          {% endif %}
-                        </td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
+      <!-- Submit Button -->
+      <div class="col-12 text-center mt-3">
+        <button type="submit" id="btn-submit" class="btn btn-compare px-4 py-2">
+          <span id="btn-text">Compare Teams ⚔️</span>
+        </button>
+      </div>
 
     </div>
+  </form>
+</div>
 
-    <!-- Loading State Script -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const form = document.getElementById("compare-form");
-            const btn = document.getElementById("btn-submit");
+<!-- Gameweek Not Started Alert Box -->
+{% if error_message %}
+  <div class="custom-card p-3 mb-4 text-center" style="border: 1px solid #d29922; background: rgba(210, 153, 34, 0.1)">
+    <div class="d-inline-flex align-items-center justify-content-center gap-2">
+      <span style="font-size: 1.25rem;">⏳</span>
+      <span class="text-warning fw-semibold">{{ error_message }}</span>
+    </div>
+  </div>
+{% endif %}
 
-            if (form && btn) {
-                form.addEventListener("submit", function() {
-                    btn.disabled = true;
-                    btn.innerHTML = `
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Comparing... Please wait
-          `;
-                    form.submit();
-                });
-            }
-        });
-    </script>
+<!-- Comparison Results Section -->
+{% if results %}
+  <!-- Team Score Summary Cards (Unified Attached Architecture) -->
+  <div class="row g-3 mb-4">
+    <!-- Team A Column -->
+    <div class="col-12 col-md-6">
+      <div class="unified-team-card">
+        <!-- Upper: Main Score -->
+        <div class="main-score-section">
+          <div class="team-card-title text-truncate">{{ results.team_a_name }}</div>
+          <div class="team-score-num">{{ results.summary_a.total_team_points }}</div>
+          <div class="team-score-lbl">TOTAL POINTS</div>
+        </div>
+        <!-- Lower: Attached Details -->
+        <div class="sub-details-section">
+          <div class="meta-row">
+            <span class="meta-label">Transfer Hits:</span>
+            <span class="meta-value hits">-{{ results.summary_a.total_hits_cost }} pts</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Active Chips:</span>
+            <span class="meta-value chips">{{ results.summary_a.active_chips }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Captains:</span>
+            <span class="meta-value captains">{{ results.summary_a.captains }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Left to Play:</span>
+            <span class="meta-value left-to-play">
+              {{ results.summary_a.status_counts.left_to_play }} / {{ results.summary_a.status_counts.total_slots }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  </body>
-</html>
+    <!-- Team B Column -->
+    <div class="col-12 col-md-6">
+      <div class="unified-team-card">
+        <!-- Upper: Main Score -->
+        <div class="main-score-section">
+          <div class="team-card-title text-truncate">{{ results.team_b_name }}</div>
+          <div class="team-score-num">{{ results.summary_b.total_team_points }}</div>
+          <div class="team-score-lbl">TOTAL POINTS</div>
+        </div>
+        <!-- Lower: Attached Details -->
+        <div class="sub-details-section">
+          <div class="meta-row">
+            <span class="meta-label">Transfer Hits:</span>
+            <span class="meta-value hits">-{{ results.summary_b.total_hits_cost }} pts</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Active Chips:</span>
+            <span class="meta-value chips">{{ results.summary_b.active_chips }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Captains:</span>
+            <span class="meta-value captains">{{ results.summary_b.captains }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Left to Play:</span>
+            <span class="meta-value left-to-play">
+              {{ results.summary_b.status_counts.left_to_play }} / {{ results.summary_b.status_counts.total_slots }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Position Breakdown Tables -->
+  {% for pos, players in results.grouped.items() %}
+    {% if players %}
+      <div class="custom-card p-2 p-md-3 mb-4">
+        <h6 class="text-white mb-2 px-2 fw-bold text-uppercase">{{ pos }} Difference (Diff)</h6>
+        <div class="table-responsive">
+          <table class="table table-dark table-dark-custom align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="min-width: 130px;">Player</th>
+                <th class="text-center" style="width: 70px;">Pts</th>
+                <th class="text-center">{{ results.team_a_name }}</th>
+                <th class="text-center">{{ results.team_b_name }}</th>
+                <th class="text-center" style="min-width: 140px;">Difference (Diff)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in players %}
+                <tr>
+                  <td class="fw-semibold text-light text-nowrap">{{ p.name }}</td>
+                  <td class="text-center font-monospace fw-bold" style="color: var(--accent-cyan)">{{ p.player_points }}</td>
+                  <td class="text-center font-monospace">{{ p.count_a }}</td>
+                  <td class="text-center font-monospace">{{ p.count_b }}</td>
+                  <td class="text-center text-nowrap">
+                    {% if p.diff > 0 %}
+                      <span class="diff-badge badge-advantage">▲ +{{ p.diff }} {{ results.team_a_name }}</span>
+                    {% elif p.diff < 0 %}
+                      <span class="diff-badge badge-disadvantage">▲ +{{ p.diff|abs }} {{ results.team_b_name }}</span>
+                    {% else %}
+                      <span class="diff-badge badge-shared">● Shared ({{ p.count_a }})</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("compare-form");
+    const btn = document.getElementById("btn-submit");
+
+    if (form && btn) {
+      form.addEventListener("submit", function() {
+        btn.disabled = true;
+        btn.innerHTML = `
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Comparing... Please wait
+        `;
+        form.submit();
+      });
+    }
+  });
+</script>
+{% endblock %}

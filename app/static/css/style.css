@@ -42,6 +42,64 @@ body {
   opacity: 0.9;
 }
 
+/* =========================================
+   App Segmented Pill Navbar
+========================================= */
+.app-navbar {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 0.35rem !important;
+  border-radius: 30px !important;
+  width: fit-content !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.nav-pill-btn {
+  color: var(--text-main) !important;
+  text-decoration: none !important;
+  font-size: 0.84rem !important;
+  font-weight: 700 !important;
+  padding: 0.45rem 1.1rem !important;
+  border-radius: 20px !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+.nav-pill-btn:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.nav-pill-btn.active {
+  background-color: var(--accent-cyan) !important;
+  color: #181a1f !important;
+  box-shadow: 0 2px 8px rgba(86, 182, 194, 0.35) !important;
+}
+
+.disabled-pill {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 576px) {
+  .app-navbar {
+    width: 100% !important;
+    justify-content: space-around !important;
+  }
+  .nav-pill-btn {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.78rem !important;
+  }
+}
+
 /* Card Styling */
 .custom-card {
   background-color: var(--bg-card);
@@ -348,4 +406,145 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) var(--bg-main);
+}
+
+/* =========================================
+   Fixture Match Card: Absolute Horizontal Lock
+========================================= */
+.fixture-match-card {
+  display: grid !important;
+  grid-template-columns: 1fr 110px 1fr !important;
+  align-items: center !important;
+  padding: 0.65rem 0.75rem !important;
+  min-height: 58px;
+}
+
+/* Team Side Cells */
+.team-side {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.team-left {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.team-right {
+  justify-content: flex-end !important;
+  text-align: right !important;
+}
+
+.team-text {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Dead-Center Locked Block */
+.fixture-center-block {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 110px !important;
+  margin: 0 auto !important;
+}
+
+/* Score Row & Digits */
+.score-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  width: 100% !important;
+}
+
+.score-val {
+  display: inline-block !important;
+  width: 44px !important;
+  text-align: center !important;
+}
+
+.score-val-left {
+  text-align: right !important;
+  padding-right: 4px !important;
+}
+
+.score-val-right {
+  text-align: left !important;
+  padding-left: 4px !important;
+}
+
+.score-dash {
+  color: #abb2bf !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  width: 10px !important;
+  text-align: center !important;
+}
+
+/* Sky-Blue Details Link */
+.fixture-details-btn {
+  color: #56b6c2 !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  margin-top: 3px !important;
+  line-height: 1 !important;
+}
+
+.fixture-details-btn:hover {
+  text-decoration: underline !important;
+  opacity: 0.85;
+}
+
+/* VS Button */
+.fixture-vs-btn {
+  display: inline-block !important;
+  font-family: var(--bs-font-monospace) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #56b6c2 !important;
+  border: 1px solid rgba(86, 182, 194, 0.4) !important;
+  background: rgba(86, 182, 194, 0.08) !important;
+  border-radius: 6px !important;
+  padding: 0.2rem 0.65rem !important;
+  text-decoration: none !important;
+}
+
+.fixture-vs-btn:hover {
+  background: #56b6c2 !important;
+  color: #181a1f !important;
+}
+
+/* Mobile Screen Tuning (< 480px) */
+@media (max-width: 480px) {
+  .fixture-match-card {
+    grid-template-columns: 1fr 94px 1fr !important;
+    padding: 0.55rem 0.5rem !important;
+  }
+  .fixture-center-block {
+    width: 94px !important;
+  }
+  .score-val {
+    width: 38px !important;
+  }
+  .team-text {
+    font-size: 0.76rem !important;
+  }
+  .score-row {
+    font-size: 0.88rem !important;
+  }
+  .fixture-details-btn {
+    font-size: 0.62rem !important;
+  }
 }

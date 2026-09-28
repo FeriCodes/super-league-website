@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Super League - Fixtures GW {{ selected_gw }}{% endblock %}
+
+{% block content %}
+<!-- Fixtures Page Title -->
+<header class="text-center mb-3">
+  <h1 class="page-title mb-1">Super League Fixtures</h1>
+  <p class="subtitle-text small mb-0">Official Head-to-Head Schedule & Results</p>
+</header>
+
+<!-- Gameweek Switcher -->
+<div class="custom-card p-2 p-sm-3 mb-3 mb-md-4 text-center">
+  <form method="get" action="/fixtures" class="d-inline-flex align-items-center justify-content-center gap-2">
+    <label for="gw-select" class="text-white fw-bold small mb-0">Gameweek:</label>
+    <select id="gw-select" name="gw" class="form-select form-select-sm text-center fw-bold" style="width: 105px;" onchange="this.form.submit()">
+      {% for week in range(1, 31) %}
+        <option value="{{ week }}" {% if selected_gw == week %}selected{% endif %}>GW {{ week }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<!-- Matchup Cards Grid -->
+<div class="row g-2 g-md-3">
+  {% for match in matches %}
+    <div class="col-12 col-md-6">
+      <div class="custom-card fixture-match-card">
+
+        <!-- Team A Name (Strict Left) -->
+        <div class="team-side team-left">
+          <span class="team-text" title="{{ match.team_a }}">{{ match.team_a }}</span>
+        </div>
+
+        <!-- Center Scoreboard (Locked in Exact Dead Center) -->
+        <div class="fixture-center-block">
+          {% if match.played %}
+            <div class="score-row font-monospace">
+              <span class="score-val score-val-left" style="color: {% if match.winner == 'team_a' %}#98c379{% elif match.winner == 'team_b' %}#e06c75{% else %}#e5c07b{% endif %};">
+                {{ match.score_a }}
+              </span>
+              <span class="score-dash">-</span>
+              <span class="score-val score-val-right" style="color: {% if match.winner == 'team_b' %}#98c379{% elif match.winner == 'team_a' %}#e06c75{% else %}#e5c07b{% endif %};">
+                {{ match.score_b }}
+              </span>
+            </div>
+            <a href="/compare?team_a_name={{ match.team_a }}&team_b_name={{ match.team_b }}&gameweek={{ selected_gw }}"
+               class="fixture-details-btn">
+              details ⚔️
+            </a>
+          {% else %}
+            <a href="/compare?team_a_name={{ match.team_a }}&team_b_name={{ match.team_b }}&gameweek={{ selected_gw }}"
+               class="fixture-vs-btn">
+              VS ⚔️
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Team B Name (Strict Right) -->
+        <div class="team-side team-right">
+          <span class="team-text" title="{{ match.team_b }}">{{ match.team_b }}</span>
+        </div>
+
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
