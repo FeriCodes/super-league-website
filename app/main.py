@@ -349,3 +349,84 @@ async def fixtures_page(request: Request, gw: int = Query(4)):
             "active_page": "fixtures",
         },
     )
+
+
+def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
+    # 1. Initialize empty stats for every team
+    table = {}
+    for team_name in teams.keys():
+        table[team_name] = {
+            "team": team_name,
+            "played": 0,
+            "won": 0,
+            "drawn": 0,
+            "lost": 0,
+            "points": 0,
+            "gd": 0,
+        }
+
+    # 2. Iterate through gameweeks and matches
+    for gw_str, matches in fixtures.items():
+        if gw_str not in results_cache:
+            continue
+        gw_scores = results_cache[gw_str]
+
+        for team_a, team_b in matches:
+            if team_a in gw_scores and team_b in gw_scores:
+                score_a = gw_scores[team_a]
+                score_b = gw_scores[team_b]
+
+                table[team_a]["played"] += 1
+                table[team_b]["played"] += 1
+
+                # Calculate match margin and update GD
+                match_diff = score_a - score_b
+                table[team_a]["gd"] += match_diff
+                table[team_b]["gd"] -= match_diff
+
+                # Determine Win / Draw / Loss
+                if score_a > score_b:
+                    table[team_a]["won"] += 1
+                    table[team_a]["points"] += 3
+                    table[team_b]["lost"] += 1
+                elif score_b > score_a:
+                    table[team_b]["won"] += 1
+                    table[team_b]["points"] += 3
+                    table[team_a]["lost"] += 1
+                else:
+                    table[team_a]["drawn"] += 1
+                    table[team_a]["points"] += 1
+                    table[team_b]["drawn"] += 1
+                    table[team_b]["points"] += 1
+
+    # 3. Sort by Points (descending), then GD (descending)
+    standings_list = sorted(
+        table.values(),
+        key=lambda x: (x["points"], x["gd"]),
+        reverse=True,
+    )
+
+    # 4. Assign rank positions (1 to N)
+    for idx, row in enumerate(standings_list, start=1):
+        row["pos"] = idx
+
+    return standings_list
+
+
+@app.get("/standings", response_class=HTMLResponse)
+async def standings_page(request: Request):
+    teams = load_teams()
+    fixtures = load_fixtures()
+    results_cache = load_results_cache()
+
+    standings = compute_standings(fixtures, results_cache, teams)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="standings.html",
+        context={
+            "standings": standings,
+            "active_page": "standings",
+            "page_title": "Standings",
+        },
+    )
