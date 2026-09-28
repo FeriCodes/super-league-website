@@ -241,18 +241,24 @@ async def get_gameweek_status(gameweek: int) -> dict:
     """Check if the requested gameweek has kicked off or is in the future."""
     data = await fetch_fpl_api("bootstrap-static")
     if not data or "events" not in data:
-        return {"valid": True, "message": ""}
+        return {"valid": True, "finished": False, "message": ""}
 
-    for event in data["events"]:
+    for event in data.get("events", []):
         if event.get("id") == gameweek:
-            is_current = event.get("is_current", False)
-            is_finished = event.get("finished", False)
-            data_checked = event.get("data_checked", False)
+            is_current = bool(event.get("is_current", False))
+            is_finished = bool(event.get("finished", False))
+            data_checked = bool(event.get("data_checked", False))
 
-        if not is_current and not is_finished and not data_checked:
+            if not is_current and not is_finished and not data_checked:
+                return {
+                    "valid": False,
+                    "finished": False,
+                    "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
+                }
             return {
-                "valid": False,
-                "finished": False,
-                "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
+                "valid": True,
+                "finished": is_finished,
+                "message": "",
             }
-        return {"valid": True, "finished": is_finished, "message": ""}
+
+    return {"valid": False, "finished": False, "message": f"Gameweek {gameweek} not found."}
