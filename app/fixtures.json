@@ -1,0 +1,302 @@
+{
+  "1": [
+    ["Aston Villa", "Fulham"],
+    ["Liverpool", "Crystal Palace"],
+    ["Chelsea", "Brighton"],
+    ["Newcastle", "Brentford"],
+    ["Nottingham Forest", "Sunderland"],
+    ["Manchester United", "Manchester City"],
+    ["Everton", "Tottenham"],
+    ["Arsenal", "Bournemouth"]
+  ],
+  "2": [
+    ["Aston Villa", "Crystal Palace"],
+    ["Fulham", "Brighton"],
+    ["Liverpool", "Brentford"],
+    ["Chelsea", "Sunderland"],
+    ["Newcastle", "Manchester City"],
+    ["Nottingham Forest", "Tottenham"],
+    ["Manchester United", "Bournemouth"],
+    ["Everton", "Arsenal"]
+  ],
+  "3": [
+    ["Aston Villa", "Brighton"],
+    ["Crystal Palace", "Brentford"],
+    ["Fulham", "Sunderland"],
+    ["Liverpool", "Manchester City"],
+    ["Chelsea", "Tottenham"],
+    ["Newcastle", "Bournemouth"],
+    ["Nottingham Forest", "Arsenal"],
+    ["Manchester United", "Everton"]
+  ],
+  "4": [
+    ["Aston Villa", "Brentford"],
+    ["Brighton", "Sunderland"],
+    ["Crystal Palace", "Manchester City"],
+    ["Fulham", "Tottenham"],
+    ["Liverpool", "Bournemouth"],
+    ["Chelsea", "Arsenal"],
+    ["Newcastle", "Everton"],
+    ["Nottingham Forest", "Manchester United"]
+  ],
+  "5": [
+    ["Aston Villa", "Sunderland"],
+    ["Brentford", "Manchester City"],
+    ["Brighton", "Tottenham"],
+    ["Crystal Palace", "Bournemouth"],
+    ["Fulham", "Arsenal"],
+    ["Liverpool", "Everton"],
+    ["Chelsea", "Manchester United"],
+    ["Newcastle", "Nottingham Forest"]
+  ],
+  "6": [
+    ["Aston Villa", "Manchester City"],
+    ["Sunderland", "Tottenham"],
+    ["Brentford", "Bournemouth"],
+    ["Brighton", "Arsenal"],
+    ["Crystal Palace", "Everton"],
+    ["Fulham", "Manchester United"],
+    ["Liverpool", "Nottingham Forest"],
+    ["Chelsea", "Newcastle"]
+  ],
+  "7": [
+    ["Aston Villa", "Tottenham"],
+    ["Manchester City", "Bournemouth"],
+    ["Sunderland", "Arsenal"],
+    ["Brentford", "Everton"],
+    ["Brighton", "Manchester United"],
+    ["Crystal Palace", "Nottingham Forest"],
+    ["Fulham", "Newcastle"],
+    ["Liverpool", "Chelsea"]
+  ],
+  "8": [
+    ["Aston Villa", "Bournemouth"],
+    ["Tottenham", "Arsenal"],
+    ["Manchester City", "Everton"],
+    ["Sunderland", "Manchester United"],
+    ["Brentford", "Nottingham Forest"],
+    ["Brighton", "Newcastle"],
+    ["Crystal Palace", "Chelsea"],
+    ["Fulham", "Liverpool"]
+  ],
+  "9": [
+    ["Aston Villa", "Arsenal"],
+    ["Bournemouth", "Everton"],
+    ["Tottenham", "Manchester United"],
+    ["Manchester City", "Nottingham Forest"],
+    ["Sunderland", "Newcastle"],
+    ["Brentford", "Chelsea"],
+    ["Brighton", "Liverpool"],
+    ["Crystal Palace", "Fulham"]
+  ],
+  "10": [
+    ["Aston Villa", "Everton"],
+    ["Arsenal", "Manchester United"],
+    ["Bournemouth", "Nottingham Forest"],
+    ["Tottenham", "Newcastle"],
+    ["Manchester City", "Chelsea"],
+    ["Sunderland", "Liverpool"],
+    ["Brentford", "Fulham"],
+    ["Brighton", "Crystal Palace"]
+  ],
+  "11": [
+    ["Aston Villa", "Manchester United"],
+    ["Everton", "Nottingham Forest"],
+    ["Arsenal", "Newcastle"],
+    ["Bournemouth", "Chelsea"],
+    ["Tottenham", "Liverpool"],
+    ["Manchester City", "Fulham"],
+    ["Sunderland", "Crystal Palace"],
+    ["Brentford", "Brighton"]
+  ],
+  "12": [
+    ["Aston Villa", "Nottingham Forest"],
+    ["Manchester United", "Newcastle"],
+    ["Everton", "Chelsea"],
+    ["Arsenal", "Liverpool"],
+    ["Bournemouth", "Fulham"],
+    ["Tottenham", "Crystal Palace"],
+    ["Manchester City", "Brighton"],
+    ["Sunderland", "Brentford"]
+  ],
+  "13": [
+    ["Aston Villa", "Newcastle"],
+    ["Nottingham Forest", "Chelsea"],
+    ["Manchester United", "Liverpool"],
+    ["Everton", "Fulham"],
+    ["Arsenal", "Crystal Palace"],
+    ["Bournemouth", "Brighton"],
+    ["Tottenham", "Brentford"],
+    ["Manchester City", "Sunderland"]
+  ],
+  "14": [
+    ["Aston Villa", "Chelsea"],
+    ["Newcastle", "Liverpool"],
+    ["Nottingham Forest", "Fulham"],
+    ["Manchester United", "Crystal Palace"],
+    ["Everton", "Brighton"],
+    ["Arsenal", "Brentford"],
+    ["Bournemouth", "Sunderland"],
+    ["Tottenham", "Manchester City"]
+  ],
+  "15": [
+    ["Aston Villa", "Liverpool"],
+    ["Chelsea", "Fulham"],
+    ["Newcastle", "Crystal Palace"],
+    ["Nottingham Forest", "Brighton"],
+    ["Manchester United", "Brentford"],
+    ["Everton", "Sunderland"],
+    ["Arsenal", "Manchester City"],
+    ["Bournemouth", "Tottenham"]
+  ],
+  "16": [
+    ["Aston Villa", "Nottingham Forest"],
+    ["Manchester United", "Newcastle"],
+    ["Everton", "Chelsea"],
+    ["Arsenal", "Liverpool"],
+    ["Bournemouth", "Fulham"],
+    ["Tottenham", "Crystal Palace"],
+    ["Manchester City", "Brighton"],
+    ["Sunderland", "Brentford"]
+  ],
+  "17": [
+    ["Aston Villa", "Brentford"],
+    ["Brighton", "Sunderland"],
+    ["Crystal Palace", "Manchester City"],
+    ["Fulham", "Tottenham"],
+    ["Liverpool", "Bournemouth"],
+    ["Chelsea", "Arsenal"],
+    ["Newcastle", "Everton"],
+    ["Nottingham Forest", "Manchester United"]
+  ],
+  "18": [
+    ["Aston Villa", "Arsenal"],
+    ["Bournemouth", "Everton"],
+    ["Tottenham", "Manchester United"],
+    ["Manchester City", "Nottingham Forest"],
+    ["Sunderland", "Newcastle"],
+    ["Brentford", "Chelsea"],
+    ["Brighton", "Liverpool"],
+    ["Crystal Palace", "Fulham"]
+  ],
+  "19": [
+    ["Aston Villa", "Fulham"],
+    ["Liverpool", "Crystal Palace"],
+    ["Chelsea", "Brighton"],
+    ["Newcastle", "Brentford"],
+    ["Nottingham Forest", "Sunderland"],
+    ["Manchester United", "Manchester City"],
+    ["Everton", "Tottenham"],
+    ["Arsenal", "Bournemouth"]
+  ],
+  "20": [
+    ["Aston Villa", "Tottenham"],
+    ["Manchester City", "Bournemouth"],
+    ["Sunderland", "Arsenal"],
+    ["Brentford", "Everton"],
+    ["Brighton", "Manchester United"],
+    ["Crystal Palace", "Nottingham Forest"],
+    ["Fulham", "Newcastle"],
+    ["Liverpool", "Chelsea"]
+  ],
+  "21": [
+    ["Aston Villa", "Liverpool"],
+    ["Chelsea", "Fulham"],
+    ["Newcastle", "Crystal Palace"],
+    ["Nottingham Forest", "Brighton"],
+    ["Manchester United", "Brentford"],
+    ["Everton", "Sunderland"],
+    ["Arsenal", "Manchester City"],
+    ["Bournemouth", "Tottenham"]
+  ],
+  "22": [
+    ["Aston Villa", "Brighton"],
+    ["Crystal Palace", "Brentford"],
+    ["Fulham", "Sunderland"],
+    ["Liverpool", "Manchester City"],
+    ["Chelsea", "Tottenham"],
+    ["Newcastle", "Bournemouth"],
+    ["Nottingham Forest", "Arsenal"],
+    ["Manchester United", "Everton"]
+  ],
+  "23": [
+    ["Aston Villa", "Manchester United"],
+    ["Everton", "Nottingham Forest"],
+    ["Arsenal", "Newcastle"],
+    ["Bournemouth", "Chelsea"],
+    ["Tottenham", "Liverpool"],
+    ["Manchester City", "Fulham"],
+    ["Sunderland", "Crystal Palace"],
+    ["Brentford", "Brighton"]
+  ],
+  "24": [
+    ["Aston Villa", "Manchester City"],
+    ["Sunderland", "Tottenham"],
+    ["Brentford", "Bournemouth"],
+    ["Brighton", "Arsenal"],
+    ["Crystal Palace", "Everton"],
+    ["Fulham", "Manchester United"],
+    ["Liverpool", "Nottingham Forest"],
+    ["Chelsea", "Newcastle"]
+  ],
+  "25": [
+    ["Aston Villa", "Chelsea"],
+    ["Newcastle", "Liverpool"],
+    ["Nottingham Forest", "Fulham"],
+    ["Manchester United", "Crystal Palace"],
+    ["Everton", "Brighton"],
+    ["Arsenal", "Brentford"],
+    ["Bournemouth", "Sunderland"],
+    ["Tottenham", "Manchester City"]
+  ],
+  "26": [
+    ["Aston Villa", "Crystal Palace"],
+    ["Fulham", "Brighton"],
+    ["Liverpool", "Brentford"],
+    ["Chelsea", "Sunderland"],
+    ["Newcastle", "Manchester City"],
+    ["Nottingham Forest", "Tottenham"],
+    ["Manchester United", "Bournemouth"],
+    ["Everton", "Arsenal"]
+  ],
+  "27": [
+    ["Aston Villa", "Everton"],
+    ["Arsenal", "Manchester United"],
+    ["Bournemouth", "Nottingham Forest"],
+    ["Tottenham", "Newcastle"],
+    ["Manchester City", "Chelsea"],
+    ["Sunderland", "Liverpool"],
+    ["Brentford", "Fulham"],
+    ["Brighton", "Crystal Palace"]
+  ],
+  "28": [
+    ["Aston Villa", "Bournemouth"],
+    ["Tottenham", "Arsenal"],
+    ["Manchester City", "Everton"],
+    ["Sunderland", "Manchester United"],
+    ["Brentford", "Nottingham Forest"],
+    ["Brighton", "Newcastle"],
+    ["Crystal Palace", "Chelsea"],
+    ["Fulham", "Liverpool"]
+  ],
+  "29": [
+    ["Aston Villa", "Sunderland"],
+    ["Brentford", "Manchester City"],
+    ["Brighton", "Tottenham"],
+    ["Crystal Palace", "Bournemouth"],
+    ["Fulham", "Arsenal"],
+    ["Liverpool", "Everton"],
+    ["Chelsea", "Manchester United"],
+    ["Newcastle", "Nottingham Forest"]
+  ],
+  "30": [
+    ["Aston Villa", "Newcastle"],
+    ["Nottingham Forest", "Chelsea"],
+    ["Manchester United", "Liverpool"],
+    ["Everton", "Fulham"],
+    ["Arsenal", "Crystal Palace"],
+    ["Bournemouth", "Brighton"],
+    ["Tottenham", "Brentford"],
+    ["Manchester City", "Sunderland"]
+  ]
+}
