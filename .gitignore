@@ -28,3 +28,5 @@ desktop.ini
 # Logs and runtime databases
 *.log
 *.sqlite3
+
+app/results_cache.json
