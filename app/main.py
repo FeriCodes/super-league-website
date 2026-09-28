@@ -1,9 +1,11 @@
+import os
 import json
 import asyncio
 from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
 
+import asyncpg
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -18,10 +20,32 @@ from .fpl_service import (
     get_manager_gw_data,
 )
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+db_pool: Optional[asyncpg.Pool] = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global db_pool
+    if DATABASE_URL:
+        try:
+            db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
+            async with db_pool.acquire() as conn:
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS results_cache (
+                        gameweek INT PRIMARY KEY,
+                        data JSONB NOT NULL,
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                    );
+                    """)
+        except Exception as e:
+            print(f"[DATABASE INIT ERROR] {e}")
+            db_pool = None
+
     yield
+
+    if db_pool:
+        await db_pool.close()
     await close_fpl_client()
 
 
@@ -52,17 +76,14 @@ def get_team_roster(teams_data: dict, team_name: str, gw: int) -> list:
     if not data:
         return []
 
-    # Ensure gameweek is an integer for accurate numeric comparison
     try:
         current_gw = int(gw)
     except (ValueError, TypeError):
         current_gw = 1
 
-    # Simple flat list of manager IDs
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], int):
         return data
 
-    # Historical ranges list of dicts
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         for entry in data:
             from_gw = int(entry.get("from_gw", 1))
@@ -80,7 +101,7 @@ def load_fixtures() -> dict:
         return json.load(f)
 
 
-def load_results_cache() -> dict:
+def _load_local_results_cache() -> dict:
     if not RESULTS_CACHE_FILE.exists():
         return {}
     try:
@@ -90,7 +111,7 @@ def load_results_cache() -> dict:
         return {}
 
 
-def save_results_cache(data: dict):
+def _save_local_results_cache(data: dict):
     try:
         with open(RESULTS_CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -98,8 +119,68 @@ def save_results_cache(data: dict):
         print(f"[CACHE WRITE ERROR] {e}")
 
 
+async def get_all_results_cache() -> dict:
+    """Fetch all cached gameweeks from PostgreSQL with JSON file fallback."""
+    if db_pool:
+        try:
+            async with db_pool.acquire() as conn:
+                rows = await conn.fetch("SELECT gameweek, data FROM results_cache")
+                cache = {}
+                for row in rows:
+                    gw_str = str(row["gameweek"])
+                    raw_data = row["data"]
+                    cache[gw_str] = json.loads(raw_data) if isinstance(raw_data, str) else raw_data
+                return cache
+        except Exception as e:
+            print(f"[DB READ ALL ERROR] {e}")
+
+    return _load_local_results_cache()
+
+
+async def get_cached_gameweek(gw: int) -> Optional[dict]:
+    """Fetch cached data for a specific gameweek."""
+    gw_str = str(gw)
+    if db_pool:
+        try:
+            async with db_pool.acquire() as conn:
+                row = await conn.fetchrow("SELECT data FROM results_cache WHERE gameweek = $1", gw)
+                if row:
+                    raw_data = row["data"]
+                    return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
+                return None
+        except Exception as e:
+            print(f"[DB READ GW ERROR] {e}")
+
+    cache = _load_local_results_cache()
+    return cache.get(gw_str)
+
+
+async def save_cached_gameweek(gw: int, data: dict):
+    """Save gameweek scores persistently in PostgreSQL with JSON fallback."""
+    if db_pool:
+        try:
+            json_payload = json.dumps(data)
+            async with db_pool.acquire() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO results_cache (gameweek, data)
+                    VALUES ($1, $2::jsonb)
+                    ON CONFLICT (gameweek)
+                    DO UPDATE SET data = EXCLUDED.data, created_at = CURRENT_TIMESTAMP
+                    """,
+                    gw,
+                    json_payload,
+                )
+            return
+        except Exception as e:
+            print(f"[DB WRITE ERROR] {e}")
+
+    cache = _load_local_results_cache()
+    cache[str(gw)] = data
+    _save_local_results_cache(cache)
+
+
 def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
-    """Calculate remaining players left to play out of total active squad slots."""
     ownership = summary.get("ownership", [])
     managers = summary.get("managers", [])
 
@@ -181,7 +262,6 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: d
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    """Render the main page with team options in two dropdown columns."""
     teams = load_teams()
     team_names = sorted(list(teams.keys()))
 
@@ -206,7 +286,6 @@ async def compare_teams(
     team_b_name: Optional[str] = Query(None),
     gameweek: Optional[int] = Query(None),
 ):
-    """Handle comparisons and fetch live stats with asynchronous cached endpoints."""
     if not team_a_name or not team_b_name or not gameweek:
         return RedirectResponse(url="/", status_code=303)
 
@@ -269,7 +348,6 @@ async def compare_teams(
 
 
 async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
-    """Fetch only the net points for a team without heavy differentials processing."""
     if not team_ids:
         return 0
     tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
@@ -286,17 +364,16 @@ async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
 async def fixtures_page(request: Request, gw: int = Query(4)):
     teams = load_teams()
     fixtures = load_fixtures()
-    results_cache = load_results_cache()
 
     gw_str = str(gw)
     raw_matches = fixtures.get(gw_str, [])
 
+    gw_scores = await get_cached_gameweek(gw)
+
     gw_status = await get_gameweek_status(gw)
     is_gw_finished = gw_status.get("finished", False)
 
-    # Only calculate and cache when official event has completed
-    if is_gw_finished and gw_str not in results_cache:
-        results_cache[gw_str] = {}
+    if is_gw_finished and gw_scores is None:
         ordered_teams = []
         for t1, t2 in raw_matches:
             if t1 not in ordered_teams:
@@ -307,12 +384,14 @@ async def fixtures_page(request: Request, gw: int = Query(4)):
         tasks = [get_team_total_points_fast(get_team_roster(teams, t_name, gw), gw) for t_name in ordered_teams]
         calculated_points = await asyncio.gather(*tasks)
 
+        gw_scores = {}
         for t_name, score in zip(ordered_teams, calculated_points):
-            results_cache[gw_str][t_name] = score
+            gw_scores[t_name] = score
 
-        save_results_cache(results_cache)
+        await save_cached_gameweek(gw, gw_scores)
 
-    gw_scores = results_cache.get(gw_str, {})
+    if gw_scores is None:
+        gw_scores = {}
 
     matches = []
     for team_a, team_b in raw_matches:
@@ -352,7 +431,6 @@ async def fixtures_page(request: Request, gw: int = Query(4)):
 
 
 def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
-    # 1. Initialize empty stats for every team
     table = {}
     for team_name in teams.keys():
         table[team_name] = {
@@ -365,7 +443,6 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
             "gd": 0,
         }
 
-    # 2. Iterate through gameweeks and matches
     for gw_str, matches in fixtures.items():
         if gw_str not in results_cache:
             continue
@@ -379,12 +456,10 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
                 table[team_a]["played"] += 1
                 table[team_b]["played"] += 1
 
-                # Calculate match margin and update GD
                 match_diff = score_a - score_b
                 table[team_a]["gd"] += match_diff
                 table[team_b]["gd"] -= match_diff
 
-                # Determine Win / Draw / Loss
                 if score_a > score_b:
                     table[team_a]["won"] += 1
                     table[team_a]["points"] += 3
@@ -399,14 +474,12 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
                     table[team_b]["drawn"] += 1
                     table[team_b]["points"] += 1
 
-    # 3. Sort by Points (descending), then GD (descending)
     standings_list = sorted(
         table.values(),
         key=lambda x: (x["points"], x["gd"]),
         reverse=True,
     )
 
-    # 4. Assign rank positions (1 to N)
     for idx, row in enumerate(standings_list, start=1):
         row["pos"] = idx
 
@@ -417,7 +490,7 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
 async def standings_page(request: Request):
     teams = load_teams()
     fixtures = load_fixtures()
-    results_cache = load_results_cache()
+    results_cache = await get_all_results_cache()
 
     standings = compute_standings(fixtures, results_cache, teams)
 
