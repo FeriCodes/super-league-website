@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Super League - Standings{% endblock %}
+
+{% block content %}
+<!-- Standings Page Header -->
+<header class="text-center mb-3">
+  <h1 class="page-title mb-1">Super League Standings</h1>
+  <p class="subtitle-text small mb-0">Official Head-to-Head Points & Goal Difference</p>
+</header>
+
+<!-- Standings Table Card -->
+<div class="custom-card p-2 p-md-3 mb-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-dark-custom align-middle mb-0 standings-table">
+      <thead>
+        <tr>
+          <th class="col-pos text-center" style="width: 50px;">Pos</th>
+          <th class="col-team text-start">Team</th>
+          <th class="text-center" style="width: 60px;">Pl</th>
+          <th class="text-center" style="width: 60px;">W</th>
+          <th class="text-center" style="width: 60px;">D</th>
+          <th class="text-center" style="width: 60px;">L</th>
+          <th class="col-pts text-center" style="width: 75px;">Pts</th>
+          <th class="col-gd text-center" style="width: 85px;">GD</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in standings %}
+        <tr>
+          <td class="col-pos text-center font-monospace fw-semibold">{{ row.pos }}</td>
+          <td class="col-team text-start fw-bold text-white">{{ row.team }}</td>
+          <td class="text-center font-monospace">{{ row.played }}</td>
+          <td class="text-center font-monospace stat-win">{{ row.won }}</td>
+          <td class="text-center font-monospace stat-draw">{{ row.drawn }}</td>
+          <td class="text-center font-monospace stat-loss">{{ row.lost }}</td>
+          <td class="col-pts text-center font-monospace">{{ row.points }}</td>
+          <td class="col-gd text-center font-monospace {% if row.gd > 0 %}gd-pos{% elif row.gd < 0 %}gd-neg{% else %}gd-zero{% endif %}">
+            {% if row.gd > 0 %}+{{ row.gd }}{% else %}{{ row.gd }}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

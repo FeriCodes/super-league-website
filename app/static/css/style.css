@@ -548,3 +548,71 @@ body {
     font-size: 0.62rem !important;
   }
 }
+
+
+/* =========================================
+   Standings Table Styles (Matched Theme)
+========================================= */
+.standings-table {
+  width: 100%;
+  font-size: 0.92rem;
+}
+
+.standings-table thead th {
+  padding: 10px 8px !important;
+  color: var(--text-main) !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase !important;
+}
+
+.standings-table tbody td {
+  padding: 10px 8px !important;
+  vertical-align: middle !important;
+}
+
+.standings-table td.col-pos {
+  color: var(--text-muted);
+}
+
+.standings-table td.col-team {
+  letter-spacing: 0.2px;
+}
+
+.standings-table td.stat-win {
+  color: var(--accent-green) !important;
+  font-weight: 700;
+}
+
+.standings-table td.stat-draw {
+  color: var(--accent-yellow) !important;
+}
+
+.standings-table td.stat-loss {
+  color: var(--accent-red) !important;
+  font-weight: 700;
+}
+
+.standings-table th.col-pts,
+.standings-table td.col-pts {
+  color: var(--accent-cyan) !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+  background-color: rgba(86, 182, 194, 0.05) !important;
+}
+
+.standings-table td.col-gd {
+  font-weight: 700;
+  direction: ltr;
+}
+
+.standings-table td.gd-pos {
+  color: var(--accent-green) !important;
+}
+
+.standings-table td.gd-neg {
+  color: var(--accent-red) !important;
+}
+
+.standings-table td.gd-zero {
+  color: var(--text-muted) !important;
+}
