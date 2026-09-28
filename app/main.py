@@ -46,6 +46,33 @@ def load_teams() -> dict:
         return json.load(f)
 
 
+def get_team_roster(teams_data: dict, team_name: str, gw: int) -> list:
+    """Fetch manager IDs dynamically for a team based on gameweek ranges."""
+    data = teams_data.get(team_name, [])
+    if not data:
+        return []
+
+    # Ensure gameweek is an integer for accurate numeric comparison
+    try:
+        current_gw = int(gw)
+    except (ValueError, TypeError):
+        current_gw = 1
+
+    # Simple flat list of manager IDs
+    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], int):
+        return data
+
+    # Historical ranges list of dicts
+    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+        for entry in data:
+            from_gw = int(entry.get("from_gw", 1))
+            to_gw = int(entry.get("to_gw", 38))
+            if from_gw <= current_gw <= to_gw:
+                return entry.get("ids", [])
+
+    return []
+
+
 def load_fixtures() -> dict:
     if not FIXTURES_FILE.exists():
         return {}
@@ -204,8 +231,8 @@ async def compare_teams(
     if not PLAYERS_CACHE:
         PLAYERS_CACHE = await get_players_dict()
 
-    team_a_ids = teams.get(team_a_name, [])
-    team_b_ids = teams.get(team_b_name, [])
+    team_a_ids = get_team_roster(teams, team_a_name, gameweek)
+    team_b_ids = get_team_roster(teams, team_b_name, gameweek)
 
     summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE)
     summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE)
@@ -241,20 +268,10 @@ async def compare_teams(
     )
 
 
-async def get_team_total_points(team_ids: list, gw: int) -> int:
-    """Fetch total points for a single team using existing service summary."""
-    global PLAYERS_CACHE
-    if not PLAYERS_CACHE:
-        PLAYERS_CACHE = await get_players_dict()
-    summary = await get_team_summary(team_ids, gw, PLAYERS_CACHE)
-    return summary.get("total_team_points", 0)
-
-
 async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
     """Fetch only the net points for a team without heavy differentials processing."""
     if not team_ids:
         return 0
-    # Directly fetch manager gw scores concurrently
     tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -277,7 +294,7 @@ async def fixtures_page(request: Request, gw: int = Query(4)):
     gw_status = await get_gameweek_status(gw)
     is_gw_finished = gw_status.get("finished", False)
 
-    # فقط و فقط اگر کل بازی‌های هفته رسماً پایان یافته بود و در کش نبود، محاسبه کن
+    # Only calculate and cache when official event has completed
     if is_gw_finished and gw_str not in results_cache:
         results_cache[gw_str] = {}
         ordered_teams = []
@@ -287,7 +304,7 @@ async def fixtures_page(request: Request, gw: int = Query(4)):
             if t2 not in ordered_teams:
                 ordered_teams.append(t2)
 
-        tasks = [get_team_total_points_fast(teams.get(t_name, []), gw) for t_name in ordered_teams]
+        tasks = [get_team_total_points_fast(get_team_roster(teams, t_name, gw), gw) for t_name in ordered_teams]
         calculated_points = await asyncio.gather(*tasks)
 
         for t_name, score in zip(ordered_teams, calculated_points):
