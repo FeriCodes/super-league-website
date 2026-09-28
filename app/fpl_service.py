@@ -245,16 +245,14 @@ async def get_gameweek_status(gameweek: int) -> dict:
 
     for event in data["events"]:
         if event.get("id") == gameweek:
-            # Check if gameweek deadline has passed and matches have started
             is_current = event.get("is_current", False)
             is_finished = event.get("finished", False)
             data_checked = event.get("data_checked", False)
 
-            if not is_current and not is_finished and not data_checked:
-                return {
-                    "valid": False,
-                    "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
-                }
-            return {"valid": True, "message": ""}
-
-    return {"valid": False, "message": f"Gameweek {gameweek} not found."}
+        if not is_current and not is_finished and not data_checked:
+            return {
+                "valid": False,
+                "finished": False,
+                "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
+            }
+        return {"valid": True, "finished": is_finished, "message": ""}
