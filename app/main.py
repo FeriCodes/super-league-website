@@ -1,4 +1,5 @@
 import json
+import asyncio
 from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
@@ -9,7 +10,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 from app.fpl_client import close_fpl_client
-from .fpl_service import get_players_dict, get_team_summary, get_live_scores_and_status, get_gameweek_status
+from .fpl_service import (
+    get_players_dict,
+    get_team_summary,
+    get_live_scores_and_status,
+    get_gameweek_status,
+    get_manager_gw_data,
+)
 
 
 @asynccontextmanager
@@ -24,6 +31,8 @@ templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 TEAMS_FILE = Path(__file__).resolve().parent / "sl_teams.json"
+FIXTURES_FILE = Path(__file__).resolve().parent / "fixtures.json"
+RESULTS_CACHE_FILE = Path(__file__).resolve().parent / "results_cache.json"
 
 # In-memory cache for player info (ID -> name, position)
 PLAYERS_CACHE = {}
@@ -37,23 +46,29 @@ def load_teams() -> dict:
         return json.load(f)
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    """Render the main page with team options in two dropdown columns."""
-    teams = load_teams()
-    team_names = sorted(list(teams.keys()))
+def load_fixtures() -> dict:
+    if not FIXTURES_FILE.exists():
+        return {}
+    with open(FIXTURES_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "team_names": team_names,
-            "results": None,
-            "selected_team_a": "",
-            "selected_team_b": "",
-            "gw": 5,
-        },
-    )
+
+def load_results_cache() -> dict:
+    if not RESULTS_CACHE_FILE.exists():
+        return {}
+    try:
+        with open(RESULTS_CACHE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_results_cache(data: dict):
+    try:
+        with open(RESULTS_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[CACHE WRITE ERROR] {e}")
 
 
 def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
@@ -137,6 +152,26 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: d
     return grouped
 
 
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    """Render the main page with team options in two dropdown columns."""
+    teams = load_teams()
+    team_names = sorted(list(teams.keys()))
+
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "team_names": team_names,
+            "results": None,
+            "selected_team_a": "",
+            "selected_team_b": "",
+            "gw": 5,
+            "active_page": "compare",
+        },
+    )
+
+
 @app.get("/compare", response_class=HTMLResponse)
 async def compare_teams(
     request: Request,
@@ -161,11 +196,11 @@ async def compare_teams(
                 "selected_team_a": team_a_name,
                 "selected_team_b": team_b_name,
                 "gw": gameweek,
+                "active_page": "compare",
             },
         )
 
     global PLAYERS_CACHE
-
     if not PLAYERS_CACHE:
         PLAYERS_CACHE = await get_players_dict()
 
@@ -201,5 +236,99 @@ async def compare_teams(
             "selected_team_a": team_a_name,
             "selected_team_b": team_b_name,
             "gw": gameweek,
+            "active_page": "compare",
+        },
+    )
+
+
+async def get_team_total_points(team_ids: list, gw: int) -> int:
+    """Fetch total points for a single team using existing service summary."""
+    global PLAYERS_CACHE
+    if not PLAYERS_CACHE:
+        PLAYERS_CACHE = await get_players_dict()
+    summary = await get_team_summary(team_ids, gw, PLAYERS_CACHE)
+    return summary.get("total_team_points", 0)
+
+
+async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
+    """Fetch only the net points for a team without heavy differentials processing."""
+    if not team_ids:
+        return 0
+    # Directly fetch manager gw scores concurrently
+    tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    total = 0
+    for r in results:
+        if isinstance(r, dict) and r.get("status") == "success":
+            total += r.get("gw_points", 0)
+    return total
+
+
+@app.get("/fixtures", response_class=HTMLResponse)
+async def fixtures_page(request: Request, gw: int = Query(4)):
+    teams = load_teams()
+    fixtures = load_fixtures()
+    results_cache = load_results_cache()
+
+    gw_str = str(gw)
+    raw_matches = fixtures.get(gw_str, [])
+
+    gw_status = await get_gameweek_status(gw)
+    is_gw_finished = gw_status.get("finished", False)
+
+    # فقط و فقط اگر کل بازی‌های هفته رسماً پایان یافته بود و در کش نبود، محاسبه کن
+    if is_gw_finished and gw_str not in results_cache:
+        results_cache[gw_str] = {}
+        ordered_teams = []
+        for t1, t2 in raw_matches:
+            if t1 not in ordered_teams:
+                ordered_teams.append(t1)
+            if t2 not in ordered_teams:
+                ordered_teams.append(t2)
+
+        tasks = [get_team_total_points_fast(teams.get(t_name, []), gw) for t_name in ordered_teams]
+        calculated_points = await asyncio.gather(*tasks)
+
+        for t_name, score in zip(ordered_teams, calculated_points):
+            results_cache[gw_str][t_name] = score
+
+        save_results_cache(results_cache)
+
+    gw_scores = results_cache.get(gw_str, {})
+
+    matches = []
+    for team_a, team_b in raw_matches:
+        has_scores = team_a in gw_scores and team_b in gw_scores
+        score_a = gw_scores.get(team_a, 0)
+        score_b = gw_scores.get(team_b, 0)
+
+        winner = None
+        if has_scores:
+            if score_a > score_b:
+                winner = "team_a"
+            elif score_b > score_a:
+                winner = "team_b"
+            else:
+                winner = "draw"
+
+        matches.append(
+            {
+                "team_a": team_a,
+                "team_b": team_b,
+                "played": has_scores,
+                "score_a": score_a,
+                "score_b": score_b,
+                "winner": winner,
+            }
+        )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="fixtures.html",
+        context={
+            "selected_gw": gw,
+            "matches": matches,
+            "active_page": "fixtures",
         },
     )
