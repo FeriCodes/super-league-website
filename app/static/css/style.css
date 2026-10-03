@@ -326,27 +326,6 @@ body {
   border-bottom: 2px solid var(--border-color) !important;
 }
 
-/* Subtle Column Tinting */
-.table-dark-custom th:nth-child(2),
-.table-dark-custom td:nth-child(2) {
-  background-color: rgba(86, 182, 194, 0.04) !important;
-}
-
-.table-dark-custom th:nth-child(3),
-.table-dark-custom td:nth-child(3) {
-  background-color: rgba(152, 195, 121, 0.04) !important;
-}
-
-.table-dark-custom th:nth-child(4),
-.table-dark-custom td:nth-child(4) {
-  background-color: rgba(97, 175, 239, 0.04) !important;
-}
-
-.table-dark-custom th:nth-child(5),
-.table-dark-custom td:nth-child(5) {
-  background-color: rgba(0, 0, 0, 0.12) !important;
-}
-
 /* Row Hover */
 .table-dark-custom tbody tr {
   transition: background-color 0.15s ease;
@@ -419,7 +398,6 @@ body {
   min-height: 58px;
 }
 
-/* Team Side Cells */
 .team-side {
   min-width: 0 !important;
   display: flex !important;
@@ -447,7 +425,6 @@ body {
   width: 100% !important;
 }
 
-/* Dead-Center Locked Block */
 .fixture-center-block {
   display: flex !important;
   flex-direction: column !important;
@@ -457,7 +434,6 @@ body {
   margin: 0 auto !important;
 }
 
-/* Score Row & Digits */
 .score-row {
   display: flex !important;
   align-items: center !important;
@@ -492,7 +468,6 @@ body {
   text-align: center !important;
 }
 
-/* Sky-Blue Details Link */
 .fixture-details-btn {
   color: #56b6c2 !important;
   font-size: 0.68rem !important;
@@ -507,7 +482,6 @@ body {
   opacity: 0.85;
 }
 
-/* VS Button */
 .fixture-vs-btn {
   display: inline-block !important;
   font-family: var(--bs-font-monospace) !important;
@@ -526,7 +500,6 @@ body {
   color: #181a1f !important;
 }
 
-/* Mobile Screen Tuning (< 480px) */
 @media (max-width: 480px) {
   .fixture-match-card {
     grid-template-columns: 1fr 94px 1fr !important;
@@ -549,24 +522,24 @@ body {
   }
 }
 
-
 /* =========================================
-   Standings Table Styles (Matched Theme)
+   Standings Table Styles (Matched Theme & Mobile Lock)
 ========================================= */
 .standings-table {
-  width: 100%;
-  font-size: 0.92rem;
+  width: 100% !important;
+  table-layout: fixed !important;
+  font-size: 0.88rem;
 }
 
 .standings-table thead th {
-  padding: 10px 8px !important;
+  padding: 8px 3px !important;
   color: var(--text-main) !important;
-  font-size: 0.8rem !important;
+  font-size: 0.78rem !important;
   text-transform: uppercase !important;
 }
 
 .standings-table tbody td {
-  padding: 10px 8px !important;
+  padding: 8px 3px !important;
   vertical-align: middle !important;
 }
 
@@ -578,41 +551,74 @@ body {
   letter-spacing: 0.2px;
 }
 
-.standings-table td.stat-win {
+/* =========================================
+   Standings Direct Colors (High Specificity)
+========================================= */
+.standings-table td.stat-win,
+td.stat-win {
   color: var(--accent-green) !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
-.standings-table td.stat-draw {
+.standings-table td.stat-draw,
+td.stat-draw {
   color: var(--accent-yellow) !important;
+  font-weight: 600 !important;
 }
 
-.standings-table td.stat-loss {
+.standings-table td.stat-loss,
+td.stat-loss {
   color: var(--accent-red) !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 .standings-table th.col-pts,
-.standings-table td.col-pts {
+.standings-table td.col-pts,
+td.col-pts {
   color: var(--accent-cyan) !important;
   font-weight: 800 !important;
-  font-size: 1rem !important;
+  font-size: 0.95rem !important;
   background-color: rgba(86, 182, 194, 0.05) !important;
 }
 
-.standings-table td.col-gd {
-  font-weight: 700;
+.standings-table td.col-gd,
+td.col-gd {
+  font-weight: 700 !important;
   direction: ltr;
 }
 
-.standings-table td.gd-pos {
+.standings-table td.gd-pos,
+td.gd-pos {
   color: var(--accent-green) !important;
+  font-weight: 700 !important;
 }
 
-.standings-table td.gd-neg {
+.standings-table td.gd-neg,
+td.gd-neg {
   color: var(--accent-red) !important;
+  font-weight: 700 !important;
 }
 
-.standings-table td.gd-zero {
+.standings-table td.gd-zero,
+td.gd-zero {
   color: var(--text-muted) !important;
+  font-weight: 600 !important;
+}
+
+/* Mobile Screen Tuning (< 576px) */
+@media (max-width: 576px) {
+  .standings-table {
+    font-size: 0.75rem !important;
+  }
+  .standings-table thead th {
+    font-size: 0.7rem !important;
+    padding: 6px 1px !important;
+  }
+  .standings-table tbody td {
+    padding: 7px 1px !important;
+  }
+  .standings-table th.col-pts,
+  .standings-table td.col-pts {
+    font-size: 0.8rem !important;
+  }
 }
