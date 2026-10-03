@@ -607,11 +607,14 @@ td.gd-zero {
 
 /* Mobile Screen Tuning (< 576px) */
 @media (max-width: 576px) {
-  .standings-table {
-    font-size: 0.75rem !important;
+  .page-title {
+    font-size: 1.3rem !important;
     margin-bottom: 0.2rem !important;
   }
   .subtitle-text {
+    font-size: 0.75rem !important;
+  }
+  .standings-table {
     font-size: 0.75rem !important;
   }
   .standings-table thead th {
