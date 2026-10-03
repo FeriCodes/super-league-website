@@ -6,35 +6,48 @@
 <!-- Standings Page Header -->
 <header class="text-center mb-3">
   <h1 class="page-title mb-1">Super League Standings</h1>
-  <p class="subtitle-text small mb-0">Official Head-to-Head Points & Goal Difference</p>
+  <p class="subtitle-text small mb-0">All Teams Standings</p>
 </header>
+
+{% set short_names = {
+  "Manchester United": "Man United",
+  "Manchester City": "Man City",
+  "Crystal Palace": "Palace",
+  "Nottingham Forest": "Forest",
+  "Wolverhampton Wanderers": "Wolves",
+  "Tottenham Hotspur": "Spurs",
+  "Sheffield United": "Sheffield Utd",
+  "Brighton and Hove Albion": "Brighton"
+} %}
 
 <!-- Standings Table Card -->
 <div class="custom-card p-1 p-md-3 mb-4">
   <table class="table table-dark table-dark-custom align-middle mb-0 text-center standings-table" style="table-layout: fixed; width: 100%;">
     <thead>
       <tr class="small text-muted">
-        <th style="width: 10%; padding: 8px 2px;">#</th>
-        <th class="text-start" style="width: 32%; padding: 8px 4px;">Team</th>
-        <th style="width: 9%; padding: 8px 2px;">Pl</th>
-        <th style="width: 9%; padding: 8px 2px;">W</th>
-        <th style="width: 9%; padding: 8px 2px;">D</th>
-        <th style="width: 9%; padding: 8px 2px;">L</th>
-        <th class="col-pts" style="width: 11%; padding: 8px 2px;">Pts</th>
-        <th class="col-gd" style="width: 11%; padding: 8px 2px;">GD</th>
+        <th style="width: 9%; padding: 8px 1px;">#</th>
+        <th class="text-start" style="width: 35%; padding: 8px 3px;">Team</th>
+        <th style="width: 9%; padding: 8px 1px;">Pl</th>
+        <th style="width: 9%; padding: 8px 1px;">W</th>
+        <th style="width: 9%; padding: 8px 1px;">D</th>
+        <th style="width: 9%; padding: 8px 1px;">L</th>
+        <th class="col-pts" style="width: 10%; padding: 8px 1px;">Pts</th>
+        <th class="col-gd" style="width: 10%; padding: 8px 1px;">GD</th>
       </tr>
     </thead>
     <tbody>
       {% for row in standings %}
       <tr>
-        <td class="font-monospace fw-semibold col-pos" style="padding: 10px 2px;">{{ row.pos }}</td>
-        <td class="text-start fw-bold text-white text-truncate col-team" style="padding: 10px 4px;" title="{{ row.team }}">{{ row.team }}</td>
-        <td class="font-monospace" style="padding: 10px 2px;">{{ row.played }}</td>
-        <td class="font-monospace stat-win" style="padding: 10px 2px;">{{ row.won }}</td>
-        <td class="font-monospace stat-draw" style="padding: 10px 2px;">{{ row.drawn }}</td>
-        <td class="font-monospace stat-loss" style="padding: 10px 2px;">{{ row.lost }}</td>
-        <td class="col-pts font-monospace" style="padding: 10px 2px;">{{ row.points }}</td>
-        <td class="col-gd font-monospace {% if row.gd > 0 %}gd-pos{% elif row.gd < 0 %}gd-neg{% else %}gd-zero{% endif %}" style="padding: 10px 2px;">
+        <td class="font-monospace fw-semibold col-pos" style="padding: 9px 1px;">{{ row.pos }}</td>
+        <td class="text-start fw-bold text-white text-truncate col-team" style="padding: 9px 3px;" title="{{ row.team }}">
+          {{ short_names.get(row.team, row.team) }}
+        </td>
+        <td class="font-monospace" style="padding: 9px 1px;">{{ row.played }}</td>
+        <td class="font-monospace stat-win" style="padding: 9px 1px;">{{ row.won }}</td>
+        <td class="font-monospace stat-draw" style="padding: 9px 1px;">{{ row.drawn }}</td>
+        <td class="font-monospace stat-loss" style="padding: 9px 1px;">{{ row.lost }}</td>
+        <td class="col-pts font-monospace" style="padding: 9px 1px;">{{ row.points }}</td>
+        <td class="col-gd font-monospace {% if row.gd > 0 %}gd-pos{% elif row.gd < 0 %}gd-neg{% else %}gd-zero{% endif %}" style="padding: 9px 1px;">
           {% if row.gd > 0 %}+{{ row.gd }}{% else %}{{ row.gd }}{% endif %}
         </td>
       </tr>

@@ -609,6 +609,10 @@ td.gd-zero {
 @media (max-width: 576px) {
   .standings-table {
     font-size: 0.75rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .subtitle-text {
+    font-size: 0.75rem !important;
   }
   .standings-table thead th {
     font-size: 0.7rem !important;
