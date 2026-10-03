@@ -361,9 +361,19 @@ async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
 
 
 @app.get("/fixtures", response_class=HTMLResponse)
-async def fixtures_page(request: Request, gw: int = Query(4)):
+async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     teams = load_teams()
     fixtures = load_fixtures()
+
+    # پیدا کردن آخرین هفته ثبت‌شده در کش به عنوان مقدار پیش‌فرض
+    if gw is None:
+        cached_all = await get_all_results_cache()
+        cached_gws = [int(k) for k in cached_all.keys() if str(k).isdigit()]
+        if cached_gws:
+            gw = max(cached_gws)
+        else:
+            available_gws = [int(k) for k in fixtures.keys() if str(k).isdigit()]
+            gw = min(available_gws) if available_gws else 1
 
     gw_str = str(gw)
     raw_matches = fixtures.get(gw_str, [])
