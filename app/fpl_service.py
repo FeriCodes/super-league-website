@@ -202,6 +202,32 @@ def calculate_provisional_bps(elements: List[Dict[str, Any]]) -> Dict[int, int]:
 
 async def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
     """Generate live points, provisional bonuses, and match status keyed by player ID."""
+
+    static_data = await fetch_fpl_api("bootstrap-static")
+    player_to_team: Dict[int, int] = {}
+    if static_data:
+        for el in static_data.get("elements", []):
+            player_to_team[el["id"]] = el.get("team")
+
+    fixtures_data = await fetch_fpl_api("fixtures")
+    finished_teams = set()
+    started_teams = set()
+
+    if fixtures_data and isinstance(fixtures_data, list):
+        for fix in fixtures_data:
+            if fix.get("event") == gw:
+                home_team = fix.get("team_h")
+                away_team = fix.get("team_a")
+                is_finished = fix.get("finished") is True or fix.get("finished_provisional") is True
+                is_started = fix.get("started") is True
+
+                if is_finished:
+                    finished_teams.add(home_team)
+                    finished_teams.add(away_team)
+                elif is_started:
+                    started_teams.add(home_team)
+                    started_teams.add(away_team)
+
     raw_data = await fetch_raw_live_data(gw)
     elements = raw_data.get("elements", [])
     provisional_bonuses = calculate_provisional_bps(elements)
@@ -219,13 +245,13 @@ async def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
         bonus_to_add = provisional_bonuses.get(player_id, 0) if official_bonus == 0 else 0
         live_total = raw_points + bonus_to_add
 
-        explain_list = el.get("explain", [])
-        if not explain_list or minutes_played == 0:
-            status = "Not Played Yet"
-        elif minutes_played >= 90:
+        team_id = player_to_team.get(player_id)
+        if team_id in finished_teams:
             status = "FT"
-        else:
+        elif team_id in started_teams:
             status = "LIVE"
+        else:
+            status = "Not Played Yet"
 
         live_summary[player_id] = {
             "points": live_total,
