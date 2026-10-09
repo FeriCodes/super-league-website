@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import uvicorn
 from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
@@ -513,3 +514,7 @@ async def standings_page(request: Request):
             "page_title": "Standings",
         },
     )
+
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
