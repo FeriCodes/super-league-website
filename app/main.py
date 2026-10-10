@@ -186,25 +186,29 @@ async def save_cached_gameweek(gw: int, data: dict):
 
 
 def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
-    """Calculate total squad slots and players left to play."""
-    ownership = summary.get("ownership", [])
+    """Count physical unique player appearances left to play per manager."""
     managers = summary.get("managers", [])
 
     total_slots = 0
-    for m in managers:
-        if m.get("active_chip") == "bboost":
-            total_slots += 15
-        else:
-            total_slots += 11
-
     left_to_play = 0
-    for item in ownership:
-        p_id = item["id"]
-        count = item["count"]
-        status = live_data.get(p_id, {}).get("status", "Not Played Yet")
 
-        if status == "Not Played Yet":
-            left_to_play += count
+    for m in managers:
+        chip = m.get("active_chip")
+        is_bench_boost = chip == "bboost"
+
+        for pick in m.get("picks", []):
+            pos = pick.get("position", 0)
+            mult = pick.get("multiplier", 0)
+            p_id = pick.get("element_id")
+
+            # Check if this player is in the active squad
+            is_active = is_bench_boost or mult > 0 or (1 <= pos <= 11)
+
+            if is_active:
+                total_slots += 1
+                status = live_data.get(p_id, {}).get("status", "Not Played Yet")
+                if status == "Not Played Yet":
+                    left_to_play += 1
 
     return {
         "left_to_play": left_to_play,
