@@ -147,7 +147,7 @@
           <table class="table table-dark table-dark-custom align-middle mb-0">
             <thead>
               <tr>
-                <th style="min-width: 130px;">Player</th>
+                <th style="min-width: 140px;">Player</th>
                 <th class="text-center" style="width: 70px;">Pts</th>
                 <th class="text-center">{{ results.team_a_name }}</th>
                 <th class="text-center">{{ results.team_b_name }}</th>
@@ -156,8 +156,13 @@
             </thead>
             <tbody>
               {% for p in players %}
-                <tr>
-                  <td class="fw-semibold text-light text-nowrap">{{ p.name }}</td>
+                <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %}">
+                  <td class="fw-semibold text-light text-nowrap">
+                    <span>{{ p.name }}</span>
+                    {% if p.opponent %}
+                      <span class="opponent-badge">({{ p.opponent }})</span>
+                    {% endif %}
+                  </td>
                   <td class="text-center font-monospace fw-bold" style="color: var(--accent-cyan)">{{ p.player_points }}</td>
                   <td class="text-center font-monospace">{{ p.count_a }}</td>
                   <td class="text-center font-monospace">{{ p.count_b }}</td>

@@ -363,6 +363,26 @@ body {
   border: 1px solid rgba(171, 178, 191, 0.25);
 }
 
+/* Finished Matches & Opponent Badge */
+.player-row-ft {
+  opacity: 0.38 !important;
+  filter: grayscale(45%);
+  transition: opacity 0.2s ease;
+}
+
+.player-row-ft:hover {
+  opacity: 0.85 !important;
+  filter: none;
+}
+
+.opponent-badge {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 5px;
+  letter-spacing: 0.3px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
