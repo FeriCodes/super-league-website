@@ -1,4 +1,5 @@
 from collections import Counter
+from datetime import datetime, timezone
 import re
 from typing import Any, Dict, List, Optional
 from app.fpl_client import fetch_fpl_api
@@ -307,3 +308,46 @@ async def get_gameweek_status(gameweek: int) -> dict:
             }
 
     return {"valid": False, "finished": False, "message": f"Gameweek {gameweek} not found."}
+
+
+async def get_current_gameweek() -> int:
+    """Find the current active or most recently commenced gameweek based on deadlines."""
+    data = await fetch_fpl_api("bootstrap-static")
+    if not data or "events" not in data:
+        return 1
+
+    events = data.get("events", [])
+
+    # 1. Official is_current marker
+    for event in events:
+        if event.get("is_current") is True:
+            return event.get("id", 1)
+
+    # 2. Check by deadline time: find the latest gameweek that has actually started
+    now = datetime.now(timezone.utc)
+    started_gws = []
+    for event in events:
+        deadline_str = event.get("deadline_time")
+        if deadline_str:
+            try:
+                # Format: 2026-08-15T10:00:00Z
+                deadline_dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
+                if deadline_dt <= now:
+                    started_gws.append(event.get("id"))
+            except Exception:
+                pass
+
+    if started_gws:
+        return max(started_gws)
+
+    # 3. Fallback: check finished flag
+    finished_gws = [e.get("id") for e in events if e.get("finished") is True]
+    if finished_gws:
+        return max(finished_gws)
+
+    # 4. Fallback: next upcoming gameweek
+    for event in events:
+        if event.get("is_next") is True:
+            return event.get("id", 1)
+
+    return 1

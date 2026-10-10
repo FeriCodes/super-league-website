@@ -19,6 +19,7 @@ from .fpl_service import (
     get_live_scores_and_status,
     get_gameweek_status,
     get_manager_gw_data,
+    get_current_gameweek,
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -268,9 +269,10 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: d
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    """Render home page with team selection."""
+    """Render home page with dynamic current gameweek."""
     teams = load_teams()
     team_names = sorted(list(teams.keys()))
+    current_gw = await get_current_gameweek()
 
     return templates.TemplateResponse(
         request=request,
@@ -280,7 +282,7 @@ async def home(request: Request):
             "results": None,
             "selected_team_a": "",
             "selected_team_b": "",
-            "gw": 5,
+            "gw": current_gw,
             "active_page": "compare",
         },
     )
@@ -294,7 +296,10 @@ async def compare_teams(
     gameweek: Optional[int] = Query(None),
 ):
     """Compare two teams head-to-head with live updating scores."""
-    if not team_a_name or not team_b_name or not gameweek:
+    if gameweek is None:
+        gameweek = await get_current_gameweek()
+
+    if not team_a_name or not team_b_name:
         return RedirectResponse(url="/", status_code=303)
 
     teams = load_teams()
@@ -321,10 +326,8 @@ async def compare_teams(
     team_a_ids = get_team_roster(teams, team_a_name, gameweek)
     team_b_ids = get_team_roster(teams, team_b_name, gameweek)
 
-    # 1. Fetch live scores and match statuses first
     live_data = await get_live_scores_and_status(gameweek)
 
-    # 2. Compute dynamic team totals using live data
     summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE, live_data)
     summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE, live_data)
 
