@@ -69,6 +69,7 @@ async def get_team_summary(
     manager_ids: List[int],
     gameweek: int,
     players_dict: Dict[int, Dict[str, str]],
+    live_data: Dict[int, Dict[str, Any]],
 ) -> Dict[str, Any]:
     """Aggregate total points, hit costs, active chips, captains, and count effective player ownership."""
     managers_data = []
@@ -88,32 +89,51 @@ async def get_team_summary(
     for m_id in manager_ids:
         data = await get_manager_gw_data(m_id, gameweek)
         if data.get("status") == "success":
-            managers_data.append(data)
-            total_team_points += data["gw_points"]
-            total_hits_cost += data["hits"]
-
+            hits = data.get("hits", 0)
             chip = data.get("active_chip")
             if chip:
                 readable_chip = chip_name_map.get(chip, chip.title())
                 active_chips.append(readable_chip)
 
             is_bench_boost = chip == "bboost"
+            manager_live_points = 0
 
             for item in data.get("picks", []):
+                p_id = item["element_id"]
                 pos = item.get("position", 0)
                 mult = item.get("multiplier", 0)
 
+                player_live = live_data.get(p_id, {})
+                status = player_live.get("status", "Not Played Yet")
+
+                # Count live points for players whose matches are underway or finished
+                p_score = player_live.get("points", 0) if status in ("FT", "LIVE") else 0
+
                 # Track captain selection (multiplier >= 2)
                 if mult >= 2:
-                    captain_counts[item["element_id"]] += 1
+                    captain_counts[p_id] += 1
 
                 # Bench Boost counts all 15 players
                 if is_bench_boost:
-                    player_counts[item["element_id"]] += 1
+                    player_counts[p_id] += 1
+                    effective_mult = mult if mult > 0 else 1
+                    manager_live_points += p_score * effective_mult
                 else:
-                    # Only starting XI counts: multiplier > 0 OR position 1 to 11
-                    if mult > 0 or (1 <= pos <= 11 and mult != 0):
-                        player_counts[item["element_id"]] += 1
+                    # Starting XI: multiplier > 0 OR lineup positions 1 to 11
+                    if mult > 0:
+                        player_counts[p_id] += 1
+                        manager_live_points += p_score * mult
+                    elif 1 <= pos <= 11 and mult == 0:
+                        player_counts[p_id] += 1
+                        manager_live_points += p_score
+
+            # Deduct transfer hits from the manager's live points
+            net_manager_points = manager_live_points - hits
+            data["gw_points"] = net_manager_points
+
+            managers_data.append(data)
+            total_team_points += net_manager_points
+            total_hits_cost += hits
 
     ownership_list = []
     for p_id, count in player_counts.most_common():
@@ -202,7 +222,6 @@ def calculate_provisional_bps(elements: List[Dict[str, Any]]) -> Dict[int, int]:
 
 async def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
     """Generate live points, provisional bonuses, and match status keyed by player ID."""
-
     static_data = await fetch_fpl_api("bootstrap-static")
     player_to_team: Dict[int, int] = {}
     if static_data:

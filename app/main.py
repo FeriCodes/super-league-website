@@ -96,6 +96,7 @@ def get_team_roster(teams_data: dict, team_name: str, gw: int) -> list:
 
 
 def load_fixtures() -> dict:
+    """Load league schedule mapping from fixtures.json."""
     if not FIXTURES_FILE.exists():
         return {}
     with open(FIXTURES_FILE, "r", encoding="utf-8") as f:
@@ -103,6 +104,7 @@ def load_fixtures() -> dict:
 
 
 def _load_local_results_cache() -> dict:
+    """Load cached gameweek results from local json fallback."""
     if not RESULTS_CACHE_FILE.exists():
         return {}
     try:
@@ -113,6 +115,7 @@ def _load_local_results_cache() -> dict:
 
 
 def _save_local_results_cache(data: dict):
+    """Write gameweek results to local json fallback."""
     try:
         with open(RESULTS_CACHE_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -182,6 +185,7 @@ async def save_cached_gameweek(gw: int, data: dict):
 
 
 def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
+    """Calculate total squad slots and players left to play."""
     ownership = summary.get("ownership", [])
     managers = summary.get("managers", [])
 
@@ -208,6 +212,7 @@ def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
 
 
 def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: dict) -> dict:
+    """Build positional player breakdown and point diffs for head-to-head matchup."""
     grouped = {
         "GKP": [],
         "DEF": [],
@@ -263,6 +268,7 @@ def build_head_to_head_comparison(summary_a: dict, summary_b: dict, live_data: d
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+    """Render home page with team selection."""
     teams = load_teams()
     team_names = sorted(list(teams.keys()))
 
@@ -287,6 +293,7 @@ async def compare_teams(
     team_b_name: Optional[str] = Query(None),
     gameweek: Optional[int] = Query(None),
 ):
+    """Compare two teams head-to-head with live updating scores."""
     if not team_a_name or not team_b_name or not gameweek:
         return RedirectResponse(url="/", status_code=303)
 
@@ -314,10 +321,12 @@ async def compare_teams(
     team_a_ids = get_team_roster(teams, team_a_name, gameweek)
     team_b_ids = get_team_roster(teams, team_b_name, gameweek)
 
-    summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE)
-    summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE)
-
+    # 1. Fetch live scores and match statuses first
     live_data = await get_live_scores_and_status(gameweek)
+
+    # 2. Compute dynamic team totals using live data
+    summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE, live_data)
+    summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE, live_data)
 
     summary_a["status_counts"] = calculate_team_match_status(summary_a, live_data)
     summary_b["status_counts"] = calculate_team_match_status(summary_b, live_data)
@@ -349,6 +358,7 @@ async def compare_teams(
 
 
 async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
+    """Fetch cumulative team score asynchronously for final fixtures calculation."""
     if not team_ids:
         return 0
     tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
@@ -363,10 +373,10 @@ async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
 
 @app.get("/fixtures", response_class=HTMLResponse)
 async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
+    """Render gameweek fixtures and store final results once the gameweek concludes."""
     teams = load_teams()
     fixtures = load_fixtures()
 
-    # پیدا کردن آخرین هفته ثبت‌شده در کش به عنوان مقدار پیش‌فرض
     if gw is None:
         cached_all = await get_all_results_cache()
         cached_gws = [int(k) for k in cached_all.keys() if str(k).isdigit()]
@@ -442,6 +452,7 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
 
 
 def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
+    """Calculate overall league table standings based on cached finished results."""
     table = {}
     for team_name in teams.keys():
         table[team_name] = {
@@ -499,6 +510,7 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
 
 @app.get("/standings", response_class=HTMLResponse)
 async def standings_page(request: Request):
+    """Render overall standings page."""
     teams = load_teams()
     fixtures = load_fixtures()
     results_cache = await get_all_results_cache()
