@@ -11,8 +11,8 @@ def parse_manager_ids(raw_text: str) -> List[int]:
     return [int(n) for n in numbers]
 
 
-async def get_players_dict() -> Dict[int, Dict[str, str]]:
-    """Fetch all Premier League players and map ID to name and position."""
+async def get_players_dict() -> Dict[int, Dict[str, Any]]:
+    """Fetch all Premier League players and map ID to name, position, and team ID."""
     data = await fetch_fpl_api("bootstrap-static")
     if not data:
         return {}
@@ -25,6 +25,7 @@ async def get_players_dict() -> Dict[int, Dict[str, str]]:
         players_dict[player_id] = {
             "name": element["web_name"],
             "position": position_map.get(pos_id, "Unknown"),
+            "team_id": element.get("team"),
         }
 
     return players_dict
@@ -69,7 +70,7 @@ async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
 async def get_team_summary(
     manager_ids: List[int],
     gameweek: int,
-    players_dict: Dict[int, Dict[str, str]],
+    players_dict: Dict[int, Dict[str, Any]],
     live_data: Dict[int, Dict[str, Any]],
 ) -> Dict[str, Any]:
     """Aggregate total points, hit costs, active chips, captains, and count effective player ownership."""
@@ -114,15 +115,14 @@ async def get_team_summary(
                 if mult >= 2:
                     captain_counts[p_id] += 1
 
-                # Bench Boost counts all 15 players
+                # Calculate effective ownership weight (multiplier)
                 if is_bench_boost:
-                    player_counts[p_id] += 1
-                    effective_mult = mult if mult > 0 else 1
-                    manager_live_points += p_score * effective_mult
+                    effective_weight = mult if mult > 0 else 1
+                    player_counts[p_id] += effective_weight
+                    manager_live_points += p_score * effective_weight
                 else:
-                    # Starting XI: multiplier > 0 OR lineup positions 1 to 11
                     if mult > 0:
-                        player_counts[p_id] += 1
+                        player_counts[p_id] += mult
                         manager_live_points += p_score * mult
                     elif 1 <= pos <= 11 and mult == 0:
                         player_counts[p_id] += 1
@@ -330,7 +330,6 @@ async def get_current_gameweek() -> int:
         deadline_str = event.get("deadline_time")
         if deadline_str:
             try:
-                # Format: 2026-08-15T10:00:00Z
                 deadline_dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
                 if deadline_dt <= now:
                     started_gws.append(event.get("id"))
@@ -351,3 +350,29 @@ async def get_current_gameweek() -> int:
             return event.get("id", 1)
 
     return 1
+
+
+async def get_team_fixtures_map(gw: int) -> Dict[int, str]:
+    """Map each Premier League team ID to their opponent's short name for the gameweek."""
+    static_data = await fetch_fpl_api("bootstrap-static")
+    if not static_data:
+        return {}
+
+    team_short_names = {t["id"]: t["short_name"] for t in static_data.get("teams", [])}
+
+    fixtures_data = await fetch_fpl_api("fixtures")
+    fixture_map: Dict[int, str] = {}
+
+    if fixtures_data and isinstance(fixtures_data, list):
+        for fix in fixtures_data:
+            if fix.get("event") == gw:
+                h_id = fix.get("team_h")
+                a_id = fix.get("team_a")
+                h_short = team_short_names.get(h_id, "OPP")
+                a_short = team_short_names.get(a_id, "OPP")
+
+                # e.g., Arsenal (H) plays Leeds (A): Arsenal -> "(LEE)", Leeds -> "(ARS)"
+                fixture_map[h_id] = a_short
+                fixture_map[a_id] = h_short
+
+    return fixture_map
