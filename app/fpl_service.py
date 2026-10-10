@@ -148,26 +148,32 @@ async def get_team_summary(
             }
         )
 
-    # Format chips display text
+    # Format chips display list and text
+    chips_list = []
     if active_chips:
         chip_counts = Counter(active_chips)
-        chips_display = ", ".join(f"{count}x {name}" for name, count in chip_counts.items())
+        for name, count in chip_counts.items():
+            chips_list.append({"name": name, "count": count})
+        chips_display = ", ".join(f"{c['count']}x {c['name']}" for c in chips_list)
     else:
         chips_display = "None"
 
-    # Format captains display text
-    captains_formatted = []
+    # Format captains display list and text
+    captains_list = []
     for p_id, count in captain_counts.most_common():
         player_name = players_dict.get(p_id, {}).get("name", "Unknown")
-        captains_formatted.append(f"{player_name} ({count}x)")
-    captains_display = ", ".join(captains_formatted) if captains_formatted else "None"
+        captains_list.append({"name": player_name, "count": count})
+
+    captains_display = ", ".join(f"{c['name']} ({c['count']}x)" for c in captains_list) if captains_list else "None"
 
     return {
         "gameweek": gameweek,
         "total_team_points": total_team_points,
         "total_hits_cost": total_hits_cost,
         "active_chips": chips_display,
+        "chips_list": chips_list,
         "captains": captains_display,
+        "captains_list": captains_list,
         "managers_count": len(managers_data),
         "managers": managers_data,
         "ownership": ownership_list,
