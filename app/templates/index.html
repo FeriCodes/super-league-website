@@ -224,7 +224,12 @@
                 <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %}">
                   <td class="col-player text-start">
                     <div class="player-cell-stack">
-                      <span class="player-name">{{ p.name }}</span>
+                      <div class="d-flex align-items-center gap-1 flex-wrap">
+                        <span class="player-name">{{ p.name }}</span>
+                        {% if p.is_sub_in %}
+                          <span class="badge-sub-in">🔄 SUB</span>
+                        {% endif %}
+                      </div>
                       {% if p.opponent %}
                         <span class="opponent-badge">vs {{ p.opponent }}</span>
                       {% endif %}

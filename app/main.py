@@ -186,37 +186,6 @@ async def save_cached_gameweek(gw: int, data: dict):
     _save_local_results_cache(cache)
 
 
-def calculate_team_match_status(summary: dict, live_data: dict) -> dict:
-    """Count physical unique player appearances left to play per manager."""
-    managers = summary.get("managers", [])
-
-    total_slots = 0
-    left_to_play = 0
-
-    for m in managers:
-        chip = m.get("active_chip")
-        is_bench_boost = chip == "bboost"
-
-        for pick in m.get("picks", []):
-            pos = pick.get("position", 0)
-            mult = pick.get("multiplier", 0)
-            p_id = pick.get("element_id")
-
-            # Check if this player is in the active squad
-            is_active = is_bench_boost or mult > 0 or (1 <= pos <= 11)
-
-            if is_active:
-                total_slots += 1
-                status = live_data.get(p_id, {}).get("status", "Not Played Yet")
-                if status == "Not Played Yet":
-                    left_to_play += 1
-
-    return {
-        "left_to_play": left_to_play,
-        "total_slots": total_slots,
-    }
-
-
 def build_head_to_head_comparison(
     summary_a: dict,
     summary_b: dict,
@@ -254,6 +223,11 @@ def build_head_to_head_comparison(
         team_id = players_cache.get(pid, {}).get("team_id")
         opp_short = fixtures_map.get(team_id, "")
 
+        # Check if the player was brought in via auto-sub in either team
+        is_sub_a = a_dict[pid].get("is_sub_in", False) if pid in a_dict else False
+        is_sub_b = b_dict[pid].get("is_sub_in", False) if pid in b_dict else False
+        is_sub = is_sub_a or is_sub_b
+
         row = {
             "id": pid,
             "name": name,
@@ -264,6 +238,7 @@ def build_head_to_head_comparison(
             "player_points": player_points,
             "status": match_status,
             "opponent": opp_short,
+            "is_sub_in": is_sub,
         }
 
         if pos in grouped:
@@ -299,6 +274,7 @@ async def home(request: Request):
         context={
             "team_names": team_names,
             "results": None,
+            "error_message": None,
             "selected_team_a": "",
             "selected_team_b": "",
             "gw": current_gw,
@@ -351,9 +327,6 @@ async def compare_teams(
     summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE, live_data)
     summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE, live_data)
 
-    summary_a["status_counts"] = calculate_team_match_status(summary_a, live_data)
-    summary_b["status_counts"] = calculate_team_match_status(summary_b, live_data)
-
     grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data, PLAYERS_CACHE, fixtures_map)
 
     results = {
@@ -372,6 +345,7 @@ async def compare_teams(
         context={
             "team_names": sorted(list(teams.keys())),
             "results": results,
+            "error_message": None,
             "selected_team_a": team_a_name,
             "selected_team_b": team_b_name,
             "gw": gameweek,
