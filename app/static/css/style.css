@@ -989,3 +989,10 @@ td.gd-zero {
     font-size: 0.8rem !important;
   }
 }
+
+/* Warning / Error Alert Card */
+.alert-warning-card {
+  border: 1px solid #d29922 !important;
+  background-color: rgba(210, 153, 34, 0.1) !important;
+  border-radius: 8px;
+}

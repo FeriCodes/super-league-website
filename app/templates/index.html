@@ -57,15 +57,13 @@
   </form>
 </div>
 
-<!-- Gameweek Not Started Alert Box -->
-{% if error_message %}
-  <div class="custom-card p-3 mb-4 text-center" style="border: 1px solid #d29922; background: rgba(210, 153, 34, 0.1)">
-    <div class="d-inline-flex align-items-center justify-content-center gap-2">
-      <span style="font-size: 1.25rem;">⏳</span>
-      <span class="text-warning fw-semibold">{{ error_message }}</span>
-    </div>
+<!-- Unified Alert Box (Client & Server) -->
+<div id="client-error-box" class="custom-card alert-warning-card p-3 mb-4 text-center" style="display: {% if error_message %}block{% else %}none{% endif %};">
+  <div class="d-inline-flex align-items-center justify-content-center gap-2">
+    <span style="font-size: 1.25rem;">⚠️</span>
+    <span id="client-error-text" class="text-warning fw-semibold">{{ error_message or 'Cannot compare a team with itself. Please select two different teams.' }}</span>
   </div>
-{% endif %}
+</div>
 
 <!-- Comparison Results Section -->
 {% if results %}
@@ -301,15 +299,40 @@
   document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("compare-form");
     const btn = document.getElementById("btn-submit");
+    const selectA = document.getElementById("team_a_name");
+    const selectB = document.getElementById("team_b_name");
+    const errorBox = document.getElementById("client-error-box");
 
     if (form && btn) {
-      form.addEventListener("submit", function() {
+      form.addEventListener("submit", function(e) {
+        if (selectA && selectB && selectA.value && selectA.value === selectB.value) {
+          e.preventDefault();
+          if (errorBox) {
+            errorBox.style.display = "block";
+            errorBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+          return;
+        }
+
+        if (errorBox) {
+          errorBox.style.display = "none";
+        }
+
         btn.disabled = true;
         btn.innerHTML = `
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
           Comparing... Please wait
         `;
-        form.submit();
+      });
+    }
+
+    // Hide error automatically when user changes selection
+    if (selectA && selectB && errorBox) {
+      selectA.addEventListener("change", function() {
+        errorBox.style.display = "none";
+      });
+      selectB.addEventListener("change", function() {
+        errorBox.style.display = "none";
       });
     }
   });

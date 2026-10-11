@@ -346,6 +346,23 @@ async def compare_teams(
         return RedirectResponse(url="/", status_code=303)
 
     teams = load_teams()
+
+    # Prevent comparing a team with itself
+    if team_a_name == team_b_name:
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={
+                "team_names": sorted(list(teams.keys())),
+                "results": None,
+                "error_message": "Cannot compare a team with itself. Please select two different teams.",
+                "selected_team_a": team_a_name,
+                "selected_team_b": team_b_name,
+                "gw": gameweek,
+                "active_page": "compare",
+            },
+        )
+
     gw_status = await get_gameweek_status(gameweek)
     if not gw_status["valid"]:
         return templates.TemplateResponse(
