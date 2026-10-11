@@ -720,6 +720,11 @@ body {
   opacity: 0.9;
 }
 
+/* Bench Position Transition Divider */
+.bench-pos-divider td {
+  border-top: 2px solid rgba(86, 182, 194, 0.45) !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
