@@ -237,7 +237,8 @@
                           <span class="count-badge count-a">{{ p.count_a }}x</span>
                           <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
-                          {% if p.status == 'LIVE' %}
+                          <!-- Live Match Indicator (Excluded if OUT or Subbed Out) -->
+                          {% if p.status == 'LIVE' and not p.is_sub_out and p.chance != 0 %}
                             <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
 
@@ -316,7 +317,8 @@
                             {% endif %}
                           {% endif %}
 
-                          {% if p.status == 'LIVE' %}
+                          <!-- Live Match Indicator (Excluded if OUT or Subbed Out) -->
+                          {% if p.status == 'LIVE' and not p.is_sub_out and p.chance != 0 %}
                             <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
 
@@ -377,6 +379,7 @@
       });
     }
 
+    // Hide error automatically when user changes selection
     if (selectA && selectB && errorBox) {
       selectA.addEventListener("change", function() {
         errorBox.style.display = "none";
