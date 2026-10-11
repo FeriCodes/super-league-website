@@ -192,7 +192,7 @@
     </div>
   </div>
 
-  <!-- Position Breakdown Tables (GKP, DEF, MID, FWD, BENCH) -->
+  <!-- Position Breakdown Tables (Versus Mode) -->
   {% for pos, players in results.grouped.items() %}
     {% if players %}
       <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
@@ -202,95 +202,138 @@
             <span class="pos-title">{{ pos }} {% if pos == 'BENCH' %}PLAYERS / SUBS{% else %}DIFFERENCE{% endif %}</span>
           </div>
 
-          <!-- Highlight if Bench Boost is active in either team -->
           {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
             <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
           {% endif %}
         </div>
         <div class="compare-table-wrapper">
-          <table class="table table-dark table-dark-custom align-middle mb-0 compare-table {% if pos == 'BENCH' %}table-bench{% endif %}">
+          <table class="table table-dark table-dark-custom align-middle mb-0 compare-table versus-table {% if pos == 'BENCH' %}table-bench{% endif %}">
             <thead>
               <tr class="compare-thead-row">
-                <th class="col-player text-start">Player</th>
-                <th class="text-center col-pts">Pts</th>
-                <th class="text-center col-team-a" title="{{ results.team_a_name }}">
+                <!-- Left: Team A -->
+                <th class="col-side text-start col-team-a" title="{{ results.team_a_name }}">
                   <span class="d-none d-sm-inline">{{ results.team_a_name }}</span>
                   <span class="d-inline d-sm-none">T-A</span>
                 </th>
-                <th class="text-center col-team-b" title="{{ results.team_b_name }}">
+                <!-- Center: Differential -->
+                <th class="text-center col-diff">Diff</th>
+                <!-- Right: Team B -->
+                <th class="col-side text-end col-team-b" title="{{ results.team_b_name }}">
                   <span class="d-none d-sm-inline">{{ results.team_b_name }}</span>
                   <span class="d-inline d-sm-none">T-B</span>
                 </th>
-                <th class="text-center col-diff">Diff</th>
               </tr>
             </thead>
             <tbody>
               {% for p in players %}
                 {% set is_pos_changed = (pos == 'BENCH' and not loop.first and loop.changed(p.pos)) %}
                 <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %} {% if is_pos_changed %}bench-pos-divider{% endif %}">
-                  <td class="col-player text-start">
-                    <div class="player-cell-stack">
-                      <div class="d-flex align-items-center gap-1 flex-wrap">
-                        <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
-                        <!-- Live Match Green Dot Indicator -->
-                        {% if p.status == 'LIVE' %}
-                          <span class="badge-live" title="Match is currently live">
-                            <span class="live-dot"></span> LIVE
-                          </span>
-                        {% endif %}
+                  <!-- Left Side: Team A -->
+                  <td class="col-side text-start">
+                    {% if p.count_a > 0 %}
+                      <div class="player-cell-stack">
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                          <span class="count-badge count-a">{{ p.count_a }}x</span>
+                          <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
-                        <!-- FPL Injury / Availability Badges (Shown only if chance < 100%) -->
-                        {% if p.chance is not none %}
-                          {% if p.chance == 0 %}
-                            <span class="badge-injury badge-inj-red" title="{{ p.news or 'Ruled Out (0%)' }}">0%</span>
-                          {% elif p.chance <= 50 %}
-                            <span class="badge-injury badge-inj-orange" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
-                          {% elif p.chance <= 75 %}
-                            <span class="badge-injury badge-inj-yellow" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                          {% if p.status == 'LIVE' %}
+                            <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
-                        {% endif %}
 
-                        <!-- Sub In Badge -->
-                        {% if p.is_sub_in %}
-                          <span class="badge-sub-in">🔄 SUB IN</span>
-                        {% endif %}
+                          <!-- Injury / Availability Badge -->
+                          {% if p.chance is not none %}
+                            {% if p.chance == 0 %}
+                              <span class="badge-sub-out" title="{{ p.news or 'Ruled Out (0%)' }}">⛔ OUT</span>
+                            {% elif p.chance <= 50 %}
+                              <span class="badge-injury badge-inj-orange" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                            {% elif p.chance <= 75 %}
+                              <span class="badge-injury badge-inj-yellow" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                            {% endif %}
+                          {% endif %}
 
-                        <!-- Sub Out Badge -->
-                        {% if p.is_sub_out %}
-                          <span class="badge-sub-out">⛔ OUT</span>
-                        {% endif %}
+                          <!-- Auto-Sub In -->
+                          {% if p.is_sub_in %}
+                            <span class="badge-sub-in">🔄 IN</span>
+                          {% endif %}
+
+                          <!-- Auto-Sub Out (Only if not already marked OUT by 0% chance) -->
+                          {% if p.is_sub_out and p.chance != 0 %}
+                            <span class="badge-sub-out">⛔ OUT</span>
+                          {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-1 mt-1">
+                          <span class="player-pts-mini">{{ p.player_points }} pts</span>
+                          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
+                          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
+                        </div>
                       </div>
-                      <div class="d-flex align-items-center gap-1 mt-1">
-                        {% if pos == 'BENCH' %}
-                          <span class="badge-pos-mini">{{ p.pos }}</span>
-                        {% endif %}
-                        {% if p.opponent %}
-                          <span class="opponent-badge">vs {{ p.opponent }}</span>
-                        {% endif %}
-                      </div>
-                    </div>
+                    {% else %}
+                      <span class="text-muted small ps-2">—</span>
+                    {% endif %}
                   </td>
-                  <td class="text-center font-monospace fw-bold col-pts cell-pts">
-                    {{ p.player_points }}
-                  </td>
-                  <td class="text-center font-monospace col-team-a">{{ p.count_a }}</td>
-                  <td class="text-center font-monospace col-team-b">{{ p.count_b }}</td>
+
+                  <!-- Center: Differential -->
                   <td class="text-center col-diff">
                     {% if p.diff > 0 %}
                       <span class="diff-badge badge-advantage">
-                        ▲ +{{ p.diff }} <span class="d-none d-md-inline">{{ results.team_a_name }}</span>
+                        ◀ +{{ p.diff }}
                       </span>
                     {% elif p.diff < 0 %}
                       <span class="diff-badge badge-disadvantage">
-                        ▲ +{{ p.diff|abs }} <span class="d-none d-md-inline">{{ results.team_b_name }}</span>
+                        +{{ p.diff|abs }} ▶
                       </span>
                     {% else %}
                       <span class="diff-badge badge-shared">
-                        ● <span class="d-none d-sm-inline">Shared </span>({{ p.count_a }})
+                        ● Shared
                       </span>
                     {% endif %}
                   </td>
+
+                  <!-- Right Side: Team B -->
+                  <td class="col-side text-end">
+                    {% if p.count_b > 0 %}
+                      <div class="player-cell-stack align-items-end">
+                        <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap">
+                          <!-- Auto-Sub Out (Only if not already marked OUT by 0% chance) -->
+                          {% if p.is_sub_out and p.chance != 0 %}
+                            <span class="badge-sub-out">⛔ OUT</span>
+                          {% endif %}
+
+                          <!-- Auto-Sub In -->
+                          {% if p.is_sub_in %}
+                            <span class="badge-sub-in">🔄 IN</span>
+                          {% endif %}
+
+                          <!-- Injury / Availability Badge -->
+                          {% if p.chance is not none %}
+                            {% if p.chance == 0 %}
+                              <span class="badge-sub-out" title="{{ p.news or 'Ruled Out (0%)' }}">⛔ OUT</span>
+                            {% elif p.chance <= 50 %}
+                              <span class="badge-injury badge-inj-orange" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                            {% elif p.chance <= 75 %}
+                              <span class="badge-injury badge-inj-yellow" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                            {% endif %}
+                          {% endif %}
+
+                          {% if p.status == 'LIVE' %}
+                            <span class="badge-live"><span class="live-dot"></span> LIVE</span>
+                          {% endif %}
+
+                          <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
+                          <span class="count-badge count-b">{{ p.count_b }}x</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1">
+                          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
+                          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
+                          <span class="player-pts-mini">{{ p.player_points }} pts</span>
+                        </div>
+                      </div>
+                    {% else %}
+                      <span class="text-muted small pe-2">—</span>
+                    {% endif %}
+                  </td>
+
                 </tr>
               {% endfor %}
             </tbody>
@@ -334,7 +377,6 @@
       });
     }
 
-    // Hide error automatically when user changes selection
     if (selectA && selectB && errorBox) {
       selectA.addEventListener("change", function() {
         errorBox.style.display = "none";

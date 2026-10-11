@@ -42,9 +42,7 @@ body {
   opacity: 0.9;
 }
 
-/* =========================================
-   App Segmented Pill Navbar
-========================================= */
+/* App Segmented Pill Navbar */
 .app-navbar {
   display: flex !important;
   justify-content: center !important;
@@ -108,7 +106,6 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Warning / Error Alert Card */
 .alert-warning-card {
   border: 1px solid #d29922 !important;
   background-color: rgba(210, 153, 34, 0.1) !important;
@@ -155,7 +152,6 @@ body {
   color: var(--text-bright);
 }
 
-/* Gameweek Dropdown Custom Sizing */
 #gameweek {
   max-width: 120px;
   text-align: center;
@@ -237,7 +233,6 @@ body {
   color: var(--text-muted);
 }
 
-/* Locked Grid Architecture for Team Meta Details */
 .sub-details-section {
   background-color: var(--bg-card-subtle);
   border-top: 1px solid var(--border-color);
@@ -257,7 +252,6 @@ body {
   gap: 0.75rem;
 }
 
-/* Fixed Height Anchor for Captains Row */
 .meta-row.meta-row-captains {
   align-items: flex-start;
   min-height: 54px;
@@ -272,7 +266,6 @@ body {
   padding-top: 2px;
 }
 
-/* Unified Responsive Meta Badges */
 .meta-badges-wrap {
   display: flex;
   flex-wrap: wrap;
@@ -292,21 +285,18 @@ body {
   white-space: nowrap;
 }
 
-/* Hits Pill (Red/Crimson) */
 .pill-hits {
   background-color: rgba(224, 108, 117, 0.14);
   color: var(--accent-red);
   border: 1px solid rgba(224, 108, 117, 0.35);
 }
 
-/* Chips Pill (Purple/Lilac) */
 .pill-chip {
   background-color: rgba(198, 120, 221, 0.14);
   color: var(--accent-purple);
   border: 1px solid rgba(198, 120, 221, 0.35);
 }
 
-/* Captains Pill (Golden Yellow) */
 .pill-captain {
   background-color: rgba(229, 192, 123, 0.14);
   color: var(--accent-yellow);
@@ -319,7 +309,6 @@ body {
   font-weight: 700;
 }
 
-/* Left to Play Pill (Cyan/Teal) */
 .pill-left-to-play {
   background-color: rgba(86, 182, 194, 0.14);
   color: var(--accent-cyan);
@@ -327,44 +316,13 @@ body {
   font-weight: 700;
 }
 
-/* Neutral Pill */
 .pill-neutral {
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Mobile Optimizations */
-@media (max-width: 576px) {
-  .main-score-section {
-    padding: 1rem 0.75rem 0.65rem;
-  }
-  .sub-details-section {
-    padding: 0.75rem;
-    gap: 0.45rem;
-  }
-  .meta-row {
-    font-size: 0.76rem;
-  }
-  .meta-row.meta-row-captains {
-    min-height: 48px;
-  }
-  .meta-label {
-    font-size: 0.74rem;
-  }
-  .meta-badges-wrap {
-    max-width: 70%;
-    gap: 3px;
-  }
-  .meta-pill {
-    font-size: 0.65rem;
-    padding: 1px 5px;
-  }
-}
-
-/* =========================================
-   Table Architecture & Locked Fixed Layout
-========================================= */
+/* Table Dark Base */
 .table-dark-custom {
   --bs-table-bg: var(--bg-card) !important;
   --bs-table-color: var(--text-bright) !important;
@@ -403,9 +361,7 @@ body {
   background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
-/* =========================================
-   Position Category Headers with Accents
-========================================= */
+/* Position Category Headers */
 .position-header-wrap {
   display: flex;
   align-items: center;
@@ -463,69 +419,71 @@ body {
 }
 
 /* =========================================
-   Compare Table Mobile Tight Fit
+   Versus Table Architecture (Left-Center-Right)
 ========================================= */
 .compare-table-wrapper {
   width: 100%;
   overflow-x: hidden;
 }
 
-.compare-table {
+.versus-table {
   width: 100% !important;
   table-layout: fixed !important;
   margin-bottom: 0 !important;
 }
 
-.compare-thead-row th {
-  background-color: #1a1d21 !important;
-  color: #d7dae0 !important;
-  font-size: 0.78rem;
-  letter-spacing: 0.4px;
-}
-
-.compare-thead-row th.col-pts {
-  color: var(--accent-cyan) !important;
-}
-
-.compare-thead-row th.col-team-a {
+.versus-table th.col-team-a {
   color: #98c379 !important;
 }
 
-.compare-thead-row th.col-team-b {
+.versus-table th.col-team-b {
   color: #61afef !important;
 }
 
-.compare-thead-row th.col-diff {
+.versus-table th.col-diff {
   color: #e5c07b !important;
 }
 
-.compare-table th.col-player,
-.compare-table td.col-player {
-  width: 38% !important;
-  padding-left: 8px !important;
+.versus-table th.col-side,
+.versus-table td.col-side {
+  width: 41% !important;
+  padding: 7px 8px !important;
+  vertical-align: middle;
 }
 
-.compare-table th.col-pts,
-.compare-table td.col-pts {
-  width: 12% !important;
-  padding: 8px 2px !important;
+.versus-table th.col-diff,
+.versus-table td.col-diff {
+  width: 18% !important;
+  padding: 7px 2px !important;
+  vertical-align: middle;
 }
 
-.compare-table th.col-team-a,
-.compare-table td.col-team-a,
-.compare-table th.col-team-b,
-.compare-table td.col-team-b {
-  width: 12% !important;
-  padding: 8px 2px !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
+/* Versus Count Badges */
+.count-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
-.compare-table th.col-diff,
-.compare-table td.col-diff {
-  width: 26% !important;
-  padding: 8px 4px !important;
+.count-a {
+  background: rgba(152, 195, 121, 0.18);
+  color: var(--accent-green);
+  border: 1px solid rgba(152, 195, 121, 0.38);
+}
+
+.count-b {
+  background: rgba(97, 175, 239, 0.18);
+  color: var(--accent-blue-soft);
+  border: 1px solid rgba(97, 175, 239, 0.38);
+}
+
+.player-pts-mini {
+  color: var(--accent-cyan);
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 /* Player Cell Stack */
@@ -538,7 +496,7 @@ body {
 .player-name {
   color: #ffffff;
   font-weight: 600;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   word-break: break-word;
 }
 
@@ -547,9 +505,7 @@ body {
   opacity: 0.65;
 }
 
-/* =========================================
-   Live Match Indicator Badge (Green Pulse)
-========================================= */
+/* Live Match Indicator Badge */
 .badge-live {
   display: inline-flex;
   align-items: center;
@@ -557,17 +513,17 @@ body {
   background: rgba(152, 195, 121, 0.15);
   color: var(--accent-green);
   border: 1px solid rgba(152, 195, 121, 0.4);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 800;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 4px;
-  letter-spacing: 0.5px;
-  line-height: 1.2;
+  letter-spacing: 0.4px;
+  line-height: 1.1;
 }
 
 .live-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background-color: var(--accent-green);
   border-radius: 50%;
   display: inline-block;
@@ -580,36 +536,34 @@ body {
     box-shadow: 0 0 0 0 rgba(152, 195, 121, 0.7);
   }
   70% {
-    box-shadow: 0 0 0 5px rgba(152, 195, 121, 0);
+    box-shadow: 0 0 0 4px rgba(152, 195, 121, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(152, 195, 121, 0);
   }
 }
 
-/* Sub-in & Sub-out Badges */
+/* Sub Badges */
 .badge-sub-in {
   background: rgba(86, 182, 194, 0.18);
   color: var(--accent-cyan);
   border: 1px solid rgba(86, 182, 194, 0.38);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
-  padding: 0 4px;
+  padding: 0 3px;
   border-radius: 3px;
-  letter-spacing: 0.3px;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .badge-sub-out {
   background: rgba(224, 108, 117, 0.2);
   color: var(--accent-red);
   border: 1px solid rgba(224, 108, 117, 0.45);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 800;
-  padding: 0 4px;
+  padding: 0 3px;
   border-radius: 3px;
-  letter-spacing: 0.3px;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .badge-pos-mini {
@@ -627,11 +581,10 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 0 3px;
   border-radius: 3px;
-  letter-spacing: 0.2px;
   line-height: 1.2;
   cursor: help;
 }
@@ -656,42 +609,37 @@ body {
 
 .opponent-badge {
   display: inline-block;
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   font-weight: 600;
   color: #abb2bf;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 1px 4px;
+  padding: 0 4px;
   border-radius: 3px;
   width: fit-content;
-}
-
-.cell-pts {
-  color: var(--accent-cyan) !important;
-  font-size: 0.95rem;
 }
 
 /* Differential Badges */
 .diff-badge {
   display: inline-block;
-  padding: 3px 6px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.2px;
   white-space: nowrap;
 }
 
 .badge-advantage {
-  background-color: rgba(152, 195, 121, 0.15);
+  background-color: rgba(152, 195, 121, 0.16);
   color: var(--accent-green) !important;
-  border: 1px solid rgba(152, 195, 121, 0.35);
+  border: 1px solid rgba(152, 195, 121, 0.4);
 }
 
 .badge-disadvantage {
-  background-color: rgba(97, 175, 239, 0.15);
+  background-color: rgba(97, 175, 239, 0.16);
   color: var(--accent-blue-soft) !important;
-  border: 1px solid rgba(97, 175, 239, 0.35);
+  border: 1px solid rgba(97, 175, 239, 0.4);
 }
 
 .badge-shared {
@@ -749,9 +697,7 @@ body {
   scrollbar-color: var(--border-color) var(--bg-main);
 }
 
-/* =========================================
-   Fixture Match Card
-========================================= */
+/* Fixtures & Standings */
 .fixture-match-card {
   display: grid !important;
   grid-template-columns: 1fr 110px 1fr !important;
@@ -862,31 +808,6 @@ body {
   color: #181a1f !important;
 }
 
-@media (max-width: 480px) {
-  .fixture-match-card {
-    grid-template-columns: 1fr 94px 1fr !important;
-    padding: 0.55rem 0.5rem !important;
-  }
-  .fixture-center-block {
-    width: 94px !important;
-  }
-  .score-val {
-    width: 38px !important;
-  }
-  .team-text {
-    font-size: 0.76rem !important;
-  }
-  .score-row {
-    font-size: 0.88rem !important;
-  }
-  .fixture-details-btn {
-    font-size: 0.62rem !important;
-  }
-}
-
-/* =========================================
-   Standings Table Styles
-========================================= */
 .standings-table {
   width: 100% !important;
   table-layout: fixed !important;
@@ -964,9 +885,7 @@ td.gd-zero {
   font-weight: 600 !important;
 }
 
-/* =========================================
-   Mobile Specific Tuning (< 576px)
-========================================= */
+/* Mobile Tuning (< 576px) */
 @media (max-width: 576px) {
   .page-title {
     font-size: 1.3rem !important;
@@ -976,68 +895,54 @@ td.gd-zero {
     font-size: 0.75rem !important;
   }
 
-  .compare-table {
-    font-size: 0.75rem !important;
-  }
-  .compare-table th,
-  .compare-table td {
-    padding: 6px 2px !important;
-  }
-  .compare-table th.col-player,
-  .compare-table td.col-player {
+  .versus-table th.col-side,
+  .versus-table td.col-side {
     width: 42% !important;
-    padding-left: 6px !important;
+    padding: 6px 4px !important;
   }
-  .compare-table th.col-pts,
-  .compare-table td.col-pts {
-    width: 11% !important;
+  .versus-table th.col-diff,
+  .versus-table td.col-diff {
+    width: 16% !important;
     padding: 6px 1px !important;
-  }
-  .compare-table th.col-team-a,
-  .compare-table td.col-team-a,
-  .compare-table th.col-team-b,
-  .compare-table td.col-team-b {
-    width: 11% !important;
-    padding: 6px 1px !important;
-  }
-  .compare-table th.col-diff,
-  .compare-table td.col-diff {
-    width: 25% !important;
-    padding: 6px 2px !important;
   }
 
   .player-name {
-    font-size: 0.74rem;
+    font-size: 0.72rem;
+  }
+  .count-badge {
+    font-size: 0.62rem;
+    padding: 0 3px;
+  }
+  .player-pts-mini {
+    font-size: 0.65rem;
   }
   .opponent-badge {
-    font-size: 0.6rem;
-    padding: 0 3px;
-    margin-top: 2px;
-  }
-  .cell-pts {
-    font-size: 0.8rem;
+    font-size: 0.58rem;
+    padding: 0 2px;
   }
   .diff-badge {
-    padding: 2px 4px !important;
-    font-size: 0.64rem !important;
+    padding: 2px 3px !important;
+    font-size: 0.6rem !important;
   }
-  .position-header-wrap {
-    font-size: 0.75rem;
-    margin-bottom: 0.35rem;
+  .badge-live {
+    font-size: 0.55rem;
+    padding: 0 2px;
   }
 
-  .standings-table {
-    font-size: 0.75rem !important;
+  .fixture-match-card {
+    grid-template-columns: 1fr 94px 1fr !important;
+    padding: 0.55rem 0.5rem !important;
   }
-  .standings-table thead th {
-    font-size: 0.7rem !important;
-    padding: 6px 1px !important;
+  .fixture-center-block {
+    width: 94px !important;
   }
-  .standings-table tbody td {
-    padding: 7px 1px !important;
+  .score-val {
+    width: 38px !important;
   }
-  .standings-table th.col-pts,
-  .standings-table td.col-pts {
-    font-size: 0.8rem !important;
+  .team-text {
+    font-size: 0.76rem !important;
+  }
+  .score-row {
+    font-size: 0.88rem !important;
   }
 }
