@@ -12,7 +12,7 @@ def parse_manager_ids(raw_text: str) -> List[int]:
 
 
 async def get_players_dict() -> Dict[int, Dict[str, Any]]:
-    """Fetch all Premier League players and map ID to name, position, and team ID."""
+    """Fetch all Premier League players and map ID to name, position, team ID, and availability status."""
     data = await fetch_fpl_api("bootstrap-static")
     if not data:
         return {}
@@ -22,10 +22,17 @@ async def get_players_dict() -> Dict[int, Dict[str, Any]]:
     for element in data.get("elements", []):
         player_id = element["id"]
         pos_id = element["element_type"]
+        chance = element.get("chance_of_playing_this_round")
+        news = element.get("news", "")
+        status = element.get("status", "a")
+
         players_dict[player_id] = {
             "name": element["web_name"],
             "position": position_map.get(pos_id, "Unknown"),
             "team_id": element.get("team"),
+            "chance_of_playing": chance,
+            "news": news,
+            "status": status,
         }
 
     return players_dict
@@ -75,6 +82,7 @@ def apply_manager_auto_subs(
 ) -> Tuple[List[Dict[str, Any]], List[int]]:
     """
     Applies live auto-substitution rules for a manager's 15-player squad.
+    Includes projected substitution for players with 100% confirmed absence (0% chance of playing).
     Returns the updated picks list and a list of subbed-in element IDs.
     """
     updated_picks = [{k: v for k, v in p.items()} for p in picks]
@@ -94,17 +102,31 @@ def apply_manager_auto_subs(
     def player_did_not_play(element_id: int) -> bool:
         p_live = live_data.get(element_id, {})
         mins = p_live.get("minutes", 0) or 0
-        status = p_live.get("status", "")
-        # A player did not play if the match is finished and recorded minutes are 0
-        return status == "FT" and mins == 0
+        match_status = p_live.get("status", "")
+
+        # 1. Finished match with 0 minutes played
+        if match_status == "FT" and mins == 0:
+            return True
+
+        # 2. Confirmed 100% ruled out before kickoff (0% chance of playing or unavailable status)
+        p_info = players_dict.get(element_id, {})
+        chance = p_info.get("chance_of_playing")
+        fpl_status = p_info.get("status")
+
+        if match_status != "FT" and mins == 0:
+            if chance == 0 or (fpl_status in ["i", "s", "u"] and chance == 0):
+                return True
+
+        return False
 
     def player_can_sub_in(element_id: int) -> bool:
         p_live = live_data.get(element_id, {})
         mins = p_live.get("minutes", 0) or 0
-        status = p_live.get("status", "")
-        # A bench candidate is eligible if they have played, have an ongoing/upcoming match,
-        # or their match finished (even with 0 mins, fulfilling the substitution chain)
-        return mins > 0 or status != "FT" or (status == "FT" and mins == 0)
+        match_status = p_live.get("status", "")
+
+        # A bench candidate is eligible if they played, their match is ongoing/upcoming,
+        # or even if their match finished with 0 minutes (fulfilling sequential bench slots)
+        return mins > 0 or match_status != "FT" or (match_status == "FT" and mins == 0)
 
     # Track active formation counts
     current_pos_counts: Dict[str, int] = {"GKP": 0, "DEF": 0, "MID": 0, "FWD": 0}
@@ -132,7 +154,6 @@ def apply_manager_auto_subs(
         p_id = starter["element_id"]
         pos_name = players_dict.get(p_id, {}).get("position", "")
 
-        # Skip goalkeepers and players who actually played
         if pos_name not in ["DEF", "MID", "FWD"] or not player_did_not_play(p_id):
             continue
 
@@ -157,7 +178,7 @@ def apply_manager_auto_subs(
             # Official FPL formation constraint: min 3 DEF, 2 MID, 1 FWD
             if temp_counts.get("DEF", 0) >= 3 and temp_counts.get("MID", 0) >= 2 and temp_counts.get("FWD", 0) >= 1:
                 candidate_found = candidate
-                current_pos_counts = temp_counts  # Persist formation update
+                current_pos_counts = temp_counts
                 break
             else:
                 p_cand_name = players_dict.get(cand_id, {}).get("name", f"Player {cand_id}")

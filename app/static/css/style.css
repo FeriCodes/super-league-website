@@ -513,6 +513,43 @@ body {
   word-break: break-word;
 }
 
+/* =========================================
+   FPL Injury & Availability Badges
+========================================= */
+.badge-injury {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+  cursor: help;
+}
+
+/* Red (0% or Confirmed Out) */
+.badge-inj-red {
+  background: rgba(224, 108, 117, 0.2);
+  color: var(--accent-red);
+  border: 1px solid rgba(224, 108, 117, 0.45);
+}
+
+/* Orange (25% - 50%) */
+.badge-inj-orange {
+  background: rgba(209, 137, 72, 0.2);
+  color: #d19a66;
+  border: 1px solid rgba(209, 137, 72, 0.45);
+}
+
+/* Yellow (75%) */
+.badge-inj-yellow {
+  background: rgba(229, 192, 123, 0.2);
+  color: var(--accent-yellow);
+  border: 1px solid rgba(229, 192, 123, 0.45);
+}
+
 /* Sub-in Badge */
 .badge-sub-in {
   background: rgba(86, 182, 194, 0.18);

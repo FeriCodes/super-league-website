@@ -61,7 +61,7 @@ TEAMS_FILE = Path(__file__).resolve().parent / "sl_teams.json"
 FIXTURES_FILE = Path(__file__).resolve().parent / "fixtures.json"
 RESULTS_CACHE_FILE = Path(__file__).resolve().parent / "results_cache.json"
 
-# In-memory cache for player info (ID -> name, position)
+# In-memory cache for player info (ID -> name, position, injury status)
 PLAYERS_CACHE = {}
 
 
@@ -220,8 +220,11 @@ def build_head_to_head_comparison(
         player_points = live_info.get("points", 0)
         match_status = live_info.get("status", "Not Played Yet")
 
-        team_id = players_cache.get(pid, {}).get("team_id")
+        p_cached = players_cache.get(pid, {})
+        team_id = p_cached.get("team_id")
         opp_short = fixtures_map.get(team_id, "")
+        chance = p_cached.get("chance_of_playing")
+        news = p_cached.get("news", "")
 
         # Check if the player was brought in via auto-sub in either team
         is_sub_a = a_dict[pid].get("is_sub_in", False) if pid in a_dict else False
@@ -239,6 +242,8 @@ def build_head_to_head_comparison(
             "status": match_status,
             "opponent": opp_short,
             "is_sub_in": is_sub,
+            "chance": chance,
+            "news": news,
         }
 
         if pos in grouped:

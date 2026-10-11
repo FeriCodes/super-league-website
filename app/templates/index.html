@@ -226,6 +226,19 @@
                     <div class="player-cell-stack">
                       <div class="d-flex align-items-center gap-1 flex-wrap">
                         <span class="player-name">{{ p.name }}</span>
+
+                        <!-- FPL Injury / Availability Badges (Shown only if chance < 100%) -->
+                        {% if p.chance is not none %}
+                          {% if p.chance == 0 %}
+                            <span class="badge-injury badge-inj-red" title="{{ p.news or 'Ruled Out (0%)' }}">0%</span>
+                          {% elif p.chance <= 50 %}
+                            <span class="badge-injury badge-inj-orange" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                          {% elif p.chance <= 75 %}
+                            <span class="badge-injury badge-inj-yellow" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
+                          {% endif %}
+                        {% endif %}
+
+                        <!-- Auto-sub In Badge -->
                         {% if p.is_sub_in %}
                           <span class="badge-sub-in">🔄 SUB</span>
                         {% endif %}
