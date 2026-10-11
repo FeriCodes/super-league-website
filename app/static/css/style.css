@@ -108,6 +108,13 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Warning / Error Alert Card */
+.alert-warning-card {
+  border: 1px solid #d29922 !important;
+  background-color: rgba(210, 153, 34, 0.1) !important;
+  border-radius: 8px;
+}
+
 /* Form Controls */
 .form-select,
 .form-control {
@@ -538,6 +545,46 @@ body {
 .text-subbed-out {
   text-decoration: line-through;
   opacity: 0.65;
+}
+
+/* =========================================
+   Live Match Indicator Badge (Green Pulse)
+========================================= */
+.badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(152, 195, 121, 0.15);
+  color: var(--accent-green);
+  border: 1px solid rgba(152, 195, 121, 0.4);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-green);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 rgba(152, 195, 121, 0.6);
+  animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(152, 195, 121, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(152, 195, 121, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(152, 195, 121, 0);
+  }
 }
 
 /* Sub-in & Sub-out Badges */
@@ -988,11 +1035,4 @@ td.gd-zero {
   .standings-table td.col-pts {
     font-size: 0.8rem !important;
   }
-}
-
-/* Warning / Error Alert Card */
-.alert-warning-card {
-  border: 1px solid #d29922 !important;
-  background-color: rgba(210, 153, 34, 0.1) !important;
-  border-radius: 8px;
 }

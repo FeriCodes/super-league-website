@@ -232,6 +232,13 @@
                       <div class="d-flex align-items-center gap-1 flex-wrap">
                         <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
+                        <!-- Live Match Green Dot Indicator -->
+                        {% if p.status == 'LIVE' %}
+                          <span class="badge-live" title="Match is currently live">
+                            <span class="live-dot"></span> LIVE
+                          </span>
+                        {% endif %}
+
                         <!-- FPL Injury / Availability Badges (Shown only if chance < 100%) -->
                         {% if p.chance is not none %}
                           {% if p.chance == 0 %}
