@@ -233,16 +233,17 @@
                   <td class="col-side text-start">
                     {% if p.count_a > 0 %}
                       <div class="player-cell-stack">
-                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                        <!-- Top Line: Count, Name & Badges -->
+                        <div class="player-row-top justify-content-start">
                           <span class="count-badge count-a">{{ p.count_a }}x</span>
                           <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
-                          <!-- Live Match Indicator (Only if match is live and not subbed out) -->
+                          <!-- Live Indicator -->
                           {% if p.status == 'LIVE' and not p.is_sub_out %}
                             <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
 
-                          <!-- Injury / Availability Badge (Only for unplayed or upcoming matches, never on FT matches) -->
+                          <!-- Injury Badge -->
                           {% if p.chance is not none and p.status != 'FT' and not p.is_sub_out %}
                             {% if p.chance == 0 %}
                               <span class="badge-injury badge-inj-red" title="{{ p.news or 'Ruled Out (0%)' }}">0%</span>
@@ -253,20 +254,16 @@
                             {% endif %}
                           {% endif %}
 
-                          <!-- Auto-Sub In -->
-                          {% if p.is_sub_in %}
-                            <span class="badge-sub-in">🔄 IN</span>
-                          {% endif %}
-
-                          <!-- Auto-Sub Out -->
-                          {% if p.is_sub_out %}
-                            <span class="badge-sub-out">⛔ OUT</span>
-                          {% endif %}
+                          <!-- Sub In/Out -->
+                          {% if p.is_sub_in %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
+                          {% if p.is_sub_out %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
                         </div>
-                        <div class="d-flex align-items-center gap-1 mt-1">
+
+                        <!-- Bottom Line: Points, Opponent & Pos -->
+                        <div class="player-row-bottom justify-content-start">
                           <span class="player-pts-mini">{{ p.player_points }} pts</span>
-                          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
                           {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
+                          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
                         </div>
                       </div>
                     {% else %}
@@ -294,19 +291,14 @@
                   <!-- Right Side: Team B -->
                   <td class="col-side text-end">
                     {% if p.count_b > 0 %}
-                      <div class="player-cell-stack align-items-end">
-                        <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap">
-                          <!-- Auto-Sub Out -->
-                          {% if p.is_sub_out %}
-                            <span class="badge-sub-out">⛔ OUT</span>
-                          {% endif %}
+                      <div class="player-cell-stack">
+                        <!-- Top Line: Badges, Name, Count (Clean Symmetrical End Alignment) -->
+                        <div class="player-row-top justify-content-end">
+                          <!-- Sub In/Out -->
+                          {% if p.is_sub_out %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
+                          {% if p.is_sub_in %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
 
-                          <!-- Auto-Sub In -->
-                          {% if p.is_sub_in %}
-                            <span class="badge-sub-in">🔄 IN</span>
-                          {% endif %}
-
-                          <!-- Injury / Availability Badge (Only for unplayed or upcoming matches, never on FT matches) -->
+                          <!-- Injury Badge -->
                           {% if p.chance is not none and p.status != 'FT' and not p.is_sub_out %}
                             {% if p.chance == 0 %}
                               <span class="badge-injury badge-inj-red" title="{{ p.news or 'Ruled Out (0%)' }}">0%</span>
@@ -317,7 +309,7 @@
                             {% endif %}
                           {% endif %}
 
-                          <!-- Live Match Indicator (Only if match is live and not subbed out) -->
+                          <!-- Live Indicator -->
                           {% if p.status == 'LIVE' and not p.is_sub_out %}
                             <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
@@ -325,9 +317,11 @@
                           <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
                           <span class="count-badge count-b">{{ p.count_b }}x</span>
                         </div>
-                        <div class="d-flex align-items-center justify-content-end gap-1 mt-1">
-                          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
+
+                        <!-- Bottom Line: Pos, Opponent, Points -->
+                        <div class="player-row-bottom justify-content-end">
                           {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
+                          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
                           <span class="player-pts-mini">{{ p.player_points }} pts</span>
                         </div>
                       </div>
@@ -379,7 +373,6 @@
       });
     }
 
-    // Hide error automatically when user changes selection
     if (selectA && selectB && errorBox) {
       selectA.addEventListener("change", function() {
         errorBox.style.display = "none";

@@ -339,7 +339,7 @@ body {
   border-bottom: 1px solid var(--border-light) !important;
   border-left: 1px solid rgba(255, 255, 255, 0.03) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
-  padding: 8px 10px;
+  padding: 6px 8px;
   font-size: 0.86rem;
 }
 
@@ -447,15 +447,58 @@ body {
 .versus-table th.col-side,
 .versus-table td.col-side {
   width: 41% !important;
-  padding: 7px 8px !important;
+  padding: 6px 8px !important;
   vertical-align: middle;
 }
 
 .versus-table th.col-diff,
 .versus-table td.col-diff {
   width: 18% !important;
-  padding: 7px 2px !important;
+  padding: 6px 2px !important;
   vertical-align: middle;
+}
+
+/* =========================================
+   Player Stack Rows (Top & Bottom Structure)
+========================================= */
+.player-cell-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1.15;
+  width: 100%;
+}
+
+.player-row-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.player-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.player-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+.text-subbed-out {
+  text-decoration: line-through;
+  opacity: 0.65;
 }
 
 /* Versus Count Badges */
@@ -466,6 +509,7 @@ body {
   border-radius: 4px;
   line-height: 1.1;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .count-a {
@@ -480,36 +524,48 @@ body {
   border: 1px solid rgba(97, 175, 239, 0.38);
 }
 
+/* Points Badge - Always 1 Line (No Wrap) */
 .player-pts-mini {
   color: var(--accent-cyan);
   font-size: 0.74rem;
   font-weight: 700;
+  white-space: nowrap !important;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
-/* Player Cell Stack */
-.player-cell-stack {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-
-.player-name {
-  color: #ffffff;
+/* Opponent Badge */
+.opponent-badge {
+  display: inline-block;
+  font-size: 0.64rem;
   font-weight: 600;
-  font-size: 0.82rem;
-  word-break: break-word;
+  color: #abb2bf;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0 4px;
+  border-radius: 3px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
 }
 
-.text-subbed-out {
-  text-decoration: line-through;
-  opacity: 0.65;
+/* Mini Position Badge */
+.badge-pos-mini {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 3px;
+  border-radius: 3px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
 }
 
 /* Live Match Indicator Badge */
 .badge-live {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: rgba(152, 195, 121, 0.15);
   color: var(--accent-green);
   border: 1px solid rgba(152, 195, 121, 0.4);
@@ -519,6 +575,8 @@ body {
   border-radius: 4px;
   letter-spacing: 0.4px;
   line-height: 1.1;
+  white-space: nowrap !important;
+  flex-shrink: 0;
 }
 
 .live-dot {
@@ -532,15 +590,9 @@ body {
 }
 
 @keyframes pulse-green {
-  0% {
-    box-shadow: 0 0 0 0 rgba(152, 195, 121, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 4px rgba(152, 195, 121, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(152, 195, 121, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(152, 195, 121, 0.7); }
+  70% { box-shadow: 0 0 0 4px rgba(152, 195, 121, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(152, 195, 121, 0); }
 }
 
 /* Sub Badges */
@@ -553,6 +605,8 @@ body {
   padding: 0 3px;
   border-radius: 3px;
   line-height: 1.2;
+  white-space: nowrap !important;
+  flex-shrink: 0;
 }
 
 .badge-sub-out {
@@ -564,16 +618,8 @@ body {
   padding: 0 3px;
   border-radius: 3px;
   line-height: 1.2;
-}
-
-.badge-pos-mini {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1px 4px;
-  border-radius: 3px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
 }
 
 /* Injury Badges */
@@ -586,6 +632,8 @@ body {
   padding: 0 3px;
   border-radius: 3px;
   line-height: 1.2;
+  white-space: nowrap !important;
+  flex-shrink: 0;
   cursor: help;
 }
 
@@ -605,18 +653,6 @@ body {
   background: rgba(229, 192, 123, 0.2);
   color: var(--accent-yellow);
   border: 1px solid rgba(229, 192, 123, 0.45);
-}
-
-.opponent-badge {
-  display: inline-block;
-  font-size: 0.64rem;
-  font-weight: 600;
-  color: #abb2bf;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 0 4px;
-  border-radius: 3px;
-  width: fit-content;
 }
 
 /* Differential Badges */
@@ -885,7 +921,9 @@ td.gd-zero {
   font-weight: 600 !important;
 }
 
-/* Mobile Tuning (< 576px) */
+/* =========================================
+   Mobile Optimization (< 576px)
+========================================= */
 @media (max-width: 576px) {
   .page-title {
     font-size: 1.3rem !important;
@@ -898,35 +936,40 @@ td.gd-zero {
   .versus-table th.col-side,
   .versus-table td.col-side {
     width: 42% !important;
-    padding: 6px 4px !important;
+    padding: 4px 4px !important;
   }
   .versus-table th.col-diff,
   .versus-table td.col-diff {
     width: 16% !important;
-    padding: 6px 1px !important;
+    padding: 4px 1px !important;
   }
 
   .player-name {
-    font-size: 0.72rem;
+    font-size: 0.72rem !important;
+    max-width: 85px !important;
   }
   .count-badge {
-    font-size: 0.62rem;
-    padding: 0 3px;
+    font-size: 0.62rem !important;
+    padding: 0 3px !important;
   }
   .player-pts-mini {
-    font-size: 0.65rem;
+    font-size: 0.65rem !important;
   }
   .opponent-badge {
-    font-size: 0.58rem;
-    padding: 0 2px;
+    font-size: 0.58rem !important;
+    padding: 0 2px !important;
+  }
+  .badge-pos-mini {
+    font-size: 0.58rem !important;
+    padding: 0 2px !important;
   }
   .diff-badge {
     padding: 2px 3px !important;
     font-size: 0.6rem !important;
   }
   .badge-live {
-    font-size: 0.55rem;
-    padding: 0 2px;
+    font-size: 0.55rem !important;
+    padding: 0 2px !important;
   }
 
   .fixture-match-card {
