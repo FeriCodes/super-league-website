@@ -226,7 +226,7 @@
             </thead>
             <tbody>
               {% for p in players %}
-                {% set is_pos_changed = (pos == 'BENCH' and not loop.first and loop.changed(p.pos)) %}
+                {% set is_pos_changed = (pos == 'BENCH' and not loop.first and loop.changed(p.pos) and p.pos != 'GKP') %}
                 <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %} {% if is_pos_changed %}bench-pos-divider{% endif %}">
 
                   <!-- Left Side: Team A -->
@@ -237,15 +237,15 @@
                           <span class="count-badge count-a">{{ p.count_a }}x</span>
                           <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
-                          <!-- Live Match Indicator (Excluded if OUT or Subbed Out) -->
-                          {% if p.status == 'LIVE' and not p.is_sub_out and p.chance != 0 %}
+                          <!-- Live Match Indicator (Only if match is live and not subbed out) -->
+                          {% if p.status == 'LIVE' and not p.is_sub_out %}
                             <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
 
-                          <!-- Injury / Availability Badge -->
-                          {% if p.chance is not none %}
+                          <!-- Injury / Availability Badge (Only for unplayed or upcoming matches, never on FT matches) -->
+                          {% if p.chance is not none and p.status != 'FT' and not p.is_sub_out %}
                             {% if p.chance == 0 %}
-                              <span class="badge-sub-out" title="{{ p.news or 'Ruled Out (0%)' }}">⛔ OUT</span>
+                              <span class="badge-injury badge-inj-red" title="{{ p.news or 'Ruled Out (0%)' }}">0%</span>
                             {% elif p.chance <= 50 %}
                               <span class="badge-injury badge-inj-orange" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
                             {% elif p.chance <= 75 %}
@@ -258,8 +258,8 @@
                             <span class="badge-sub-in">🔄 IN</span>
                           {% endif %}
 
-                          <!-- Auto-Sub Out (Only if not already marked OUT by 0% chance) -->
-                          {% if p.is_sub_out and p.chance != 0 %}
+                          <!-- Auto-Sub Out -->
+                          {% if p.is_sub_out %}
                             <span class="badge-sub-out">⛔ OUT</span>
                           {% endif %}
                         </div>
@@ -296,8 +296,8 @@
                     {% if p.count_b > 0 %}
                       <div class="player-cell-stack align-items-end">
                         <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap">
-                          <!-- Auto-Sub Out (Only if not already marked OUT by 0% chance) -->
-                          {% if p.is_sub_out and p.chance != 0 %}
+                          <!-- Auto-Sub Out -->
+                          {% if p.is_sub_out %}
                             <span class="badge-sub-out">⛔ OUT</span>
                           {% endif %}
 
@@ -306,10 +306,10 @@
                             <span class="badge-sub-in">🔄 IN</span>
                           {% endif %}
 
-                          <!-- Injury / Availability Badge -->
-                          {% if p.chance is not none %}
+                          <!-- Injury / Availability Badge (Only for unplayed or upcoming matches, never on FT matches) -->
+                          {% if p.chance is not none and p.status != 'FT' and not p.is_sub_out %}
                             {% if p.chance == 0 %}
-                              <span class="badge-sub-out" title="{{ p.news or 'Ruled Out (0%)' }}">⛔ OUT</span>
+                              <span class="badge-injury badge-inj-red" title="{{ p.news or 'Ruled Out (0%)' }}">0%</span>
                             {% elif p.chance <= 50 %}
                               <span class="badge-injury badge-inj-orange" title="{{ p.news or (p.chance ~ '% chance of playing') }}">{{ p.chance }}%</span>
                             {% elif p.chance <= 75 %}
@@ -317,8 +317,8 @@
                             {% endif %}
                           {% endif %}
 
-                          <!-- Live Match Indicator (Excluded if OUT or Subbed Out) -->
-                          {% if p.status == 'LIVE' and not p.is_sub_out and p.chance != 0 %}
+                          <!-- Live Match Indicator (Only if match is live and not subbed out) -->
+                          {% if p.status == 'LIVE' and not p.is_sub_out %}
                             <span class="badge-live"><span class="live-dot"></span> LIVE</span>
                           {% endif %}
 
