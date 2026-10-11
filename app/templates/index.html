@@ -194,16 +194,23 @@
     </div>
   </div>
 
-  <!-- Position Breakdown Tables -->
+  <!-- Position Breakdown Tables (GKP, DEF, MID, FWD, BENCH) -->
   {% for pos, players in results.grouped.items() %}
     {% if players %}
-      <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4">
-        <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2">
-          <span class="pos-dot">●</span>
-          <span class="pos-title">{{ pos }} DIFFERENCE</span>
+      <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
+        <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-1">
+            <span class="pos-dot">●</span>
+            <span class="pos-title">{{ pos }} {% if pos == 'BENCH' %}PLAYERS / SUBS{% else %}DIFFERENCE{% endif %}</span>
+          </div>
+
+          <!-- Highlight if Bench Boost is active in either team -->
+          {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
+            <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
+          {% endif %}
         </div>
         <div class="compare-table-wrapper">
-          <table class="table table-dark table-dark-custom align-middle mb-0 compare-table">
+          <table class="table table-dark table-dark-custom align-middle mb-0 compare-table {% if pos == 'BENCH' %}table-bench{% endif %}">
             <thead>
               <tr class="compare-thead-row">
                 <th class="col-player text-start">Player</th>
@@ -221,11 +228,11 @@
             </thead>
             <tbody>
               {% for p in players %}
-                <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %}">
+                <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
                   <td class="col-player text-start">
                     <div class="player-cell-stack">
                       <div class="d-flex align-items-center gap-1 flex-wrap">
-                        <span class="player-name">{{ p.name }}</span>
+                        <span class="player-name {% if p.is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
 
                         <!-- FPL Injury / Availability Badges (Shown only if chance < 100%) -->
                         {% if p.chance is not none %}
@@ -238,14 +245,24 @@
                           {% endif %}
                         {% endif %}
 
-                        <!-- Auto-sub In Badge -->
+                        <!-- Sub In Badge -->
                         {% if p.is_sub_in %}
-                          <span class="badge-sub-in">🔄 SUB</span>
+                          <span class="badge-sub-in">🔄 SUB IN</span>
+                        {% endif %}
+
+                        <!-- Sub Out Badge -->
+                        {% if p.is_sub_out %}
+                          <span class="badge-sub-out">⛔ OUT</span>
                         {% endif %}
                       </div>
-                      {% if p.opponent %}
-                        <span class="opponent-badge">vs {{ p.opponent }}</span>
-                      {% endif %}
+                      <div class="d-flex align-items-center gap-1 mt-1">
+                        {% if pos == 'BENCH' %}
+                          <span class="badge-pos-mini">{{ p.pos }}</span>
+                        {% endif %}
+                        {% if p.opponent %}
+                          <span class="opponent-badge">vs {{ p.opponent }}</span>
+                        {% endif %}
+                      </div>
                     </div>
                   </td>
                   <td class="text-center font-monospace fw-bold col-pts cell-pts">

@@ -79,24 +79,25 @@ def apply_manager_auto_subs(
     live_data: Dict[int, Dict[str, Any]],
     players_dict: Dict[int, Dict[str, Any]],
     manager_id: int,
-) -> Tuple[List[Dict[str, Any]], List[int]]:
+) -> Tuple[List[Dict[str, Any]], List[int], List[int]]:
     """
     Applies live auto-substitution rules for a manager's 15-player squad.
-    Includes projected substitution for players with 100% confirmed absence (0% chance of playing).
-    Returns the updated picks list and a list of subbed-in element IDs.
+    Returns:
+      1. Updated picks list
+      2. List of subbed-in player element IDs
+      3. List of subbed-out player element IDs
     """
     updated_picks = [{k: v for k, v in p.items()} for p in picks]
     subbed_in_player_ids: List[int] = []
+    subbed_out_player_ids: List[int] = []
 
     picks_by_pos: Dict[int, Dict[str, Any]] = {}
     for p in updated_picks:
         pos_key = int(p.get("position", 0))
         picks_by_pos[pos_key] = p
 
-    # Slots 1-11 represent the starting XI
     starters = [picks_by_pos[i] for i in range(1, 12) if i in picks_by_pos]
     bench_gkp = picks_by_pos.get(12)
-    # Bench outfield order: slots 13, 14, and 15
     bench_outfield = [picks_by_pos[i] for i in [13, 14, 15] if i in picks_by_pos]
 
     def player_did_not_play(element_id: int) -> bool:
@@ -104,11 +105,11 @@ def apply_manager_auto_subs(
         mins = p_live.get("minutes", 0) or 0
         match_status = p_live.get("status", "")
 
-        # 1. Finished match with 0 minutes played
+        # Finished match with 0 minutes played
         if match_status == "FT" and mins == 0:
             return True
 
-        # 2. Confirmed 100% ruled out before kickoff (0% chance of playing or unavailable status)
+        # Confirmed 100% absence before kickoff
         p_info = players_dict.get(element_id, {})
         chance = p_info.get("chance_of_playing")
         fpl_status = p_info.get("status")
@@ -123,12 +124,8 @@ def apply_manager_auto_subs(
         p_live = live_data.get(element_id, {})
         mins = p_live.get("minutes", 0) or 0
         match_status = p_live.get("status", "")
-
-        # A bench candidate is eligible if they played, their match is ongoing/upcoming,
-        # or even if their match finished with 0 minutes (fulfilling sequential bench slots)
         return mins > 0 or match_status != "FT" or (match_status == "FT" and mins == 0)
 
-    # Track active formation counts
     current_pos_counts: Dict[str, int] = {"GKP": 0, "DEF": 0, "MID": 0, "FWD": 0}
     for s in starters:
         pos_name = players_dict.get(s["element_id"], {}).get("position", "")
@@ -143,6 +140,7 @@ def apply_manager_auto_subs(
             bench_gkp["multiplier"] = orig_mult
             starting_gkp["multiplier"] = 0
             subbed_in_player_ids.append(bench_gkp["element_id"])
+            subbed_out_player_ids.append(starting_gkp["element_id"])
             g_in = players_dict.get(bench_gkp["element_id"], {}).get("name", "Unknown")
             g_out = players_dict.get(starting_gkp["element_id"], {}).get("name", "Unknown")
             print(f"[AUTO-SUB][Manager {manager_id}] GKP: {g_out} OUT -> {g_in} IN")
@@ -160,7 +158,6 @@ def apply_manager_auto_subs(
         p_out_name = players_dict.get(p_id, {}).get("name", f"Player {p_id}")
         candidate_found = None
 
-        # Iterate through bench candidates in priority order (slots 13 -> 14 -> 15)
         for candidate in available_bench:
             cand_id = candidate["element_id"]
             if not player_can_sub_in(cand_id):
@@ -170,21 +167,15 @@ def apply_manager_auto_subs(
             if candidate_pos not in ["DEF", "MID", "FWD"]:
                 continue
 
-            # Simulate formation adjustment
             temp_counts = dict(current_pos_counts)
             temp_counts[pos_name] = max(0, temp_counts.get(pos_name, 0) - 1)
             temp_counts[candidate_pos] = temp_counts.get(candidate_pos, 0) + 1
 
-            # Official FPL formation constraint: min 3 DEF, 2 MID, 1 FWD
+            # Official FPL formation rules: at least 3 DEF, 2 MID, 1 FWD
             if temp_counts.get("DEF", 0) >= 3 and temp_counts.get("MID", 0) >= 2 and temp_counts.get("FWD", 0) >= 1:
                 candidate_found = candidate
                 current_pos_counts = temp_counts
                 break
-            else:
-                p_cand_name = players_dict.get(cand_id, {}).get("name", f"Player {cand_id}")
-                print(
-                    f"[AUTO-SUB REJECTED][Manager {manager_id}] Cannot swap {p_out_name} ({pos_name}) with {p_cand_name} ({candidate_pos}) - Formation would be: DEF={temp_counts.get('DEF')}, MID={temp_counts.get('MID')}, FWD={temp_counts.get('FWD')}"
-                )
 
         if candidate_found:
             available_bench.remove(candidate_found)
@@ -192,6 +183,7 @@ def apply_manager_auto_subs(
             candidate_found["multiplier"] = orig_mult
             starter["multiplier"] = 0
             subbed_in_player_ids.append(candidate_found["element_id"])
+            subbed_out_player_ids.append(starter["element_id"])
 
             p_in_name = players_dict.get(candidate_found["element_id"], {}).get(
                 "name", f"Player {candidate_found['element_id']}"
@@ -200,7 +192,7 @@ def apply_manager_auto_subs(
                 f"[AUTO-SUB SUCCESS][Manager {manager_id}] Field: {p_out_name} ({pos_name}) OUT -> {p_in_name} ({candidate_pos}) IN"
             )
 
-    return updated_picks, subbed_in_player_ids
+    return updated_picks, subbed_in_player_ids, subbed_out_player_ids
 
 
 async def get_team_summary(
@@ -211,12 +203,15 @@ async def get_team_summary(
 ) -> Dict[str, Any]:
     """Aggregate total points, hit costs, active chips, captains, and count effective player ownership with live auto-sub."""
     managers_data = []
-    player_counts: Dict[int, int] = Counter()
+    active_player_counts: Dict[int, int] = Counter()
+    bench_player_counts: Dict[int, int] = Counter()
     captain_counts: Dict[int, int] = Counter()
     total_team_points = 0
     total_hits_cost = 0
     active_chips: List[str] = []
     all_subbed_in_ids: Set[int] = set()
+    all_subbed_out_ids: Set[int] = set()
+    has_bench_boost = False
 
     chip_name_map = {
         "bboost": "Bench Boost",
@@ -238,13 +233,16 @@ async def get_team_summary(
                 active_chips.append(readable_chip)
 
             is_bench_boost = chip == "bboost"
+            if is_bench_boost:
+                has_bench_boost = True
+
             manager_live_points = 0
             picks = data.get("picks", [])
 
             if not is_bench_boost:
-                picks, sub_in_ids = apply_manager_auto_subs(picks, live_data, players_dict, m_id)
-                for s_id in sub_in_ids:
-                    all_subbed_in_ids.add(s_id)
+                picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(picks, live_data, players_dict, m_id)
+                all_subbed_in_ids.update(sub_in_ids)
+                all_subbed_out_ids.update(sub_out_ids)
                 data["picks"] = picks
 
             for item in picks:
@@ -260,18 +258,20 @@ async def get_team_summary(
 
                 if is_bench_boost:
                     effective_weight = mult if mult > 0 else 1
-                    player_counts[p_id] += effective_weight
+                    active_player_counts[p_id] += effective_weight
                     manager_live_points += p_score * effective_weight
                     total_slots_count += 1
                     if status != "FT":
                         left_to_play_count += 1
                 else:
                     if mult > 0:
-                        player_counts[p_id] += mult
+                        active_player_counts[p_id] += mult
                         manager_live_points += p_score * mult
                         total_slots_count += 1
                         if status != "FT":
                             left_to_play_count += 1
+                    else:
+                        bench_player_counts[p_id] += 1
 
             net_manager_points = manager_live_points - hits
             data["gw_points"] = net_manager_points
@@ -281,7 +281,7 @@ async def get_team_summary(
             total_hits_cost += hits
 
     ownership_list = []
-    for p_id, count in Counter(player_counts).most_common():
+    for p_id, count in Counter(active_player_counts).most_common():
         player_info = players_dict.get(p_id, {"name": "Unknown", "position": "Unknown"})
         ownership_list.append(
             {
@@ -290,6 +290,21 @@ async def get_team_summary(
                 "position": player_info["position"],
                 "count": count,
                 "is_sub_in": p_id in all_subbed_in_ids,
+                "is_sub_out": False,
+            }
+        )
+
+    bench_ownership_list = []
+    for p_id, count in Counter(bench_player_counts).most_common():
+        player_info = players_dict.get(p_id, {"name": "Unknown", "position": "Unknown"})
+        bench_ownership_list.append(
+            {
+                "id": p_id,
+                "name": player_info["name"],
+                "position": player_info["position"],
+                "count": count,
+                "is_sub_in": False,
+                "is_sub_out": p_id in all_subbed_out_ids,
             }
         )
 
@@ -315,11 +330,13 @@ async def get_team_summary(
         "total_hits_cost": total_hits_cost,
         "active_chips": chips_display,
         "chips_list": chips_list,
+        "has_bench_boost": has_bench_boost,
         "captains": captains_display,
         "captains_list": captains_list,
         "managers_count": len(managers_data),
         "managers": managers_data,
         "ownership": ownership_list,
+        "bench_ownership": bench_ownership_list,
         "status_counts": {
             "left_to_play": left_to_play_count,
             "total_slots": total_slots_count,

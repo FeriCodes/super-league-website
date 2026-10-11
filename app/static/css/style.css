@@ -433,8 +433,30 @@ body {
   border-left: 3px solid #e06c75;
 }
 
+.pos-header-bench {
+  color: #abb2bf;
+  background: rgba(171, 178, 191, 0.08);
+  border-left: 3px solid #abb2bf;
+}
+
+.card-bench-boost-active {
+  border: 1px solid rgba(229, 192, 123, 0.45) !important;
+  box-shadow: 0 0 16px rgba(229, 192, 123, 0.15) !important;
+}
+
+.badge-bench-boost {
+  background: rgba(229, 192, 123, 0.2);
+  color: var(--accent-yellow);
+  border: 1px solid rgba(229, 192, 123, 0.5);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
 /* =========================================
-   Compare Table Mobile Tight Fit (No Horizontal Scroll)
+   Compare Table Mobile Tight Fit
 ========================================= */
 .compare-table-wrapper {
   width: 100%;
@@ -499,7 +521,7 @@ body {
   padding: 8px 4px !important;
 }
 
-/* Player Cell Stack (Name + Opponent Sub-Badge) */
+/* Player Cell Stack */
 .player-cell-stack {
   display: flex;
   flex-direction: column;
@@ -513,9 +535,47 @@ body {
   word-break: break-word;
 }
 
-/* =========================================
-   FPL Injury & Availability Badges
-========================================= */
+.text-subbed-out {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
+/* Sub-in & Sub-out Badges */
+.badge-sub-in {
+  background: rgba(86, 182, 194, 0.18);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(86, 182, 194, 0.38);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0 4px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+
+.badge-sub-out {
+  background: rgba(224, 108, 117, 0.2);
+  color: var(--accent-red);
+  border: 1px solid rgba(224, 108, 117, 0.45);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0 4px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+
+.badge-pos-mini {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* Injury Badges */
 .badge-injury {
   display: inline-flex;
   align-items: center;
@@ -529,38 +589,22 @@ body {
   cursor: help;
 }
 
-/* Red (0% or Confirmed Out) */
 .badge-inj-red {
   background: rgba(224, 108, 117, 0.2);
   color: var(--accent-red);
   border: 1px solid rgba(224, 108, 117, 0.45);
 }
 
-/* Orange (25% - 50%) */
 .badge-inj-orange {
   background: rgba(209, 137, 72, 0.2);
   color: #d19a66;
   border: 1px solid rgba(209, 137, 72, 0.45);
 }
 
-/* Yellow (75%) */
 .badge-inj-yellow {
   background: rgba(229, 192, 123, 0.2);
   color: var(--accent-yellow);
   border: 1px solid rgba(229, 192, 123, 0.45);
-}
-
-/* Sub-in Badge */
-.badge-sub-in {
-  background: rgba(86, 182, 194, 0.18);
-  color: var(--accent-cyan);
-  border: 1px solid rgba(86, 182, 194, 0.38);
-  font-size: 0.62rem;
-  font-weight: 700;
-  padding: 0 4px;
-  border-radius: 3px;
-  letter-spacing: 0.3px;
-  line-height: 1.3;
 }
 
 .opponent-badge {
@@ -572,7 +616,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 1px 4px;
   border-radius: 3px;
-  margin-top: 3px;
   width: fit-content;
 }
 
@@ -610,16 +653,24 @@ body {
   border: 1px solid rgba(171, 178, 191, 0.25);
 }
 
-/* Finished Matches Dimming */
+/* Row Dimming */
 .player-row-ft {
-  opacity: 0.38 !important;
-  filter: grayscale(45%);
+  opacity: 0.45 !important;
+  filter: grayscale(35%);
   transition: opacity 0.2s ease;
 }
 
 .player-row-ft:hover {
-  opacity: 0.85 !important;
+  opacity: 0.9 !important;
   filter: none;
+}
+
+.player-row-subbed-out {
+  background-color: rgba(224, 108, 117, 0.04) !important;
+}
+
+.table-bench {
+  opacity: 0.9;
 }
 
 /* Scrollbar */
@@ -647,7 +698,7 @@ body {
 }
 
 /* =========================================
-   Fixture Match Card: Absolute Horizontal Lock
+   Fixture Match Card
 ========================================= */
 .fixture-match-card {
   display: grid !important;
@@ -782,7 +833,7 @@ body {
 }
 
 /* =========================================
-   Standings Table Styles (Matched Theme & Mobile Lock)
+   Standings Table Styles
 ========================================= */
 .standings-table {
   width: 100% !important;
@@ -873,7 +924,6 @@ td.gd-zero {
     font-size: 0.75rem !important;
   }
 
-  /* Compare table dense padding on small screens */
   .compare-table {
     font-size: 0.75rem !important;
   }
@@ -924,7 +974,6 @@ td.gd-zero {
     margin-bottom: 0.35rem;
   }
 
-  /* Standings table adjustments */
   .standings-table {
     font-size: 0.75rem !important;
   }
