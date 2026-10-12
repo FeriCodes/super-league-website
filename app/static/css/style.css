@@ -197,7 +197,6 @@ body {
 .unified-team-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
   border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: hidden;
@@ -245,9 +244,8 @@ body {
   padding: 0.85rem 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 0.6rem;
-  flex-grow: 1;
+  justify-content: flex-start;
+  gap: 0.55rem;
 }
 
 .meta-row {
@@ -532,7 +530,7 @@ body {
 
 /* Points Badge - Always 1 Line (No Wrap) */
 .player-pts-mini {
-  color: var(--accent-cyan);
+  color: var(--accent-cyan) !important;
   font-size: 0.74rem;
   font-weight: 700;
   white-space: nowrap !important;
@@ -994,4 +992,60 @@ td.gd-zero {
   .score-row {
     font-size: 0.88rem !important;
   }
+}
+
+/* Manager Squad Breakdown Accordion */
+.btn-breakdown {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 5px 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-breakdown:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-breakdown[aria-expanded="true"] .collapse-icon {
+  transform: rotate(180deg);
+}
+
+.collapse-icon {
+  display: inline-block;
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+
+.manager-list-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--bg-main);
+}
+
+.manager-list-wrap table td,
+.manager-list-wrap table th {
+  padding: 5px 8px !important;
+  font-size: 0.74rem !important;
+}
+
+/* Squad Breakdown Individual Points Alignment */
+.breakdown-pts-a {
+  color: var(--accent-green) !important;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap !important;
+}
+
+.breakdown-pts-b {
+  color: var(--accent-blue-soft) !important;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap !important;
 }

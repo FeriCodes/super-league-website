@@ -126,6 +126,66 @@
               </span>
             </div>
           </div>
+
+          <!-- 5. Squad Breakdown (Team A) -->
+          <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
+            <button class="btn btn-sm btn-breakdown w-100 d-flex justify-content-between align-items-center"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#breakdownTeamA"
+                    aria-expanded="false">
+              <span>👥 Squad Breakdown (7 Players)</span>
+              <span class="collapse-icon">▼</span>
+            </button>
+            <div class="collapse mt-2" id="breakdownTeamA">
+              <div class="manager-list-wrap">
+                <table class="table table-sm table-dark-custom mb-0 align-middle">
+                  <thead>
+                    <tr class="text-muted small">
+                      <th>#</th>
+                      <th>Manager / Team</th>
+                      <th class="text-center">Chip</th>
+                      <th class="text-center">Hits</th>
+                      <th class="text-end">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for m in results.summary_a.managers %}
+                      <tr>
+                        <td class="text-muted small">{{ loop.index }}</td>
+                        <td>
+                          <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ results.gameweek }}" target="_blank" class="text-decoration-none d-block text-truncate" style="max-width: 140px;">
+                            <span class="fw-semibold text-light d-block text-truncate">{{ m.team_name }}</span>
+                            <span class="text-muted small text-truncate d-block">#{{ m.manager_id }} · {{ m.manager_name }}</span>
+                          </a>
+                        </td>
+                        <td class="text-center">
+                          {% if m.active_chip %}
+                            <span class="meta-pill pill-chip" style="font-size: 0.65rem;">{{ m.active_chip }}</span>
+                          {% else %}
+                            <span class="text-muted small">—</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center small">
+                          {% if m.hits > 0 %}
+                            <span class="text-danger fw-bold">-{{ m.hits }}</span>
+                          {% else %}
+                            <span class="text-muted">0</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-end breakdown-pts-a">{{ m.gw_points }} pts</td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td colspan="5" class="text-center text-muted small py-2">No manager data available</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -188,6 +248,66 @@
               </span>
             </div>
           </div>
+
+          <!-- 5. Squad Breakdown (Team B) -->
+          <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
+            <button class="btn btn-sm btn-breakdown w-100 d-flex justify-content-between align-items-center"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#breakdownTeamB"
+                    aria-expanded="false">
+              <span>👥 Squad Breakdown (7 Players)</span>
+              <span class="collapse-icon">▼</span>
+            </button>
+            <div class="collapse mt-2" id="breakdownTeamB">
+              <div class="manager-list-wrap">
+                <table class="table table-sm table-dark-custom mb-0 align-middle">
+                  <thead>
+                    <tr class="text-muted small">
+                      <th>#</th>
+                      <th>Manager / Team</th>
+                      <th class="text-center">Chip</th>
+                      <th class="text-center">Hits</th>
+                      <th class="text-end">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for m in results.summary_b.managers %}
+                      <tr>
+                        <td class="text-muted small">{{ loop.index }}</td>
+                        <td>
+                          <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ results.gameweek }}" target="_blank" class="text-decoration-none d-block text-truncate" style="max-width: 140px;">
+                            <span class="fw-semibold text-light d-block text-truncate">{{ m.team_name }}</span>
+                            <span class="text-muted small text-truncate d-block">#{{ m.manager_id }} · {{ m.manager_name }}</span>
+                          </a>
+                        </td>
+                        <td class="text-center">
+                          {% if m.active_chip %}
+                            <span class="meta-pill pill-chip" style="font-size: 0.65rem;">{{ m.active_chip }}</span>
+                          {% else %}
+                            <span class="text-muted small">—</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center small">
+                          {% if m.hits > 0 %}
+                            <span class="text-danger fw-bold">-{{ m.hits }}</span>
+                          {% else %}
+                            <span class="text-muted">0</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-end breakdown-pts-b">{{ m.gw_points }} pts</td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td colspan="5" class="text-center text-muted small py-2">No manager data available</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
