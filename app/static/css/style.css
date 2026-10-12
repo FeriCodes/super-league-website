@@ -218,12 +218,18 @@ body {
   letter-spacing: 0.3px;
 }
 
+/* Team A Score (Default Green) */
 .team-score-num {
   font-size: clamp(2.2rem, 5vw, 3.2rem);
   font-weight: 800;
   color: var(--accent-green);
   line-height: 1.1;
   margin: 0.3rem 0;
+}
+
+/* Team B Score (Accent Soft Blue) */
+.team-score-num-b {
+  color: var(--accent-blue-soft) !important;
 }
 
 .team-score-lbl {
