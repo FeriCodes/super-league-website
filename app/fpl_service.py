@@ -292,6 +292,9 @@ async def get_team_summary(
             total_team_points += net_manager_points
             total_hits_cost += hits
 
+    # sort managers by their gameweek points in descending order
+    managers_data.sort(key=lambda m: m["gw_points"], reverse=True)
+
     ownership_list = []
     for p_id, count in Counter(active_player_counts).most_common():
         player_info = players_dict.get(p_id, {"name": "Unknown", "position": "Unknown"})
