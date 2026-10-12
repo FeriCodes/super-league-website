@@ -6,7 +6,7 @@ from app.fpl_client import fetch_fpl_api
 
 
 def parse_manager_ids(raw_text: str) -> List[int]:
-    """Extract integer manager IDs from messy text."""
+    """Extract integer manager IDs from raw text."""
     numbers = re.findall(r"\b\d+\b", raw_text)
     return [int(n) for n in numbers]
 
@@ -39,7 +39,7 @@ async def get_players_dict() -> Dict[int, Dict[str, Any]]:
 
 
 async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
-    """Fetch manager's gameweek score, transfer hits, and squad picks."""
+    """Fetch manager gameweek score, transfer hits, active chip, and manager/team profile info."""
     endpoint = f"entry/{manager_id}/event/{gameweek}/picks"
     data = await fetch_fpl_api(endpoint)
 
@@ -47,12 +47,26 @@ async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
         print(f"Manager {manager_id} GW {gameweek} failed to fetch.")
         return {"status": "error", "manager_id": manager_id}
 
-    entry_history = data.get("entry_history") or {}
+    # Retrieve manager and squad names from public profile
+    profile_data = await fetch_fpl_api(f"entry/{manager_id}/") or {}
+    player_first = profile_data.get("player_first_name", "")
+    player_last = profile_data.get("player_last_name", "")
+    manager_name = f"{player_first} {player_last}".strip() or f"Manager #{manager_id}"
+    team_name = profile_data.get("name", "FPL Squad")
 
+    entry_history = data.get("entry_history") or {}
     raw_points = entry_history.get("points", 0)
     hits = entry_history.get("event_transfers_cost", 0)
     net_gw_points = raw_points - hits
     active_chip = data.get("active_chip")
+
+    chip_map = {
+        "bboost": "Bench Boost",
+        "3xc": "Triple Captain",
+        "freehit": "Free Hit",
+        "wildcard": "Wildcard",
+    }
+    readable_chip = chip_map.get(active_chip, active_chip.title()) if active_chip else None
 
     picks_summary = [
         {
@@ -65,10 +79,12 @@ async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
 
     return {
         "manager_id": manager_id,
+        "manager_name": manager_name,
+        "team_name": team_name,
         "gameweek": gameweek,
         "gw_points": net_gw_points,
         "hits": hits,
-        "active_chip": active_chip,
+        "active_chip": readable_chip,
         "picks": picks_summary,
         "status": "success",
     }
@@ -81,7 +97,7 @@ def apply_manager_auto_subs(
     manager_id: int,
 ) -> Tuple[List[Dict[str, Any]], List[int], List[int]]:
     """
-    Applies live auto-substitution rules for a manager's 15-player squad.
+    Apply live auto-substitution rules for a manager's 15-player squad.
     Returns:
       1. Updated picks list
       2. List of subbed-in player element IDs
@@ -213,13 +229,6 @@ async def get_team_summary(
     all_subbed_out_ids: Set[int] = set()
     has_bench_boost = False
 
-    chip_name_map = {
-        "bboost": "Bench Boost",
-        "3xc": "Triple Captain",
-        "freehit": "Free Hit",
-        "wildcard": "Wildcard",
-    }
-
     left_to_play_count = 0
     total_slots_count = 0
 
@@ -229,10 +238,9 @@ async def get_team_summary(
             hits = data.get("hits", 0)
             chip = data.get("active_chip")
             if chip:
-                readable_chip = chip_name_map.get(chip, chip.title())
-                active_chips.append(readable_chip)
+                active_chips.append(chip)
 
-            is_bench_boost = chip == "bboost"
+            is_bench_boost = chip == "Bench Boost"
             if is_bench_boost:
                 has_bench_boost = True
 
@@ -432,16 +440,25 @@ async def get_live_scores_and_status(gw: int) -> Dict[int, Dict[str, Any]]:
         official_bonus = stats.get("bonus", 0)
         minutes_played = stats.get("minutes", 0)
 
-        bonus_to_add = provisional_bonuses.get(player_id, 0) if official_bonus == 0 else 0
-        live_total = raw_points + bonus_to_add
-
         team_id = player_to_team.get(player_id)
+
+        # -------------------------------------------------------------
+        # Scoring Accuracy Logic:
+        # 1. Finished matches (FT): Use final official raw_points (includes confirmed bonuses).
+        #    Never add provisional bonus to FT matches.
+        # 2. Live matches (LIVE): Add provisional bonus only if official bonus is not yet confirmed.
+        # 3. Unplayed matches: Use raw_points directly.
+        # -------------------------------------------------------------
         if team_id in finished_teams:
             status = "FT"
+            live_total = raw_points
         elif team_id in started_teams:
             status = "LIVE"
+            bonus_to_add = provisional_bonuses.get(player_id, 0) if official_bonus == 0 else 0
+            live_total = raw_points + bonus_to_add
         else:
             status = "Not Played Yet"
+            live_total = raw_points
 
         live_summary[player_id] = {
             "points": live_total,
