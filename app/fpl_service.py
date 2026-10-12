@@ -253,6 +253,8 @@ async def get_team_summary(
                 all_subbed_out_ids.update(sub_out_ids)
                 data["picks"] = picks
 
+            # Extract individual manager's captain
+            manager_captain_name = "-"
             for item in picks:
                 p_id = int(item["element_id"])
                 mult = int(item.get("multiplier", 0))
@@ -263,6 +265,7 @@ async def get_team_summary(
 
                 if mult >= 2:
                     captain_counts[p_id] += 1
+                    manager_captain_name = players_dict.get(p_id, {}).get("name", "Unknown")
 
                 if is_bench_boost:
                     effective_weight = mult if mult > 0 else 1
@@ -281,6 +284,7 @@ async def get_team_summary(
                     else:
                         bench_player_counts[p_id] += 1
 
+            data["captain_name"] = manager_captain_name
             net_manager_points = manager_live_points - hits
             data["gw_points"] = net_manager_points
 

@@ -85,9 +85,9 @@
             <span class="meta-label">Transfer Hits:</span>
             <div class="meta-badges-wrap">
               {% if results.summary_a.total_hits_cost > 0 %}
-                <span class="meta-pill pill-hits">-{{ results.summary_a.total_hits_cost }} pts</span>
+                <span class="meta-pill pill-hits">-{{ results.summary_a.total_hits_cost }}</span>
               {% else %}
-                <span class="meta-pill pill-neutral">0 pts</span>
+                <span class="meta-pill pill-neutral">0</span>
               {% endif %}
             </div>
           </div>
@@ -139,41 +139,50 @@
             </button>
             <div class="collapse mt-2" id="breakdownTeamA">
               <div class="manager-list-wrap">
-                <table class="table table-sm table-dark-custom mb-0 align-middle">
+                <table class="table table-sm table-dark-custom squad-breakdown-table align-middle">
                   <thead>
-                    <tr class="text-muted small">
-                      <th>#</th>
-                      <th>Manager / Team</th>
-                      <th class="text-center">Chip</th>
-                      <th class="text-center">Hits</th>
-                      <th class="text-end">Pts</th>
+                    <tr class="table-subhead">
+                      <th class="col-squad">Squad</th>
+                      <th class="col-cap">C</th>
+                      <th class="col-chip">Chip</th>
+                      <th class="col-hit">Hit</th>
+                      <th class="col-pts">Pts</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for m in results.summary_a.managers %}
                       <tr>
-                        <td class="text-muted small">{{ loop.index }}</td>
-                        <td>
-                          <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ results.gameweek }}" target="_blank" class="text-decoration-none d-block text-truncate" style="max-width: 140px;">
-                            <span class="fw-semibold text-light d-block text-truncate">{{ m.team_name }}</span>
-                            <span class="text-muted small text-truncate d-block">#{{ m.manager_id }} · {{ m.manager_name }}</span>
+                        <td class="col-squad">
+                          <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ results.gameweek }}"
+                             target="_blank"
+                             class="fpl-manager-link"
+                             title="{{ m.team_name }} ({{ m.manager_name }})">
+                            <span class="link-team-title">{{ m.team_name }}</span>
+                            <span class="link-manager-subtitle">{{ m.manager_name }} <span class="link-ext-icon">↗</span></span>
                           </a>
                         </td>
-                        <td class="text-center">
-                          {% if m.active_chip %}
-                            <span class="meta-pill pill-chip" style="font-size: 0.65rem;">{{ m.active_chip }}</span>
+                        <td class="col-cap">
+                          {% if m.captain_name and m.captain_name != '—' and m.captain_name != '-' %}
+                            <span class="meta-pill pill-captain small-badge" title="{{ m.captain_name }}">{{ m.captain_name }}</span>
                           {% else %}
                             <span class="text-muted small">—</span>
                           {% endif %}
                         </td>
-                        <td class="text-center small">
-                          {% if m.hits > 0 %}
-                            <span class="text-danger fw-bold">-{{ m.hits }}</span>
+                        <td class="col-chip">
+                          {% if m.active_chip %}
+                            <span class="meta-pill pill-chip small-badge">{{ m.active_chip }}</span>
                           {% else %}
-                            <span class="text-muted">0</span>
+                            <span class="text-muted small">—</span>
                           {% endif %}
                         </td>
-                        <td class="text-end breakdown-pts-a">{{ m.gw_points }} pts</td>
+                        <td class="col-hit">
+                          {% if m.hits > 0 %}
+                            <span class="text-danger fw-bold small">-{{ m.hits }}</span>
+                          {% else %}
+                            <span class="text-muted small">—</span>
+                          {% endif %}
+                        </td>
+                        <td class="col-pts breakdown-pts-a">{{ m.gw_points }}</td>
                       </tr>
                     {% else %}
                       <tr>
@@ -207,9 +216,9 @@
             <span class="meta-label">Transfer Hits:</span>
             <div class="meta-badges-wrap">
               {% if results.summary_b.total_hits_cost > 0 %}
-                <span class="meta-pill pill-hits">-{{ results.summary_b.total_hits_cost }} pts</span>
+                <span class="meta-pill pill-hits">-{{ results.summary_b.total_hits_cost }}</span>
               {% else %}
-                <span class="meta-pill pill-neutral">0 pts</span>
+                <span class="meta-pill pill-neutral">0</span>
               {% endif %}
             </div>
           </div>
@@ -261,41 +270,50 @@
             </button>
             <div class="collapse mt-2" id="breakdownTeamB">
               <div class="manager-list-wrap">
-                <table class="table table-sm table-dark-custom mb-0 align-middle">
+                <table class="table table-sm table-dark-custom squad-breakdown-table align-middle">
                   <thead>
-                    <tr class="text-muted small">
-                      <th>#</th>
-                      <th>Manager / Team</th>
-                      <th class="text-center">Chip</th>
-                      <th class="text-center">Hits</th>
-                      <th class="text-end">Pts</th>
+                    <tr class="table-subhead">
+                      <th class="col-squad">Squad</th>
+                      <th class="col-cap">C</th>
+                      <th class="col-chip">Chip</th>
+                      <th class="col-hit">Hit</th>
+                      <th class="col-pts">Pts</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for m in results.summary_b.managers %}
                       <tr>
-                        <td class="text-muted small">{{ loop.index }}</td>
-                        <td>
-                          <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ results.gameweek }}" target="_blank" class="text-decoration-none d-block text-truncate" style="max-width: 140px;">
-                            <span class="fw-semibold text-light d-block text-truncate">{{ m.team_name }}</span>
-                            <span class="text-muted small text-truncate d-block">#{{ m.manager_id }} · {{ m.manager_name }}</span>
+                        <td class="col-squad">
+                          <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ results.gameweek }}"
+                             target="_blank"
+                             class="fpl-manager-link"
+                             title="{{ m.team_name }} ({{ m.manager_name }})">
+                            <span class="link-team-title">{{ m.team_name }}</span>
+                            <span class="link-manager-subtitle">{{ m.manager_name }} <span class="link-ext-icon">↗</span></span>
                           </a>
                         </td>
-                        <td class="text-center">
-                          {% if m.active_chip %}
-                            <span class="meta-pill pill-chip" style="font-size: 0.65rem;">{{ m.active_chip }}</span>
+                        <td class="col-cap">
+                          {% if m.captain_name and m.captain_name != '—' and m.captain_name != '-' %}
+                            <span class="meta-pill pill-captain small-badge" title="{{ m.captain_name }}">{{ m.captain_name }}</span>
                           {% else %}
                             <span class="text-muted small">—</span>
                           {% endif %}
                         </td>
-                        <td class="text-center small">
-                          {% if m.hits > 0 %}
-                            <span class="text-danger fw-bold">-{{ m.hits }}</span>
+                        <td class="col-chip">
+                          {% if m.active_chip %}
+                            <span class="meta-pill pill-chip small-badge">{{ m.active_chip }}</span>
                           {% else %}
-                            <span class="text-muted">0</span>
+                            <span class="text-muted small">—</span>
                           {% endif %}
                         </td>
-                        <td class="text-end breakdown-pts-b">{{ m.gw_points }} pts</td>
+                        <td class="col-hit">
+                          {% if m.hits > 0 %}
+                            <span class="text-danger fw-bold small">-{{ m.hits }}</span>
+                          {% else %}
+                            <span class="text-muted small">—</span>
+                          {% endif %}
+                        </td>
+                        <td class="col-pts breakdown-pts-b">{{ m.gw_points }}</td>
                       </tr>
                     {% else %}
                       <tr>
@@ -382,7 +400,7 @@
 
                         <!-- Bottom Line: Points, Opponent & Pos -->
                         <div class="player-row-bottom justify-content-start">
-                          <span class="player-pts-mini">{{ p.player_points }} pts</span>
+                          <span class="player-pts-mini">{{ p.player_points }}</span>
                           {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
                           {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
                         </div>
@@ -443,7 +461,7 @@
                         <div class="player-row-bottom justify-content-end">
                           {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
                           {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
-                          <span class="player-pts-mini">{{ p.player_points }} pts</span>
+                          <span class="player-pts-mini">{{ p.player_points }}</span>
                         </div>
                       </div>
                     {% else %}
