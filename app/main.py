@@ -1,54 +1,42 @@
-import os
-import json
 import asyncio
 import uvicorn
-from pathlib import Path
 from typing import Optional
 from contextlib import asynccontextmanager
 
-import asyncpg
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from app.fpl_client import close_fpl_client
-from .fpl_service import (
-    get_players_dict,
-    get_team_summary,
-    get_live_scores_and_status,
+from app.fpl.client import close_fpl_client
+from app.fpl.managers import get_players_dict, get_team_summary
+from app.fpl.live import get_live_scores_and_status
+from app.fpl.gameweek import (
     get_gameweek_status,
-    get_manager_gw_data,
     get_current_gameweek,
     get_team_fixtures_map,
 )
+from app.services.compare import build_head_to_head_comparison
+from app.services.standings import compute_standings, get_team_total_points_fast
+from app.services.storage import (
+    init_db,
+    close_db,
+    load_teams,
+    get_team_roster,
+    load_fixtures,
+    get_all_results_cache,
+    get_cached_gameweek,
+    save_cached_gameweek,
+)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-db_pool: Optional[asyncpg.Pool] = None
+PLAYERS_CACHE = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global db_pool
-    if DATABASE_URL:
-        try:
-            db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
-            async with db_pool.acquire() as conn:
-                await conn.execute("""
-                    CREATE TABLE IF NOT EXISTS results_cache (
-                        gameweek INT PRIMARY KEY,
-                        data JSONB NOT NULL,
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                    );
-                    """)
-        except Exception as e:
-            print(f"[DATABASE INIT ERROR] {e}")
-            db_pool = None
-
+    await init_db()
     yield
-
-    if db_pool:
-        await db_pool.close()
+    await close_db()
     await close_fpl_client()
 
 
@@ -56,269 +44,6 @@ app = FastAPI(title="Super League H2H", lifespan=lifespan)
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
-TEAMS_FILE = Path(__file__).resolve().parent / "sl_teams.json"
-FIXTURES_FILE = Path(__file__).resolve().parent / "fixtures.json"
-RESULTS_CACHE_FILE = Path(__file__).resolve().parent / "results_cache.json"
-
-PLAYERS_CACHE = {}
-
-
-def load_teams() -> dict:
-    """Read and parse the local sl_teams.json file into a Python dictionary."""
-    if not TEAMS_FILE.exists():
-        return {}
-    with open(TEAMS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def get_team_roster(teams_data: dict, team_name: str, gw: int) -> list:
-    """Fetch manager IDs dynamically for a team based on gameweek ranges."""
-    data = teams_data.get(team_name, [])
-    if not data:
-        return []
-
-    try:
-        current_gw = int(gw)
-    except (ValueError, TypeError):
-        current_gw = 1
-
-    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], int):
-        return data
-
-    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
-        for entry in data:
-            from_gw = int(entry.get("from_gw", 1))
-            to_gw = int(entry.get("to_gw", 38))
-            if from_gw <= current_gw <= to_gw:
-                return entry.get("ids", [])
-
-    return []
-
-
-def load_fixtures() -> dict:
-    """Load league schedule mapping from fixtures.json."""
-    if not FIXTURES_FILE.exists():
-        return {}
-    with open(FIXTURES_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _load_local_results_cache() -> dict:
-    """Load cached gameweek results from local json fallback."""
-    if not RESULTS_CACHE_FILE.exists():
-        return {}
-    try:
-        with open(RESULTS_CACHE_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-
-def _save_local_results_cache(data: dict):
-    """Write gameweek results to local json fallback."""
-    try:
-        with open(RESULTS_CACHE_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-    except Exception as e:
-        print(f"[CACHE WRITE ERROR] {e}")
-
-
-async def get_all_results_cache() -> dict:
-    """Fetch all cached gameweeks from PostgreSQL with JSON file fallback."""
-    if db_pool:
-        try:
-            async with db_pool.acquire() as conn:
-                rows = await conn.fetch("SELECT gameweek, data FROM results_cache")
-                cache = {}
-                for row in rows:
-                    gw_str = str(row["gameweek"])
-                    raw_data = row["data"]
-                    cache[gw_str] = json.loads(raw_data) if isinstance(raw_data, str) else raw_data
-                return cache
-        except Exception as e:
-            print(f"[DB READ ALL ERROR] {e}")
-
-    return _load_local_results_cache()
-
-
-async def get_cached_gameweek(gw: int) -> Optional[dict]:
-    """Fetch cached data for a specific gameweek."""
-    gw_str = str(gw)
-    if db_pool:
-        try:
-            async with db_pool.acquire() as conn:
-                row = await conn.fetchrow("SELECT data FROM results_cache WHERE gameweek = $1", gw)
-                if row:
-                    raw_data = row["data"]
-                    return json.loads(raw_data) if isinstance(raw_data, str) else raw_data
-                return None
-        except Exception as e:
-            print(f"[DB READ GW ERROR] {e}")
-
-    cache = _load_local_results_cache()
-    return cache.get(gw_str)
-
-
-async def save_cached_gameweek(gw: int, data: dict):
-    """Save gameweek scores persistently in PostgreSQL with JSON fallback."""
-    if db_pool:
-        try:
-            json_payload = json.dumps(data)
-            async with db_pool.acquire() as conn:
-                await conn.execute(
-                    """
-                    INSERT INTO results_cache (gameweek, data)
-                    VALUES ($1, $2::jsonb)
-                    ON CONFLICT (gameweek)
-                    DO UPDATE SET data = EXCLUDED.data, created_at = CURRENT_TIMESTAMP
-                    """,
-                    gw,
-                    json_payload,
-                )
-            return
-        except Exception as e:
-            print(f"[DB WRITE ERROR] {e}")
-
-    cache = _load_local_results_cache()
-    cache[str(gw)] = data
-    _save_local_results_cache(cache)
-
-
-def build_head_to_head_comparison(
-    summary_a: dict,
-    summary_b: dict,
-    live_data: dict,
-    players_cache: dict,
-    fixtures_map: dict,
-) -> dict:
-    """Build positional player breakdown and point diffs for head-to-head matchup, including bench."""
-    grouped = {
-        "GKP": [],
-        "DEF": [],
-        "MID": [],
-        "FWD": [],
-        "BENCH": [],
-    }
-
-    # 1. Process Active Starting XI
-    a_dict = {int(p["id"]): p for p in summary_a.get("ownership", [])}
-    b_dict = {int(p["id"]): p for p in summary_b.get("ownership", [])}
-    all_player_ids = set(a_dict.keys()) | set(b_dict.keys())
-
-    for pid in all_player_ids:
-        info = a_dict.get(pid) or b_dict.get(pid)
-        name = info.get("name", "Unknown")
-        pos = info.get("position", "Unknown")
-
-        count_a = a_dict[pid]["count"] if pid in a_dict else 0
-        count_b = b_dict[pid]["count"] if pid in b_dict else 0
-        diff = count_a - count_b
-
-        live_info = live_data.get(pid, {})
-        player_points = live_info.get("points", 0)
-        match_status = live_info.get("status", "Not Played Yet")
-
-        p_cached = players_cache.get(pid, {})
-        team_id = p_cached.get("team_id")
-        opp_short = fixtures_map.get(team_id, "")
-        chance = p_cached.get("chance_of_playing")
-        news = p_cached.get("news", "")
-
-        is_sub_a = a_dict[pid].get("is_sub_in", False) if pid in a_dict else False
-        is_sub_b = b_dict[pid].get("is_sub_in", False) if pid in b_dict else False
-        is_sub = is_sub_a or is_sub_b
-
-        row = {
-            "id": pid,
-            "name": name,
-            "pos": pos,
-            "count_a": count_a,
-            "count_b": count_b,
-            "diff": diff,
-            "player_points": player_points,
-            "status": match_status,
-            "opponent": opp_short,
-            "is_sub_in": is_sub,
-            "is_sub_out": False,
-            "chance": chance,
-            "news": news,
-        }
-
-        if pos in grouped:
-            grouped[pos].append(row)
-
-    # 2. Process Bench / Subs
-    a_bench_dict = {int(p["id"]): p for p in summary_a.get("bench_ownership", [])}
-    b_bench_dict = {int(p["id"]): p for p in summary_b.get("bench_ownership", [])}
-    all_bench_ids = set(a_bench_dict.keys()) | set(b_bench_dict.keys())
-
-    for pid in all_bench_ids:
-        info = a_bench_dict.get(pid) or b_bench_dict.get(pid)
-        name = info.get("name", "Unknown")
-        pos = info.get("position", "Unknown")
-
-        count_a = a_bench_dict[pid]["count"] if pid in a_bench_dict else 0
-        count_b = b_bench_dict[pid]["count"] if pid in b_bench_dict else 0
-        diff = count_a - count_b
-
-        live_info = live_data.get(pid, {})
-        player_points = live_info.get("points", 0)
-        match_status = live_info.get("status", "Not Played Yet")
-
-        p_cached = players_cache.get(pid, {})
-        team_id = p_cached.get("team_id")
-        opp_short = fixtures_map.get(team_id, "")
-        chance = p_cached.get("chance_of_playing")
-        news = p_cached.get("news", "")
-
-        is_out_a = a_bench_dict[pid].get("is_sub_out", False) if pid in a_bench_dict else False
-        is_out_b = b_bench_dict[pid].get("is_sub_out", False) if pid in b_bench_dict else False
-        is_out = is_out_a or is_out_b
-
-        row = {
-            "id": pid,
-            "name": name,
-            "pos": pos,
-            "count_a": count_a,
-            "count_b": count_b,
-            "diff": diff,
-            "player_points": player_points,
-            "status": match_status,
-            "opponent": opp_short,
-            "is_sub_in": False,
-            "is_sub_out": is_out,
-            "chance": chance,
-            "news": news,
-        }
-        grouped["BENCH"].append(row)
-
-    # Sort starters by Diff
-    def starters_sort_key(item):
-        diff = item.get("diff", 0)
-        total_owners = item.get("count_a", 0) + item.get("count_b", 0)
-        if diff > 0:
-            return (1, diff, total_owners)
-        elif diff == 0:
-            return (0, 0, total_owners)
-        else:
-            return (-1, diff, total_owners)
-
-    for pos in ["GKP", "DEF", "MID", "FWD"]:
-        grouped[pos].sort(key=starters_sort_key, reverse=True)
-
-    # Sort Bench by Football Position (GKP -> DEF -> MID -> FWD) then Diff
-    pos_order = {"GKP": 1, "DEF": 2, "MID": 3, "FWD": 4}
-
-    def bench_sort_key(item):
-        pos_weight = pos_order.get(item.get("pos"), 5)
-        diff = item.get("diff", 0)
-        total_owners = item.get("count_a", 0) + item.get("count_b", 0)
-        return (pos_weight, -abs(diff), -total_owners)
-
-    grouped["BENCH"].sort(key=bench_sort_key)
-
-    return grouped
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -431,20 +156,6 @@ async def compare_teams(
     )
 
 
-async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
-    """Fetch cumulative team score asynchronously for final fixtures calculation."""
-    if not team_ids:
-        return 0
-    tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    total = 0
-    for r in results:
-        if isinstance(r, dict) and r.get("status") == "success":
-            total += r.get("gw_points", 0)
-    return total
-
-
 @app.get("/fixtures", response_class=HTMLResponse)
 async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     """Render gameweek fixtures and store final results once the gameweek concludes."""
@@ -518,63 +229,6 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
             "active_page": "fixtures",
         },
     )
-
-
-def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
-    """Calculate overall league table standings based on cached finished results."""
-    table = {}
-    for team_name in teams.keys():
-        table[team_name] = {
-            "team": team_name,
-            "played": 0,
-            "won": 0,
-            "drawn": 0,
-            "lost": 0,
-            "points": 0,
-            "gd": 0,
-        }
-
-    for gw_str, matches in fixtures.items():
-        if gw_str not in results_cache:
-            continue
-        gw_scores = results_cache[gw_str]
-
-        for team_a, team_b in matches:
-            if team_a in gw_scores and team_b in gw_scores:
-                score_a = gw_scores[team_a]
-                score_b = gw_scores[team_b]
-
-                table[team_a]["played"] += 1
-                table[team_b]["played"] += 1
-
-                match_diff = score_a - score_b
-                table[team_a]["gd"] += match_diff
-                table[team_b]["gd"] -= match_diff
-
-                if score_a > score_b:
-                    table[team_a]["won"] += 1
-                    table[team_a]["points"] += 3
-                    table[team_b]["lost"] += 1
-                elif score_b > score_a:
-                    table[team_b]["won"] += 1
-                    table[team_b]["points"] += 3
-                    table[team_a]["lost"] += 1
-                else:
-                    table[team_a]["drawn"] += 1
-                    table[team_a]["points"] += 1
-                    table[team_b]["drawn"] += 1
-                    table[team_b]["points"] += 1
-
-    standings_list = sorted(
-        table.values(),
-        key=lambda x: (x["points"], x["gd"]),
-        reverse=True,
-    )
-
-    for idx, row in enumerate(standings_list, start=1):
-        row["pos"] = idx
-
-    return standings_list
 
 
 @app.get("/standings", response_class=HTMLResponse)
