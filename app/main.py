@@ -29,8 +29,6 @@ from app.services.storage import (
     save_cached_gameweek,
 )
 
-PLAYERS_CACHE = {}
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -116,20 +114,27 @@ async def compare_teams(
             },
         )
 
-    global PLAYERS_CACHE
-    if not PLAYERS_CACHE:
-        PLAYERS_CACHE = await get_players_dict()
+    # Fetch players on every request instead of keeping a module-level cache.
+    # The FPL client already caches bootstrap-static, so this call is cheap,
+    # and injury news / chance of playing stay up to date.
+    players = await get_players_dict()
 
     team_a_ids = get_team_roster(teams, team_a_name, gameweek)
     team_b_ids = get_team_roster(teams, team_b_name, gameweek)
 
-    live_data = await get_live_scores_and_status(gameweek)
-    fixtures_map = await get_team_fixtures_map(gameweek)
+    # Live data and fixtures are independent, so fetch them concurrently.
+    live_data, fixtures_map = await asyncio.gather(
+        get_live_scores_and_status(gameweek),
+        get_team_fixtures_map(gameweek),
+    )
 
-    summary_a = await get_team_summary(team_a_ids, gameweek, PLAYERS_CACHE, live_data)
-    summary_b = await get_team_summary(team_b_ids, gameweek, PLAYERS_CACHE, live_data)
+    # Both team summaries depend only on live_data, so build them concurrently.
+    summary_a, summary_b = await asyncio.gather(
+        get_team_summary(team_a_ids, gameweek, players, live_data),
+        get_team_summary(team_b_ids, gameweek, players, live_data),
+    )
 
-    grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data, PLAYERS_CACHE, fixtures_map)
+    grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data, players, fixtures_map)
 
     results = {
         "team_a_name": team_a_name,
@@ -175,6 +180,7 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     is_gw_finished = gw_status.get("finished", False)
 
     if is_gw_finished and gw_scores is None:
+        # Collect each team once, in fixture order
         ordered_teams = []
         for t1, t2 in raw_matches:
             if t1 not in ordered_teams:
@@ -189,6 +195,9 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
         for t_name, score in zip(ordered_teams, calculated_points):
             gw_scores[t_name] = score
 
+        # TODO: only persist when every manager fetched successfully and the
+        # gameweek is data_checked. Needs get_team_total_points_fast to report
+        # failures (see services/standings.py).
         await save_cached_gameweek(gw, gw_scores)
 
     if gw_scores is None:
