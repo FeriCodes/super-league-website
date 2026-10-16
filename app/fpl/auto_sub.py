@@ -1,5 +1,12 @@
 from typing import Any, Dict, List, Tuple
 
+# Outfield positions and the (min, max) player counts FPL allows on the pitch.
+OUTFIELD_LIMITS = {
+    "DEF": (3, 5),
+    "MID": (2, 5),
+    "FWD": (1, 3),
+}
+
 
 def apply_manager_auto_subs(
     picks: List[Dict[str, Any]],
@@ -8,115 +15,105 @@ def apply_manager_auto_subs(
     manager_id: int,
 ) -> Tuple[List[Dict[str, Any]], List[int], List[int]]:
     """
-    Apply live auto-substitution rules for a manager's 15-player squad.
-    Returns:
-      1. Updated picks list
-      2. List of subbed-in player element IDs
-      3. List of subbed-out player element IDs
+    Apply FPL auto-substitution rules to one manager's 15-player squad.
     """
-    updated_picks = [{k: v for k, v in p.items()} for p in picks]
-    subbed_in_player_ids: List[int] = []
-    subbed_out_player_ids: List[int] = []
+    updated = [dict(p) for p in picks]
+    subbed_in: List[int] = []
+    subbed_out: List[int] = []
 
-    picks_by_pos: Dict[int, Dict[str, Any]] = {}
-    for p in updated_picks:
-        pos_key = int(p.get("position", 0))
-        picks_by_pos[pos_key] = p
+    by_slot: Dict[int, Dict[str, Any]] = {int(p.get("position", 0)): p for p in updated}
+    starters = [by_slot[i] for i in range(1, 12) if i in by_slot]
+    bench_gk = by_slot.get(12)
+    available_bench = [by_slot[i] for i in (13, 14, 15) if i in by_slot]
 
-    starters = [picks_by_pos[i] for i in range(1, 12) if i in picks_by_pos]
-    bench_gkp = picks_by_pos.get(12)
-    bench_outfield = [picks_by_pos[i] for i in [13, 14, 15] if i in picks_by_pos]
+    def minutes(element_id: int) -> int:
+        return live_data.get(element_id, {}).get("minutes") or 0
 
-    def player_did_not_play(element_id: int) -> bool:
-        p_live = live_data.get(element_id, {})
-        mins = p_live.get("minutes", 0) or 0
-        match_status = p_live.get("status", "")
+    def finished_without_playing(element_id: int) -> bool:
+        return live_data.get(element_id, {}).get("status") == "FT" and minutes(element_id) == 0
 
-        # Finished match with 0 minutes played
-        if match_status == "FT" and mins == 0:
-            return True
+    def has_played(element_id: int) -> bool:
+        return minutes(element_id) > 0
 
-        # Confirmed 100% absence before kickoff
-        p_info = players_dict.get(element_id, {})
-        chance = p_info.get("chance_of_playing")
-        fpl_status = p_info.get("status")
+    def position_of(element_id: int) -> str:
+        return players_dict.get(element_id, {}).get("position", "")
 
-        if match_status != "FT" and mins == 0:
-            if chance == 0 or (fpl_status in ["i", "s", "u"] and chance == 0):
-                return True
+    def name_of(element_id: int) -> str:
+        return players_dict.get(element_id, {}).get("name", f"Player {element_id}")
 
-        return False
+    def outfield_counts(players: List[Dict[str, Any]]) -> Dict[str, int]:
+        counts = {"DEF": 0, "MID": 0, "FWD": 0}
+        for p in players:
+            pos = position_of(p["element_id"])
+            if pos in counts:
+                counts[pos] += 1
+        return counts
 
-    def player_can_sub_in(element_id: int) -> bool:
-        p_live = live_data.get(element_id, {})
-        mins = p_live.get("minutes", 0) or 0
-        match_status = p_live.get("status", "")
-        return mins > 0 or match_status != "FT" or (match_status == "FT" and mins == 0)
+    def is_legal_formation(counts: Dict[str, int]) -> bool:
+        return all(lo <= counts[pos] <= hi for pos, (lo, hi) in OUTFIELD_LIMITS.items())
 
-    current_pos_counts: Dict[str, int] = {"GKP": 0, "DEF": 0, "MID": 0, "FWD": 0}
-    for s in starters:
-        pos_name = players_dict.get(s["element_id"], {}).get("position", "")
-        if pos_name in current_pos_counts:
-            current_pos_counts[pos_name] += 1
+    def swap(out_player: Dict[str, Any], in_player: Dict[str, Any], label: str) -> None:
+        in_player["multiplier"] = 1
+        out_player["multiplier"] = 0
+        subbed_in.append(in_player["element_id"])
+        subbed_out.append(out_player["element_id"])
+        print(
+            f"[AUTO-SUB][Manager {manager_id}] {label}: "
+            f"{name_of(out_player['element_id'])} OUT -> {name_of(in_player['element_id'])} IN"
+        )
 
-    # 1. Evaluate starting goalkeeper substitution
-    starting_gkp = picks_by_pos.get(1)
-    if starting_gkp and player_did_not_play(starting_gkp["element_id"]):
-        if bench_gkp and player_can_sub_in(bench_gkp["element_id"]):
-            orig_mult = starting_gkp.get("multiplier", 1) or 1
-            bench_gkp["multiplier"] = orig_mult
-            starting_gkp["multiplier"] = 0
-            subbed_in_player_ids.append(bench_gkp["element_id"])
-            subbed_out_player_ids.append(starting_gkp["element_id"])
-            g_in = players_dict.get(bench_gkp["element_id"], {}).get("name", "Unknown")
-            g_out = players_dict.get(starting_gkp["element_id"], {}).get("name", "Unknown")
-            print(f"[AUTO-SUB][Manager {manager_id}] GKP: {g_out} OUT -> {g_in} IN")
+    # 1. Captaincy: if the captain did not play, transfer armband multiplier to vice-captain first
+    captain = next((p for p in starters if int(p.get("multiplier", 0)) >= 2), None)
+    if captain and finished_without_playing(captain["element_id"]):
+        cap_mult = int(captain["multiplier"])
+        captain["multiplier"] = 1  # Reset to normal starter so bench sub gives 1x (or 0 if unsubbed)
 
-    # 2. Evaluate outfield substitutions (slots 2 to 11)
-    available_bench = list(bench_outfield)
+        vice = next(
+            (p for p in updated if p.get("is_vice_captain") and has_played(p["element_id"])),
+            None,
+        )
+        if vice:
+            vice["multiplier"] = cap_mult
+            print(
+                f"[AUTO-SUB][Manager {manager_id}] CAPTAIN: "
+                f"{name_of(captain['element_id'])} (0 mins) -> Armband to {name_of(vice['element_id'])}"
+            )
 
-    for starter in starters:
-        p_id = starter["element_id"]
-        pos_name = players_dict.get(p_id, {}).get("position", "")
+    # 2. Goalkeeper: only the bench goalkeeper can replace the starting goalkeeper
+    gk = by_slot.get(1)
+    if gk and finished_without_playing(gk["element_id"]):
+        if bench_gk and has_played(bench_gk["element_id"]):
+            swap(gk, bench_gk, "GKP")
+        else:
+            gk["multiplier"] = 0
 
-        if pos_name not in ["DEF", "MID", "FWD"] or not player_did_not_play(p_id):
+    # 3. Outfield: replace in bench order, keeping a legal formation
+    on_pitch = list(starters)
+    for starter in list(starters):
+        sid = starter["element_id"]
+        if position_of(sid) not in OUTFIELD_LIMITS:
+            continue
+        if not finished_without_playing(sid):
             continue
 
-        p_out_name = players_dict.get(p_id, {}).get("name", f"Player {p_id}")
-        candidate_found = None
-
-        for candidate in available_bench:
-            cand_id = candidate["element_id"]
-            if not player_can_sub_in(cand_id):
+        replaced = False
+        for candidate in list(available_bench):
+            cid = candidate["element_id"]
+            if position_of(cid) not in OUTFIELD_LIMITS or not has_played(cid):
                 continue
 
-            candidate_pos = players_dict.get(cand_id, {}).get("position", "")
-            if candidate_pos not in ["DEF", "MID", "FWD"]:
-                continue
-
-            temp_counts = dict(current_pos_counts)
-            temp_counts[pos_name] = max(0, temp_counts.get(pos_name, 0) - 1)
-            temp_counts[candidate_pos] = temp_counts.get(candidate_pos, 0) + 1
-
-            # Official FPL formation rules: at least 3 DEF, 2 MID, 1 FWD
-            if temp_counts.get("DEF", 0) >= 3 and temp_counts.get("MID", 0) >= 2 and temp_counts.get("FWD", 0) >= 1:
-                candidate_found = candidate
-                current_pos_counts = temp_counts
+            trial = [p for p in on_pitch if p is not starter] + [candidate]
+            if is_legal_formation(outfield_counts(trial)):
+                # If the incoming bench player happens to be the vice-captain who already got the armband, keep their multiplier
+                incoming_mult = candidate["multiplier"] if candidate["multiplier"] >= 2 else 1
+                swap(starter, candidate, position_of(sid))
+                candidate["multiplier"] = incoming_mult
+                available_bench.remove(candidate)
+                on_pitch = trial
+                replaced = True
                 break
 
-        if candidate_found:
-            available_bench.remove(candidate_found)
-            orig_mult = starter.get("multiplier", 1) or 1
-            candidate_found["multiplier"] = orig_mult
+        if not replaced:
             starter["multiplier"] = 0
-            subbed_in_player_ids.append(candidate_found["element_id"])
-            subbed_out_player_ids.append(starter["element_id"])
 
-            p_in_name = players_dict.get(candidate_found["element_id"], {}).get(
-                "name", f"Player {candidate_found['element_id']}"
-            )
-            print(
-                f"[AUTO-SUB SUCCESS][Manager {manager_id}] Field: {p_out_name} ({pos_name}) OUT -> {p_in_name} ({candidate_pos}) IN"
-            )
-
-    return updated_picks, subbed_in_player_ids, subbed_out_player_ids
+    return updated, subbed_in, subbed_out

@@ -67,6 +67,7 @@ async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
         {
             "element_id": int(pick["element"]),
             "position": int(pick.get("position", idx + 1)),
+            "is_vice_captain": bool(pick.get("is_vice_captain", False)),
             "multiplier": int(pick.get("multiplier", 0)),
         }
         for idx, pick in enumerate(data.get("picks", []))
