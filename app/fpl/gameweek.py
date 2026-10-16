@@ -4,10 +4,15 @@ from app.fpl.client import fetch_fpl_api
 
 
 async def get_gameweek_status(gameweek: int) -> dict:
-    """Check if the requested gameweek has kicked off or is in the future."""
+    """
+    Report whether a gameweek has started, finished, and had its data checked.
+
+    `data_checked` is FPL's signal that bonus points have been applied and the
+    scores are final. Only that state is safe to persist as a permanent result.
+    """
     data = await fetch_fpl_api("bootstrap-static")
     if not data or "events" not in data:
-        return {"valid": True, "finished": False, "message": ""}
+        return {"valid": True, "finished": False, "data_checked": False, "message": ""}
 
     for event in data.get("events", []):
         if event.get("id") == gameweek:
@@ -19,15 +24,22 @@ async def get_gameweek_status(gameweek: int) -> dict:
                 return {
                     "valid": False,
                     "finished": False,
+                    "data_checked": False,
                     "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
                 }
             return {
                 "valid": True,
                 "finished": is_finished,
+                "data_checked": data_checked,
                 "message": "",
             }
 
-    return {"valid": False, "finished": False, "message": f"Gameweek {gameweek} not found."}
+    return {
+        "valid": False,
+        "finished": False,
+        "data_checked": False,
+        "message": f"Gameweek {gameweek} not found.",
+    }
 
 
 async def get_current_gameweek() -> int:

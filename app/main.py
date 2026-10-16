@@ -178,8 +178,11 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
 
     gw_status = await get_gameweek_status(gw)
     is_gw_finished = gw_status.get("finished", False)
+    is_data_checked = gw_status.get("data_checked", False)
 
-    if is_gw_finished and gw_scores is None:
+    # Only compute and persist scores once FPL has finished the gameweek AND
+    # applied bonus points (data_checked). Persisted results are permanent.
+    if is_gw_finished and is_data_checked and gw_scores is None:
         # Collect each team once, in fixture order
         ordered_teams = []
         for t1, t2 in raw_matches:
@@ -189,16 +192,19 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
                 ordered_teams.append(t2)
 
         tasks = [get_team_total_points_fast(get_team_roster(teams, t_name, gw), gw) for t_name in ordered_teams]
-        calculated_points = await asyncio.gather(*tasks)
+        calculated = await asyncio.gather(*tasks)
 
-        gw_scores = {}
-        for t_name, score in zip(ordered_teams, calculated_points):
-            gw_scores[t_name] = score
+        all_complete = all(complete for _, complete in calculated)
+        computed_scores = {t_name: total for t_name, (total, _) in zip(ordered_teams, calculated)}
 
-        # TODO: only persist when every manager fetched successfully and the
-        # gameweek is data_checked. Needs get_team_total_points_fast to report
-        # failures (see services/standings.py).
-        await save_cached_gameweek(gw, gw_scores)
+        if all_complete:
+            await save_cached_gameweek(gw, computed_scores)
+            gw_scores = computed_scores
+        else:
+            # Some managers failed to fetch. Do not persist partial totals and do
+            # not show them as final scores; the next request will try again.
+            print(f"[FIXTURES] GW {gw} has incomplete data; results not cached")
+            gw_scores = None
 
     if gw_scores is None:
         gw_scores = {}

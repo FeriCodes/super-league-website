@@ -1,19 +1,36 @@
 import asyncio
+from typing import List, Tuple
+
 from app.fpl.managers import get_manager_gw_data
 
 
-async def get_team_total_points_fast(team_ids: list, gw: int) -> int:
-    """Fetch cumulative team score asynchronously for final fixtures calculation."""
+async def get_team_total_points_fast(team_ids: List[int], gw: int) -> Tuple[int, bool]:
+    """
+    Sum the gameweek points of every manager in a team.
+
+    Returns (total_points, complete). `complete` is False when the roster is
+    empty or any manager could not be fetched. In that case total_points is
+    only a partial sum and must not be persisted as a final result.
+    """
     if not team_ids:
-        return 0
+        return 0, False
+
     tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     total = 0
-    for r in results:
+    complete = True
+    for m_id, r in zip(team_ids, results):
+        if isinstance(r, Exception):
+            print(f"[STANDINGS] manager {m_id} GW {gw} raised: {r}")
+            complete = False
+            continue
         if isinstance(r, dict) and r.get("status") == "success":
             total += r.get("gw_points", 0)
-    return total
+        else:
+            complete = False
+
+    return total, complete
 
 
 def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
