@@ -66,7 +66,7 @@ def apply_manager_auto_subs(
     captain = next((p for p in starters if int(p.get("multiplier", 0)) >= 2), None)
     if captain and finished_without_playing(captain["element_id"]):
         cap_mult = int(captain["multiplier"])
-        captain["multiplier"] = 1  # Reset to normal starter so bench sub gives 1x (or 0 if unsubbed)
+        captain["multiplier"] = 1  # Reset to normal starter so bench sub gives 1x
 
         vice = next(
             (p for p in updated if p.get("is_vice_captain") and has_played(p["element_id"])),
@@ -104,7 +104,6 @@ def apply_manager_auto_subs(
 
             trial = [p for p in on_pitch if p is not starter] + [candidate]
             if is_legal_formation(outfield_counts(trial)):
-                # If the incoming bench player happens to be the vice-captain who already got the armband, keep their multiplier
                 incoming_mult = candidate["multiplier"] if candidate["multiplier"] >= 2 else 1
                 swap(starter, candidate, position_of(sid))
                 candidate["multiplier"] = incoming_mult

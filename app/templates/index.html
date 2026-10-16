@@ -366,7 +366,7 @@
             <tbody>
               {% for p in players %}
                 {% set is_pos_changed = (pos == 'BENCH' and not loop.first and loop.changed(p.pos) and p.pos != 'GKP') %}
-                <tr class="{% if p.status == 'FT' %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %} {% if is_pos_changed %}bench-pos-divider{% endif %}">
+               <tr class="{% if p.status == 'FT' and not p.is_sub_in and not p.is_sub_out %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %} {% if is_pos_changed %}bench-pos-divider{% endif %}">
 
                   <!-- Left Side: Team A -->
                   <td class="col-side text-start">

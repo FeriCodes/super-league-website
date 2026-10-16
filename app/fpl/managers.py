@@ -73,6 +73,10 @@ async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
         for idx, pick in enumerate(data.get("picks", []))
     ]
 
+    raw_auto_subs = data.get("automatic_subs") or []
+    api_sub_in_ids = [int(s["element_in"]) for s in raw_auto_subs if "element_in" in s]
+    api_sub_out_ids = [int(s["element_out"]) for s in raw_auto_subs if "element_out" in s]
+
     return {
         "manager_id": manager_id,
         "manager_name": manager_name,
@@ -82,6 +86,8 @@ async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
         "hits": hits,
         "active_chip": readable_chip,
         "picks": picks_summary,
+        "api_sub_in_ids": api_sub_in_ids,
+        "api_sub_out_ids": api_sub_out_ids,
         "status": "success",
     }
 
@@ -127,6 +133,10 @@ async def get_team_summary(
             picks = data.get("picks", [])
 
             if not is_bench_boost:
+
+                all_subbed_in_ids.update(data.get("api_sub_in_ids", []))
+                all_subbed_out_ids.update(data.get("api_sub_out_ids", []))
+
                 picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(
                     picks, live_data, players_dict, data.get("manager_id")
                 )

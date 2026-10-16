@@ -40,7 +40,6 @@ def build_head_to_head_comparison(
 
         is_sub_a = a_dict[pid].get("is_sub_in", False) if pid in a_dict else False
         is_sub_b = b_dict[pid].get("is_sub_in", False) if pid in b_dict else False
-        is_sub = is_sub_a or is_sub_b
 
         row = {
             "id": pid,
@@ -52,7 +51,7 @@ def build_head_to_head_comparison(
             "player_points": player_points,
             "status": match_status,
             "opponent": opp_short,
-            "is_sub_in": is_sub,
+            "is_sub_in": is_sub_a or is_sub_b,
             "is_sub_out": False,
             "chance": chance,
             "news": news,
