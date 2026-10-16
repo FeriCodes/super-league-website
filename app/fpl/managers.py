@@ -1,3 +1,4 @@
+import asyncio
 from collections import Counter
 from typing import Any, Dict, List, Set
 
@@ -91,6 +92,7 @@ async def get_team_summary(
     live_data: Dict[int, Dict[str, Any]],
 ) -> Dict[str, Any]:
     """Aggregate total points, hit costs, active chips, captains, and count effective player ownership with live auto-sub."""
+
     managers_data = []
     active_player_counts: Dict[int, int] = Counter()
     bench_player_counts: Dict[int, int] = Counter()
@@ -105,8 +107,11 @@ async def get_team_summary(
     left_to_play_count = 0
     total_slots_count = 0
 
-    for m_id in manager_ids:
-        data = await get_manager_gw_data(m_id, gameweek)
+    # Fetch all managers' gameweek data concurrently to minimize network latency
+    tasks = [get_manager_gw_data(m_id, gameweek) for m_id in manager_ids]
+    managers_raw_data = await asyncio.gather(*tasks)
+
+    for data in managers_raw_data:
         if data.get("status") == "success":
             hits = data.get("hits", 0)
             chip = data.get("active_chip")
@@ -121,7 +126,9 @@ async def get_team_summary(
             picks = data.get("picks", [])
 
             if not is_bench_boost:
-                picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(picks, live_data, players_dict, m_id)
+                picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(
+                    picks, live_data, players_dict, data.get("manager_id")
+                )
                 all_subbed_in_ids.update(sub_in_ids)
                 all_subbed_out_ids.update(sub_out_ids)
                 data["picks"] = picks
