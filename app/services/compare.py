@@ -40,6 +40,15 @@ def build_head_to_head_comparison(
 
         is_sub_a = a_dict[pid].get("is_sub_in", False) if pid in a_dict else False
         is_sub_b = b_dict[pid].get("is_sub_in", False) if pid in b_dict else False
+        is_sub_in = is_sub_a or is_sub_b
+
+        has_injury = chance is not None and chance <= 75 and match_status != "FT"
+        if chance == 0:
+            default_news = "Ruled Out (0%)"
+        elif chance is not None:
+            default_news = f"{chance}% chance of playing"
+        else:
+            default_news = ""
 
         row = {
             "id": pid,
@@ -48,13 +57,23 @@ def build_head_to_head_comparison(
             "count_a": count_a,
             "count_b": count_b,
             "diff": diff,
+            "abs_diff": abs(diff),
             "player_points": player_points,
             "status": match_status,
+            "is_live": match_status == "LIVE",
+            "is_dimmed_ft": match_status == "FT",
             "opponent": opp_short,
-            "is_sub_in": is_sub_a or is_sub_b,
+            "is_sub_in": is_sub_in,
+            "is_sub_in_a": is_sub_a,
+            "is_sub_in_b": is_sub_b,
             "is_sub_out": False,
+            "is_sub_out_a": False,
+            "is_sub_out_b": False,
             "chance": chance,
             "news": news,
+            "has_injury": has_injury,
+            "injury_title": news or default_news,
+            "is_pos_changed": False,
         }
 
         if pos in grouped:
@@ -86,7 +105,15 @@ def build_head_to_head_comparison(
 
         is_out_a = a_bench_dict[pid].get("is_sub_out", False) if pid in a_bench_dict else False
         is_out_b = b_bench_dict[pid].get("is_sub_out", False) if pid in b_bench_dict else False
-        is_out = is_out_a or is_out_b
+        is_sub_out = is_out_a or is_out_b
+
+        has_injury = chance is not None and chance <= 75 and match_status != "FT" and not is_sub_out
+        if chance == 0:
+            default_news = "Ruled Out (0%)"
+        elif chance is not None:
+            default_news = f"{chance}% chance of playing"
+        else:
+            default_news = ""
 
         row = {
             "id": pid,
@@ -95,13 +122,23 @@ def build_head_to_head_comparison(
             "count_a": count_a,
             "count_b": count_b,
             "diff": diff,
+            "abs_diff": abs(diff),
             "player_points": player_points,
             "status": match_status,
+            "is_live": match_status == "LIVE" and not is_sub_out,
+            "is_dimmed_ft": match_status == "FT",
             "opponent": opp_short,
             "is_sub_in": False,
-            "is_sub_out": is_out,
+            "is_sub_in_a": False,
+            "is_sub_in_b": False,
+            "is_sub_out": is_sub_out,
+            "is_sub_out_a": is_out_a,
+            "is_sub_out_b": is_out_b,
             "chance": chance,
             "news": news,
+            "has_injury": has_injury,
+            "injury_title": news or default_news,
+            "is_pos_changed": False,
         }
         grouped["BENCH"].append(row)
 
@@ -129,5 +166,12 @@ def build_head_to_head_comparison(
         return (pos_weight, -abs(diff), -total_owners)
 
     grouped["BENCH"].sort(key=bench_sort_key)
+
+    # Mark position transitions on the bench (e.g. GKP -> DEF, DEF -> MID)
+    for idx, item in enumerate(grouped["BENCH"]):
+        if idx > 0:
+            prev_pos = grouped["BENCH"][idx - 1]["pos"]
+            if item["pos"] != prev_pos and item["pos"] != "GKP":
+                item["is_pos_changed"] = True
 
     return grouped

@@ -87,17 +87,6 @@ body {
   pointer-events: none !important;
 }
 
-@media (max-width: 576px) {
-  .app-navbar {
-    width: 100% !important;
-    justify-content: space-around !important;
-  }
-  .nav-pill-btn {
-    padding: 0.4rem 0.75rem !important;
-    font-size: 0.78rem !important;
-  }
-}
-
 /* Card Styling */
 .custom-card {
   background-color: var(--bg-card);
@@ -110,6 +99,10 @@ body {
   border: 1px solid #d29922 !important;
   background-color: rgba(210, 153, 34, 0.1) !important;
   border-radius: 8px;
+}
+
+.alert-icon {
+  font-size: 1.25rem;
 }
 
 /* Form Controls */
@@ -632,7 +625,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Injury Badges */
+/* Injury Badges (Supports both class names and data-chance attributes) */
 .badge-injury {
   display: inline-flex;
   align-items: center;
@@ -647,19 +640,23 @@ body {
   cursor: help;
 }
 
-.badge-inj-red {
+.badge-inj-red,
+.badge-injury[data-chance="0"] {
   background: rgba(224, 108, 117, 0.2);
   color: var(--accent-red);
   border: 1px solid rgba(224, 108, 117, 0.45);
 }
 
-.badge-inj-orange {
+.badge-inj-orange,
+.badge-injury[data-chance="25"],
+.badge-injury[data-chance="50"] {
   background: rgba(209, 137, 72, 0.2);
   color: #d19a66;
   border: 1px solid rgba(209, 137, 72, 0.45);
 }
 
-.badge-inj-yellow {
+.badge-inj-yellow,
+.badge-injury[data-chance="75"] {
   background: rgba(229, 192, 123, 0.2);
   color: var(--accent-yellow);
   border: 1px solid rgba(229, 192, 123, 0.45);
@@ -694,16 +691,18 @@ body {
   border: 1px solid rgba(171, 178, 191, 0.25);
 }
 
-/* Row Dimming */
-.player-row-ft {
+/* Row Dimming - Applies uniformly to all FT rows including subbed-in players */
+tr.player-row-ft,
+tr.player-row-ft > td {
   opacity: 0.45 !important;
-  filter: grayscale(35%);
-  transition: opacity 0.2s ease;
+  filter: grayscale(35%) !important;
+  transition: opacity 0.2s ease, filter 0.2s ease;
 }
 
-.player-row-ft:hover {
-  opacity: 0.9 !important;
-  filter: none;
+tr.player-row-ft:hover,
+tr.player-row-ft:hover > td {
+  opacity: 0.95 !important;
+  filter: none !important;
 }
 
 .player-row-subbed-out {
@@ -931,10 +930,147 @@ td.gd-zero {
   font-weight: 600 !important;
 }
 
+/* Manager Squad Breakdown Accordion */
+.btn-breakdown {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 5px 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-breakdown:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-breakdown[aria-expanded="true"] .collapse-icon {
+  transform: rotate(180deg);
+}
+
+.collapse-icon {
+  display: inline-block;
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+
+/* Squad Breakdown Responsive Table Styling */
+.manager-list-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-main);
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.squad-breakdown-table {
+  width: 100% !important;
+  min-width: 320px;
+  table-layout: auto !important;
+  margin-bottom: 0 !important;
+}
+
+.squad-breakdown-table th,
+.squad-breakdown-table td {
+  padding: 6px 5px !important;
+  vertical-align: middle;
+}
+
+.col-squad { width: 44%; }
+.col-cap   { width: 20%; text-align: center; }
+.col-chip  { width: 18%; text-align: center; }
+.col-hit   { width: 8%;  text-align: center; }
+.col-pts   {
+  width: 10%;
+  text-align: center !important;
+  padding-right: 8px !important;
+}
+
+.fpl-manager-link {
+  text-decoration: none !important;
+  color: inherit !important;
+  display: flex !important;
+  flex-direction: column !important;
+  line-height: 1.2;
+  max-width: 135px;
+}
+
+.link-team-title {
+  color: var(--text-bright);
+  font-weight: 700;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.fpl-manager-link:hover .link-team-title {
+  color: var(--accent-cyan) !important;
+  text-decoration: underline dotted 1px;
+}
+
+.link-manager-subtitle {
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.link-ext-icon {
+  font-size: 0.58rem;
+  opacity: 0.6;
+  margin-left: 2px;
+  display: inline-block;
+}
+
+.small-badge {
+  font-size: 0.62rem !important;
+  padding: 2px 5px !important;
+  max-width: 72px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.breakdown-pts-a {
+  color: var(--accent-green) !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.2px;
+}
+
+.breakdown-pts-b {
+  color: var(--accent-blue-soft) !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.2px;
+}
+
 /* =========================================
-   Mobile Optimization (< 576px)
+   Unified Mobile Optimization (< 576px)
 ========================================= */
 @media (max-width: 576px) {
+  .app-navbar {
+    width: 100% !important;
+    justify-content: space-around !important;
+  }
+  .nav-pill-btn {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.78rem !important;
+  }
+
   .page-title {
     font-size: 1.3rem !important;
     margin-bottom: 0.2rem !important;
@@ -994,157 +1130,19 @@ td.gd-zero {
   }
   .team-text {
     font-size: 0.76rem !important;
+    font-weight: 700 !important;
   }
   .score-row {
     font-size: 0.88rem !important;
   }
-}
 
-/* Manager Squad Breakdown Accordion */
-.btn-breakdown {
-  background-color: rgba(255, 255, 255, 0.04);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-  font-size: 0.74rem;
-  font-weight: 600;
-  border-radius: 6px;
-  padding: 5px 10px;
-  transition: all 0.2s ease;
-}
-
-.btn-breakdown:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.btn-breakdown[aria-expanded="true"] .collapse-icon {
-  transform: rotate(180deg);
-}
-
-.collapse-icon {
-  display: inline-block;
-  font-size: 0.65rem;
-  transition: transform 0.2s ease;
-}
-
-/* =========================================
-   Squad Breakdown Responsive Table Styling
-========================================= */
-.manager-list-wrap {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background-color: var(--bg-main);
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.squad-breakdown-table {
-  width: 100% !important;
-  min-width: 320px;
-  table-layout: auto !important;
-  margin-bottom: 0 !important;
-}
-
-.squad-breakdown-table th,
-.squad-breakdown-table td {
-  padding: 6px 5px !important;
-  vertical-align: middle;
-}
-
-/* Proportional Column Tuning */
-.col-squad { width: 44%; }
-.col-cap   { width: 20%; text-align: center; }
-.col-chip  { width: 18%; text-align: center; }
-.col-hit   { width: 8%;  text-align: center; }
-.col-pts   {
-  width: 10%;
-  text-align: center !important;
-  padding-right: 8px !important;
-}
-
-/* Link & Titles: Clean Hierarchy */
-.fpl-manager-link {
-  text-decoration: none !important;
-  color: inherit !important;
-  display: flex !important;
-  flex-direction: column !important;
-  line-height: 1.2;
-  max-width: 135px;
-}
-
-.link-team-title {
-  color: var(--text-bright);
-  font-weight: 700;
-  font-size: 0.76rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-}
-
-.fpl-manager-link:hover .link-team-title {
-  color: var(--accent-cyan) !important;
-  text-decoration: underline dotted 1px;
-}
-
-.link-manager-subtitle {
-  color: var(--text-muted);
-  font-size: 0.64rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-}
-
-.link-ext-icon {
-  font-size: 0.58rem;
-  opacity: 0.6;
-  margin-left: 2px;
-  display: inline-block;
-}
-
-/* Badges Inside Squad Table */
-.small-badge {
-  font-size: 0.62rem !important;
-  padding: 2px 5px !important;
-  max-width: 72px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-/* Proportional Subtle Points Styles */
-.breakdown-pts-a {
-  color: var(--accent-green) !important;
-  font-size: 0.76rem !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-  letter-spacing: -0.2px;
-}
-
-.breakdown-pts-b {
-  color: var(--accent-blue-soft) !important;
-  font-size: 0.76rem !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-  letter-spacing: -0.2px;
-}
-
-/* Strict Mobile Fixes (< 576px) */
-@media (max-width: 576px) {
   .squad-breakdown-table {
     min-width: 290px;
   }
-
   .squad-breakdown-table th,
   .squad-breakdown-table td {
     padding: 5px 3px !important;
   }
-
   .col-squad { width: 44%; }
   .col-cap   { width: 20%; }
   .col-chip  { width: 18%; }
@@ -1153,23 +1151,19 @@ td.gd-zero {
     width: 10%;
     padding-right: 6px !important;
   }
-
   .link-team-title {
     font-size: 0.72rem !important;
     max-width: 110px;
   }
-
   .link-manager-subtitle {
     font-size: 0.60rem !important;
     max-width: 110px;
   }
-
   .small-badge {
     font-size: 0.56rem !important;
     padding: 1px 4px !important;
     max-width: 60px;
   }
-
   .breakdown-pts-a,
   .breakdown-pts-b {
     font-size: 0.72rem !important;
