@@ -1,4 +1,3 @@
-import asyncio
 import uvicorn
 from typing import Optional
 from contextlib import asynccontextmanager
@@ -53,7 +52,7 @@ async def home(request: Request):
 
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="compare.html",
         context={
             "team_names": team_names,
             "results": None,
@@ -86,7 +85,7 @@ async def compare_teams(
     if team_a_name == team_b_name:
         return templates.TemplateResponse(
             request=request,
-            name="index.html",
+            name="compare.html",
             context={
                 "team_names": sorted(list(teams.keys())),
                 "results": None,
@@ -102,7 +101,7 @@ async def compare_teams(
     if not gw_status["valid"]:
         return templates.TemplateResponse(
             request=request,
-            name="index.html",
+            name="compare.html",
             context={
                 "team_names": sorted(list(teams.keys())),
                 "results": None,
@@ -114,25 +113,17 @@ async def compare_teams(
             },
         )
 
-    # Fetch players on every request instead of keeping a module-level cache.
-    # The FPL client already caches bootstrap-static, so this call is cheap,
-    # and injury news / chance of playing stay up to date.
     players = await get_players_dict()
 
     team_a_ids = get_team_roster(teams, team_a_name, gameweek)
     team_b_ids = get_team_roster(teams, team_b_name, gameweek)
 
-    # Live data and fixtures are independent, so fetch them concurrently.
-    live_data, fixtures_map = await asyncio.gather(
-        get_live_scores_and_status(gameweek),
-        get_team_fixtures_map(gameweek),
-    )
+    # Fetch live data, fixtures, and team summaries sequentially to prevent FPL rate limiting
+    live_data = await get_live_scores_and_status(gameweek)
+    fixtures_map = await get_team_fixtures_map(gameweek)
 
-    # Both team summaries depend only on live_data, so build them concurrently.
-    summary_a, summary_b = await asyncio.gather(
-        get_team_summary(team_a_ids, gameweek, players, live_data),
-        get_team_summary(team_b_ids, gameweek, players, live_data),
-    )
+    summary_a = await get_team_summary(team_a_ids, gameweek, players, live_data)
+    summary_b = await get_team_summary(team_b_ids, gameweek, players, live_data)
 
     grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data, players, fixtures_map)
 
@@ -148,7 +139,7 @@ async def compare_teams(
 
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="compare.html",
         context={
             "team_names": sorted(list(teams.keys())),
             "results": results,
@@ -167,7 +158,6 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     teams = load_teams()
     fixtures = load_fixtures()
 
-    # Default to current active gameweek directly if no gameweek is requested
     if gw is None:
         gw = await get_current_gameweek()
 
@@ -180,10 +170,7 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     is_gw_finished = gw_status.get("finished", False)
     is_data_checked = gw_status.get("data_checked", False)
 
-    # Only compute and persist scores once FPL has finished the gameweek AND
-    # applied bonus points (data_checked). Persisted results are permanent.
     if is_gw_finished and is_data_checked and gw_scores is None:
-        # Collect each team once, in fixture order
         ordered_teams = []
         for t1, t2 in raw_matches:
             if t1 not in ordered_teams:
@@ -191,8 +178,10 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
             if t2 not in ordered_teams:
                 ordered_teams.append(t2)
 
-        tasks = [get_team_total_points_fast(get_team_roster(teams, t_name, gw), gw) for t_name in ordered_teams]
-        calculated = await asyncio.gather(*tasks)
+        calculated = []
+        for t_name in ordered_teams:
+            res = await get_team_total_points_fast(get_team_roster(teams, t_name, gw), gw)
+            calculated.append(res)
 
         all_complete = all(complete for _, complete in calculated)
         computed_scores = {t_name: total for t_name, (total, _) in zip(ordered_teams, calculated)}
@@ -201,8 +190,6 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
             await save_cached_gameweek(gw, computed_scores)
             gw_scores = computed_scores
         else:
-            # Some managers failed to fetch. Do not persist partial totals and do
-            # not show them as final scores; the next request will try again.
             print(f"[FIXTURES] GW {gw} has incomplete data; results not cached")
             gw_scores = None
 
