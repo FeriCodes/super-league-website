@@ -156,14 +156,14 @@ def build_head_to_head_comparison(
     for pos in ["GKP", "DEF", "MID", "FWD"]:
         grouped[pos].sort(key=starters_sort_key, reverse=True)
 
-    # Sort Bench by Football Position (GKP -> DEF -> MID -> FWD) then Diff
+    # Sort Bench by Football Position (GKP -> DEF -> MID -> FWD) then Total Owners (Descending)
     pos_order = {"GKP": 1, "DEF": 2, "MID": 3, "FWD": 4}
 
     def bench_sort_key(item):
         pos_weight = pos_order.get(item.get("pos"), 5)
-        diff = item.get("diff", 0)
         total_owners = item.get("count_a", 0) + item.get("count_b", 0)
-        return (pos_weight, -abs(diff), -total_owners)
+        diff = abs(item.get("diff", 0))
+        return (pos_weight, -total_owners, -diff)
 
     grouped["BENCH"].sort(key=bench_sort_key)
 
