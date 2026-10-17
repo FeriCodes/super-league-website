@@ -1,8 +1,7 @@
-import asyncio
 from collections import Counter
 from typing import Any, Dict, List, Set
 
-from app.fpl.client import fetch_fpl_api
+from app.fpl.client import fetch_fpl_api, fetch_many
 from app.fpl.auto_sub import apply_manager_auto_subs
 
 
@@ -35,15 +34,17 @@ async def get_players_dict() -> Dict[int, Dict[str, Any]]:
 
 async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
     """Fetch manager gameweek score, transfer hits, active chip, and manager/team profile info."""
-    endpoint = f"entry/{manager_id}/event/{gameweek}/picks"
-    data = await fetch_fpl_api(endpoint)
+    picks_endpoint = f"entry/{manager_id}/event/{gameweek}/picks"
+    profile_endpoint = f"entry/{manager_id}"
+
+    # Fetch picks and profile for this single manager (only 2 requests)
+    data, profile_data = await fetch_many([picks_endpoint, profile_endpoint], allow_stale=True)
 
     if not data:
         print(f"Manager {manager_id} GW {gameweek} failed to fetch.")
         return {"status": "error", "manager_id": manager_id}
 
-    # Retrieve manager and squad names from public profile
-    profile_data = await fetch_fpl_api(f"entry/{manager_id}/") or {}
+    profile_data = profile_data or {}
     player_first = profile_data.get("player_first_name", "")
     player_last = profile_data.get("player_last_name", "")
     manager_name = f"{player_first} {player_last}".strip() or f"Manager #{manager_id}"
@@ -114,9 +115,11 @@ async def get_team_summary(
     left_to_play_count = 0
     total_slots_count = 0
 
-    # Fetch all managers' gameweek data concurrently to minimize network latency
-    tasks = [get_manager_gw_data(m_id, gameweek) for m_id in manager_ids]
-    managers_raw_data = await asyncio.gather(*tasks)
+    # Fetch managers sequentially to avoid triggering FPL rate-limits
+    managers_raw_data = []
+    for m_id in manager_ids:
+        res = await get_manager_gw_data(m_id, gameweek)
+        managers_raw_data.append(res)
 
     for data in managers_raw_data:
         if data.get("status") == "success":
@@ -133,18 +136,22 @@ async def get_team_summary(
             picks = data.get("picks", [])
 
             if not is_bench_boost:
+                api_in = data.get("api_sub_in_ids", [])
+                api_out = data.get("api_sub_out_ids", [])
 
-                all_subbed_in_ids.update(data.get("api_sub_in_ids", []))
-                all_subbed_out_ids.update(data.get("api_sub_out_ids", []))
+                if api_in or api_out:
+                    # Official FPL subs already applied in finished gameweeks
+                    all_subbed_in_ids.update(api_in)
+                    all_subbed_out_ids.update(api_out)
+                else:
+                    # Live auto-sub calculation during active gameweeks
+                    picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(
+                        picks, live_data, players_dict, data.get("manager_id")
+                    )
+                    all_subbed_in_ids.update(sub_in_ids)
+                    all_subbed_out_ids.update(sub_out_ids)
+                    data["picks"] = picks
 
-                picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(
-                    picks, live_data, players_dict, data.get("manager_id")
-                )
-                all_subbed_in_ids.update(sub_in_ids)
-                all_subbed_out_ids.update(sub_out_ids)
-                data["picks"] = picks
-
-            # Extract individual manager's captain
             manager_captain_name = "-"
             for item in picks:
                 p_id = int(item["element_id"])
@@ -183,7 +190,6 @@ async def get_team_summary(
             total_team_points += net_manager_points
             total_hits_cost += hits
 
-    # sort managers by their gameweek points in descending order
     managers_data.sort(key=lambda m: m["gw_points"], reverse=True)
 
     ownership_list = []
