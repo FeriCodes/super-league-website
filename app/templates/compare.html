@@ -248,7 +248,11 @@
                   <!-- Left Side: Team A -->
                   <td class="col-side text-start">
                     {% if p.count_a > 0 %}
-                      <div class="player-cell-stack">
+                      <div class="player-cell-stack"
+                           data-bs-toggle="tooltip"
+                           data-bs-html="true"
+                           data-bs-placement="top"
+                           title="<strong>Managers:</strong><br>{% if p.managers_a %}{{ p.managers_a | join(', ') }}{% else %}None{% endif %}">
                         <div class="player-row-top justify-content-start">
                           <span class="count-badge count-a">{{ p.count_a }}x</span>
                           <span class="player-name {% if p.is_sub_out_a %}text-subbed-out{% endif %}">{{ p.name }}</span>
@@ -277,14 +281,18 @@
                     {% elif p.diff < 0 %}
                       <span class="diff-badge badge-disadvantage">+{{ p.abs_diff }} ▶</span>
                     {% else %}
-                      <span class="diff-badge badge-shared-dot">●</span>
+                      <span class="badge-shared-dot" title="Equal Ownership">●</span>
                     {% endif %}
                   </td>
 
                   <!-- Right Side: Team B -->
                   <td class="col-side text-end">
                     {% if p.count_b > 0 %}
-                      <div class="player-cell-stack">
+                      <div class="player-cell-stack"
+                           data-bs-toggle="tooltip"
+                           data-bs-html="true"
+                           data-bs-placement="top"
+                           title="<strong>Managers:</strong><br>{% if p.managers_b %}{{ p.managers_b | join(', ') }}{% else %}None{% endif %}">
                         <div class="player-row-top justify-content-end">
                           {% if p.is_sub_out_b %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
                           {% if p.is_sub_in_b %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
@@ -320,6 +328,15 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function() {
+    // Initialize Bootstrap Tooltips with HTML support and mobile touch/click triggering
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl, {
+        html: true,
+        trigger: 'hover focus'
+      });
+    });
+
     const form = document.getElementById("compare-form");
     const btn = document.getElementById("btn-submit");
     const selectA = document.getElementById("team_a_name");
