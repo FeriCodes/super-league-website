@@ -29,11 +29,38 @@ def apply_manager_auto_subs(
     def minutes(element_id: int) -> int:
         return live_data.get(element_id, {}).get("minutes") or 0
 
-    def finished_without_playing(element_id: int) -> bool:
-        return live_data.get(element_id, {}).get("status") == "FT" and minutes(element_id) == 0
+    def status_of(element_id: int) -> str:
+        return live_data.get(element_id, {}).get("status", "Not Played Yet")
 
-    def has_played(element_id: int) -> bool:
-        return minutes(element_id) > 0
+    def finished_without_playing(element_id: int) -> bool:
+        return status_of(element_id) == "FT" and minutes(element_id) == 0
+
+    def is_definitely_out(element_id: int) -> bool:
+        """
+        Return True ONLY if the player has 0% chance of playing (red flag)
+        or is suspended ('s'), unavailable ('u'), or ineligible ('n').
+        Players with 25%, 50%, or 75% chance are NOT definitely out.
+        """
+        p_info = players_dict.get(element_id, {})
+        chance = p_info.get("chance_of_playing")
+        fpl_status = p_info.get("status", "a")
+
+        if chance is not None:
+            return int(chance) == 0
+
+        return fpl_status in ("s", "u", "n")
+
+    def can_sub_in(element_id: int) -> bool:
+        """
+        A bench player can sub in if:
+        1. They have already played (minutes > 0), OR
+        2. Their match hasn't started yet ('Not Played Yet') AND they are not definitely ruled out (0%).
+        """
+        if minutes(element_id) > 0:
+            return True
+        if status_of(element_id) == "Not Played Yet" and not is_definitely_out(element_id):
+            return True
+        return False
 
     def position_of(element_id: int) -> str:
         return players_dict.get(element_id, {}).get("position", "")
@@ -69,7 +96,7 @@ def apply_manager_auto_subs(
         captain["multiplier"] = 1  # Reset to normal starter so bench sub gives 1x
 
         vice = next(
-            (p for p in updated if p.get("is_vice_captain") and has_played(p["element_id"])),
+            (p for p in updated if p.get("is_vice_captain") and can_sub_in(p["element_id"])),
             None,
         )
         if vice:
@@ -82,7 +109,7 @@ def apply_manager_auto_subs(
     # 2. Goalkeeper: only the bench goalkeeper can replace the starting goalkeeper
     gk = by_slot.get(1)
     if gk and finished_without_playing(gk["element_id"]):
-        if bench_gk and has_played(bench_gk["element_id"]):
+        if bench_gk and can_sub_in(bench_gk["element_id"]):
             swap(gk, bench_gk, "GKP")
         else:
             gk["multiplier"] = 0
@@ -99,7 +126,7 @@ def apply_manager_auto_subs(
         replaced = False
         for candidate in list(available_bench):
             cid = candidate["element_id"]
-            if position_of(cid) not in OUTFIELD_LIMITS or not has_played(cid):
+            if position_of(cid) not in OUTFIELD_LIMITS or not can_sub_in(cid):
                 continue
 
             trial = [p for p in on_pitch if p is not starter] + [candidate]
