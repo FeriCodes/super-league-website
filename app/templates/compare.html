@@ -248,11 +248,12 @@
                   <!-- Left Side: Team A -->
                   <td class="col-side text-start">
                     {% if p.count_a > 0 %}
-                      <div class="player-cell-stack"
+                      <div class="player-cell-stack player-interactive-box"
+                           tabindex="0"
                            data-bs-toggle="tooltip"
                            data-bs-html="true"
                            data-bs-placement="top"
-                           title="<strong>Managers:</strong><br>{% if p.managers_a %}{{ p.managers_a | join(', ') }}{% else %}None{% endif %}">
+                           title="<div class='tt-header tt-header-a'>{{ p.name }} ({{ p.count_a }}x)</div><div class='tt-list'>{% for m_name in p.managers_a %}<div class='tt-item'><span class='tt-dot-a'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
                         <div class="player-row-top justify-content-start">
                           <span class="count-badge count-a">{{ p.count_a }}x</span>
                           <span class="player-name {% if p.is_sub_out_a %}text-subbed-out{% endif %}">{{ p.name }}</span>
@@ -288,11 +289,12 @@
                   <!-- Right Side: Team B -->
                   <td class="col-side text-end">
                     {% if p.count_b > 0 %}
-                      <div class="player-cell-stack"
+                      <div class="player-cell-stack player-interactive-box"
+                           tabindex="0"
                            data-bs-toggle="tooltip"
                            data-bs-html="true"
                            data-bs-placement="top"
-                           title="<strong>Managers:</strong><br>{% if p.managers_b %}{{ p.managers_b | join(', ') }}{% else %}None{% endif %}">
+                           title="<div class='tt-header tt-header-b'>{{ p.name }} ({{ p.count_b }}x)</div><div class='tt-list'>{% for m_name in p.managers_b %}<div class='tt-item'><span class='tt-dot-b'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
                         <div class="player-row-top justify-content-end">
                           {% if p.is_sub_out_b %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
                           {% if p.is_sub_in_b %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
@@ -329,13 +331,25 @@
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     // Initialize Bootstrap Tooltips with HTML support and mobile touch/click triggering
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl, {
         html: true,
-        trigger: 'hover focus'
+        trigger: 'hover focus',
+        boundary: 'window'
       });
     });
+
+    // Mobile UX: Close any open tooltips when tapping another player or anywhere outside
+    document.addEventListener('touchstart', function (e) {
+      const targetBox = e.target.closest('[data-bs-toggle="tooltip"]');
+      tooltipTriggerList.forEach(function (el) {
+        if (el !== targetBox) {
+          const instance = bootstrap.Tooltip.getInstance(el);
+          if (instance) instance.hide();
+        }
+      });
+    }, { passive: true });
 
     const form = document.getElementById("compare-form");
     const btn = document.getElementById("btn-submit");

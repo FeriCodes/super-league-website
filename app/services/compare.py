@@ -5,7 +5,7 @@ def build_head_to_head_comparison(
     players_cache: dict,
     fixtures_map: dict,
 ) -> dict:
-    """Build positional player breakdown and point diffs for head-to-head matchup, including bench."""
+    """Build positional player breakdown and point diffs for head-to-head matchup, including bench and managers list."""
     grouped = {
         "GKP": [],
         "DEF": [],
@@ -13,6 +13,48 @@ def build_head_to_head_comparison(
         "FWD": [],
         "BENCH": [],
     }
+
+    managers_a = summary_a.get("managers", [])
+    managers_b = summary_b.get("managers", [])
+
+    def get_managers_for_player(pid: int, managers_list: list, is_bench_section: bool = False) -> list:
+        """
+        Return list of formatted manager/team names owning `pid` in either active XI or bench.
+        Includes (C) or (TC) indicator if the manager captained the player in active XI.
+        """
+        owning_managers = []
+        if not managers_list:
+            return owning_managers
+
+        for m in managers_list:
+            picks = m.get("picks", [])
+            is_bb = m.get("active_chip") == "Bench Boost"
+            team_label = m.get("team_name") or m.get("manager_name") or "Manager"
+
+            for pick in picks:
+                if not isinstance(pick, dict):
+                    continue
+                p_id = pick.get("element_id") or pick.get("element") or pick.get("id")
+                if p_id is None or int(p_id) != pid:
+                    continue
+
+                mult = int(pick.get("multiplier", 0))
+
+                if is_bench_section:
+                    # In BENCH table: only include if player is actually on the bench (mult == 0 and no Bench Boost)
+                    if not is_bb and mult == 0:
+                        owning_managers.append(team_label)
+                else:
+                    # In Active Starting XI tables: include if mult > 0 or Bench Boost is active
+                    if is_bb or mult > 0:
+                        if mult == 2:
+                            owning_managers.append(f"{team_label} (C)")
+                        elif mult >= 3:
+                            owning_managers.append(f"{team_label} (TC)")
+                        else:
+                            owning_managers.append(team_label)
+
+        return owning_managers
 
     # 1. Process Active Starting XI
     a_dict = {int(p["id"]): p for p in summary_a.get("ownership", [])}
@@ -50,6 +92,9 @@ def build_head_to_head_comparison(
         else:
             default_news = ""
 
+        managers_owning_a = get_managers_for_player(pid, managers_a, is_bench_section=False)
+        managers_owning_b = get_managers_for_player(pid, managers_b, is_bench_section=False)
+
         row = {
             "id": pid,
             "name": name,
@@ -74,6 +119,8 @@ def build_head_to_head_comparison(
             "has_injury": has_injury,
             "injury_title": news or default_news,
             "is_pos_changed": False,
+            "managers_a": managers_owning_a,
+            "managers_b": managers_owning_b,
         }
 
         if pos in grouped:
@@ -115,6 +162,9 @@ def build_head_to_head_comparison(
         else:
             default_news = ""
 
+        managers_owning_a = get_managers_for_player(pid, managers_a, is_bench_section=True)
+        managers_owning_b = get_managers_for_player(pid, managers_b, is_bench_section=True)
+
         row = {
             "id": pid,
             "name": name,
@@ -139,6 +189,8 @@ def build_head_to_head_comparison(
             "has_injury": has_injury,
             "injury_title": news or default_news,
             "is_pos_changed": False,
+            "managers_a": managers_owning_a,
+            "managers_b": managers_owning_b,
         }
         grouped["BENCH"].append(row)
 
@@ -164,18 +216,15 @@ def build_head_to_head_comparison(
         diff = item.get("diff", 0)
         total_owners = item.get("count_a", 0) + item.get("count_b", 0)
         if diff > 0:
-            # Team A advantage first (highest diff on top)
             return (pos_weight, -1, -diff, -total_owners)
         elif diff == 0:
-            # Shared/Equal in the middle
             return (pos_weight, 0, 0, -total_owners)
         else:
-            # Team B advantage at the bottom of that position
             return (pos_weight, 1, -diff, -total_owners)
 
     grouped["BENCH"].sort(key=bench_sort_key)
 
-    # Mark position transitions on the bench (e.g. GKP -> DEF, DEF -> MID)
+    # Mark position transitions on the bench
     for idx, item in enumerate(grouped["BENCH"]):
         if idx > 0:
             prev_pos = grouped["BENCH"][idx - 1]["pos"]
