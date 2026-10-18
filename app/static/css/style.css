@@ -625,7 +625,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Injury Badges (Supports both class names and data-chance attributes) */
+/* Injury Badges */
 .badge-injury {
   display: inline-flex;
   align-items: center;
@@ -685,13 +685,22 @@ body {
   border: 1px solid rgba(97, 175, 239, 0.4);
 }
 
-.badge-shared {
-  background-color: rgba(171, 178, 191, 0.1);
-  color: var(--text-main) !important;
-  border: 1px solid rgba(171, 178, 191, 0.25);
+/* Enlarged Clean Dot for Shared/Equal (Mobile Friendly & No Shared Text) */
+.badge-shared-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background-color: rgba(171, 178, 191, 0.08);
+  color: var(--text-muted) !important;
+  border: 1px solid rgba(171, 178, 191, 0.2);
+  line-height: 1;
 }
 
-/* Row Dimming - Applies uniformly to all FT rows including subbed-in players */
+/* Row Dimming */
 tr.player-row-ft,
 tr.player-row-ft > td {
   opacity: 0.45 !important;
