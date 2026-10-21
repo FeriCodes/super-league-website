@@ -43,7 +43,7 @@ templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def home(request: Request):
     """Render home page with dynamic current gameweek."""
     teams = load_teams()
@@ -65,7 +65,7 @@ async def home(request: Request):
     )
 
 
-@app.get("/compare", response_class=HTMLResponse)
+@app.get("/compare", response_class=HTMLResponse, include_in_schema=False)
 async def compare_teams(
     request: Request,
     team_a_name: Optional[str] = Query(None),
@@ -152,7 +152,7 @@ async def compare_teams(
     )
 
 
-@app.get("/fixtures", response_class=HTMLResponse)
+@app.get("/fixtures", response_class=HTMLResponse, include_in_schema=False)
 async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     """Render gameweek fixtures and store final results once the gameweek concludes."""
     teams = load_teams()
@@ -233,7 +233,7 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
     )
 
 
-@app.get("/standings", response_class=HTMLResponse)
+@app.get("/standings", response_class=HTMLResponse, include_in_schema=False)
 async def standings_page(request: Request):
     """Render overall standings page."""
     teams = load_teams()
