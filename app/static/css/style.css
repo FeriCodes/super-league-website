@@ -1265,3 +1265,182 @@ td.gd-zero {
 .tooltip.bs-tooltip-bottom .tooltip-arrow::before {
   border-bottom-color: var(--border-color) !important;
 }
+
+/* =========================================
+   Accessible Footer Contrast Styling
+========================================= */
+.footer-text {
+  color: var(--text-main) !important;
+  font-weight: 500;
+}
+
+.footer-github-link {
+  color: var(--accent-cyan) !important;
+  font-weight: 700;
+  text-decoration: underline dotted 1px;
+  transition: all 0.2s ease;
+}
+
+.footer-github-link:hover {
+  color: var(--accent-blue-soft) !important;
+  text-decoration: underline;
+}
+
+/* =========================================
+   Theme Toggle Navbar Button Styling
+========================================= */
+.btn-theme-toggle {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0.45rem 0.75rem !important;
+  font-size: 0.95rem !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .theme-icon-light {
+  display: none !important;
+}
+
+[data-theme="dark"] .theme-icon-dark {
+  display: inline-block !important;
+}
+
+[data-theme="light"] .theme-icon-dark {
+  display: none !important;
+}
+
+[data-theme="light"] .theme-icon-light {
+  display: inline-block !important;
+}
+
+/* =========================================
+   Light Mode Theme Palette Overrides
+========================================= */
+[data-theme="light"] {
+  --bg-main: #f0f2f5;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f8f9fa;
+  --bg-table-header: #e9ecef;
+  --border-color: #d0d7de;
+  --border-light: rgba(0, 0, 0, 0.08);
+
+  --text-main: #343a40;
+  --text-bright: #111827;
+  --text-muted: #6c757d;
+
+  --accent-cyan: #0891b2;
+  --accent-blue-soft: #2563eb;
+  --accent-green: #15803d;
+  --accent-red: #dc2626;
+  --accent-yellow: #b45309;
+  --accent-purple: #7e22ce;
+}
+
+[data-theme="light"] .page-title {
+  color: #0891b2 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .player-name {
+  color: #111827 !important;
+}
+
+[data-theme="light"] .team-text {
+  color: #111827 !important;
+}
+
+[data-theme="light"] .score-dash {
+  color: #6c757d !important;
+}
+
+[data-theme="light"] .table-dark-custom {
+  --bs-table-bg: #ffffff !important;
+  --bs-table-color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .table-dark-custom thead th {
+  background-color: #f1f3f5 !important;
+  color: #111827 !important;
+}
+
+[data-theme="light"] .table-subhead th {
+  background-color: #e9ecef !important;
+  color: #495057 !important;
+}
+
+[data-theme="light"] .nav-pill-btn {
+  color: #495057 !important;
+}
+
+[data-theme="light"] .nav-pill-btn:hover {
+  color: #000000 !important;
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .nav-pill-btn.active {
+  background-color: #0891b2 !important;
+  color: #ffffff !important;
+}
+
+/* =========================================
+   Light Mode Team Names & Table Visibility Fix
+========================================= */
+[data-theme="light"] .team-card-title,
+[data-theme="light"] .link-team-title,
+[data-theme="light"] .col-team,
+[data-theme="light"] .standings-table td.col-team,
+[data-theme="light"] .standings-table td.text-white {
+  color: #111827 !important;
+}
+
+[data-theme="light"] .standings-table td.col-pos {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .table-dark-custom th,
+[data-theme="light"] .table-dark-custom td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-left: 1px solid rgba(0, 0, 0, 0.04) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .table-dark-custom tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .opponent-badge,
+[data-theme="light"] .badge-pos-mini {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .form-select,
+[data-theme="light"] .form-control {
+  background-color: #ffffff !important;
+  border-color: #d0d7de !important;
+  color: #111827 !important;
+}
+
+[data-theme="light"] .form-select option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+[data-theme="light"] .form-label {
+  color: #343a40 !important;
+}
+
+[data-theme="light"] .meta-label {
+  color: #495057 !important;
+}
+
+[data-theme="light"] .meta-pill.pill-neutral {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #6c757d !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
