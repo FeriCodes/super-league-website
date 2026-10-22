@@ -1067,119 +1067,6 @@ td.gd-zero {
   letter-spacing: -0.2px;
 }
 
-/* =========================================
-   Unified Mobile Optimization (< 576px)
-========================================= */
-@media (max-width: 576px) {
-  .app-navbar {
-    width: 100% !important;
-    justify-content: space-around !important;
-  }
-  .nav-pill-btn {
-    padding: 0.4rem 0.75rem !important;
-    font-size: 0.78rem !important;
-  }
-
-  .page-title {
-    font-size: 1.3rem !important;
-    margin-bottom: 0.2rem !important;
-  }
-  .subtitle-text {
-    font-size: 0.75rem !important;
-  }
-
-  .versus-table th.col-side,
-  .versus-table td.col-side {
-    width: 42% !important;
-    padding: 4px 4px !important;
-  }
-  .versus-table th.col-diff,
-  .versus-table td.col-diff {
-    width: 16% !important;
-    padding: 4px 1px !important;
-  }
-
-  .player-name {
-    font-size: 0.72rem !important;
-    max-width: 85px !important;
-  }
-  .count-badge {
-    font-size: 0.62rem !important;
-    padding: 0 3px !important;
-  }
-  .player-pts-mini {
-    font-size: 0.65rem !important;
-  }
-  .opponent-badge {
-    font-size: 0.58rem !important;
-    padding: 0 2px !important;
-  }
-  .badge-pos-mini {
-    font-size: 0.58rem !important;
-    padding: 0 2px !important;
-  }
-  .diff-badge {
-    padding: 2px 3px !important;
-    font-size: 0.6rem !important;
-  }
-  .badge-live {
-    font-size: 0.55rem !important;
-    padding: 0 2px !important;
-  }
-
-  .fixture-match-card {
-    grid-template-columns: 1fr 94px 1fr !important;
-    padding: 0.55rem 0.5rem !important;
-  }
-  .fixture-center-block {
-    width: 94px !important;
-  }
-  .score-val {
-    width: 38px !important;
-  }
-  .team-text {
-    font-size: 0.76rem !important;
-    font-weight: 700 !important;
-  }
-  .score-row {
-    font-size: 0.88rem !important;
-  }
-
-  .squad-breakdown-table {
-    min-width: 290px;
-  }
-  .squad-breakdown-table th,
-  .squad-breakdown-table td {
-    padding: 5px 3px !important;
-  }
-  .col-squad { width: 44%; }
-  .col-cap   { width: 20%; }
-  .col-chip  { width: 18%; }
-  .col-hit   { width: 8%;  }
-  .col-pts   {
-    width: 10%;
-    padding-right: 6px !important;
-  }
-  .link-team-title {
-    font-size: 0.72rem !important;
-    max-width: 110px;
-  }
-  .link-manager-subtitle {
-    font-size: 0.60rem !important;
-    max-width: 110px;
-  }
-  .small-badge {
-    font-size: 0.56rem !important;
-    padding: 1px 4px !important;
-    max-width: 60px;
-  }
-  .breakdown-pts-a,
-  .breakdown-pts-b {
-    font-size: 0.72rem !important;
-    font-weight: 600 !important;
-  }
-}
-
 /* Interactive Player Box & Custom Tooltip Styling */
 .player-interactive-box {
   cursor: pointer;
@@ -1386,9 +1273,7 @@ td.gd-zero {
   color: #ffffff !important;
 }
 
-/* =========================================
-   Light Mode Team Names & Table Visibility Fix
-========================================= */
+/* Light Mode Team Names & Table Visibility Fix */
 [data-theme="light"] .team-card-title,
 [data-theme="light"] .link-team-title,
 [data-theme="light"] .col-team,
@@ -1443,4 +1328,135 @@ td.gd-zero {
   background-color: rgba(0, 0, 0, 0.05) !important;
   color: #6c757d !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* =========================================
+   Unified Mobile Optimization (< 576px)
+========================================= */
+@media (max-width: 576px) {
+  .app-navbar {
+    width: 100% !important;
+    justify-content: space-around !important;
+  }
+  .nav-pill-btn {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Mobile Floating Theme Toggle Button */
+  .btn-theme-toggle {
+    position: fixed !important;
+    bottom: 18px !important;
+    right: 18px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    z-index: 1050 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .page-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .subtitle-text {
+    font-size: 0.75rem !important;
+  }
+
+  .versus-table th.col-side,
+  .versus-table td.col-side {
+    width: 42% !important;
+    padding: 4px 4px !important;
+  }
+  .versus-table th.col-diff,
+  .versus-table td.col-diff {
+    width: 16% !important;
+    padding: 4px 1px !important;
+  }
+
+  .player-name {
+    font-size: 0.72rem !important;
+    max-width: 85px !important;
+  }
+  .count-badge {
+    font-size: 0.62rem !important;
+    padding: 0 3px !important;
+  }
+  .player-pts-mini {
+    font-size: 0.65rem !important;
+  }
+  .opponent-badge {
+    font-size: 0.58rem !important;
+    padding: 0 2px !important;
+  }
+  .badge-pos-mini {
+    font-size: 0.58rem !important;
+    padding: 0 2px !important;
+  }
+  .diff-badge {
+    padding: 2px 3px !important;
+    font-size: 0.6rem !important;
+  }
+  .badge-live {
+    font-size: 0.55rem !important;
+    padding: 0 2px !important;
+  }
+
+  .fixture-match-card {
+    grid-template-columns: 1fr 94px 1fr !important;
+    padding: 0.55rem 0.5rem !important;
+  }
+  .fixture-center-block {
+    width: 94px !important;
+  }
+  .score-val {
+    width: 38px !important;
+  }
+  .team-text {
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+  }
+  .score-row {
+    font-size: 0.88rem !important;
+  }
+
+  .squad-breakdown-table {
+    min-width: 290px;
+  }
+  .squad-breakdown-table th,
+  .squad-breakdown-table td {
+    padding: 5px 3px !important;
+  }
+  .col-squad { width: 44%; }
+  .col-cap   { width: 20%; }
+  .col-chip  { width: 18%; }
+  .col-hit   { width: 8%;  }
+  .col-pts   {
+    width: 10%;
+    padding-right: 6px !important;
+  }
+  .link-team-title {
+    font-size: 0.72rem !important;
+    max-width: 110px;
+  }
+  .link-manager-subtitle {
+    font-size: 0.60rem !important;
+    max-width: 110px;
+  }
+  .small-badge {
+    font-size: 0.56rem !important;
+    padding: 1px 4px !important;
+    max-width: 60px;
+  }
+  .breakdown-pts-a,
+  .breakdown-pts-b {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+  }
 }
