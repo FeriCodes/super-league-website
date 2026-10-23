@@ -16,7 +16,7 @@ from app.fpl.gameweek import (
     get_team_fixtures_map,
 )
 from app.services.compare import build_head_to_head_comparison
-from app.services.standings import compute_standings, get_team_total_points_fast
+from app.services.standings import compute_standings, get_team_total_points_fast, get_live_league_scores_if_active
 from app.services.storage import (
     init_db,
     close_db,
@@ -31,6 +31,7 @@ from app.services.storage import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Application lifespan manager to initialize and close database/HTTP clients."""
     await init_db()
     yield
     await close_db()
@@ -118,7 +119,6 @@ async def compare_teams(
     team_a_ids = get_team_roster(teams, team_a_name, gameweek)
     team_b_ids = get_team_roster(teams, team_b_name, gameweek)
 
-    # Fetch live data, fixtures, and team summaries sequentially to prevent FPL rate limiting
     live_data = await get_live_scores_and_status(gameweek)
     fixtures_map = await get_team_fixtures_map(gameweek)
 
@@ -234,13 +234,25 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
 
 
 @app.get("/standings", response_class=HTMLResponse, include_in_schema=False)
-async def standings_page(request: Request):
-    """Render overall standings page."""
+async def standings_page(request: Request, gw: Optional[int] = Query(None)):
+    """Render overall standings page with optional live score injection."""
     teams = load_teams()
     fixtures = load_fixtures()
     results_cache = await get_all_results_cache()
 
+    if gw is None:
+        gw = await get_current_gameweek()
+
+    # Inject live scores into results_cache if active
+    live_gw_scores = await get_live_league_scores_if_active(gw, teams)
+    if live_gw_scores:
+        results_cache = dict(results_cache)
+        results_cache[str(gw)] = live_gw_scores
+
     standings = compute_standings(fixtures, results_cache, teams)
+
+    gw_status = await get_gameweek_status(gw)
+    is_live = gw_status.get("is_live", False)
 
     return templates.TemplateResponse(
         request=request,
@@ -249,6 +261,7 @@ async def standings_page(request: Request):
             "standings": standings,
             "active_page": "standings",
             "page_title": "Standings",
+            "is_live": is_live,
         },
     )
 
