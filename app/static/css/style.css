@@ -564,6 +564,43 @@ body {
   flex-shrink: 0;
 }
 
+/* Bench Order Slot Badge (Sub GKP, Bench 1, 2, 3) */
+.badge-bench-slot {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  background: rgba(86, 182, 194, 0.14);
+  border: 1px solid rgba(86, 182, 194, 0.38);
+  padding: 0 4px;
+  border-radius: 3px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+
+/* Bench Section Subheader & Blue Divider */
+.bench-group-header td {
+  background-color: rgba(86, 182, 194, 0.09) !important;
+  padding: 4px 8px !important;
+  border-bottom: 1px solid rgba(86, 182, 194, 0.25) !important;
+}
+
+.bench-group-header:hover td {
+  background-color: rgba(86, 182, 194, 0.09) !important;
+}
+
+.bench-group-label {
+  color: var(--accent-cyan);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+/* Bench Position Transition Divider */
+.bench-pos-divider td {
+  border-top: 2px solid rgba(86, 182, 194, 0.6) !important;
+}
+
 /* Live Match Indicator Badge */
 .badge-live {
   display: inline-flex;
@@ -720,11 +757,6 @@ tr.player-row-ft:hover > td {
 
 .table-bench {
   opacity: 0.9;
-}
-
-/* Bench Position Transition Divider */
-.bench-pos-divider td {
-  border-top: 2px solid rgba(86, 182, 194, 0.45) !important;
 }
 
 /* Scrollbar */
@@ -1114,9 +1146,13 @@ td.gd-zero {
     font-size: 0.58rem !important;
     padding: 0 2px !important;
   }
-  .badge-pos-mini {
-    font-size: 0.58rem !important;
+  .badge-pos-mini,
+  .badge-bench-slot {
+    font-size: 0.56rem !important;
     padding: 0 2px !important;
+  }
+  .bench-group-label {
+    font-size: 0.62rem !important;
   }
   .diff-badge {
     padding: 2px 3px !important;

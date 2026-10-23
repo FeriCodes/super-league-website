@@ -1,3 +1,6 @@
+from collections import Counter
+
+
 def build_head_to_head_comparison(
     summary_a: dict,
     summary_b: dict,
@@ -56,6 +59,56 @@ def build_head_to_head_comparison(
 
         return owning_managers
 
+    def get_player_bench_slot(pid: int, player_pos: str) -> int:
+        """
+        Determine the bench slot for a bench player:
+        12 = Sub GKP
+        13 = Bench 1
+        14 = Bench 2
+        15 = Bench 3
+        """
+        if player_pos == "GKP":
+            return 12
+
+        slots = []
+        fallback_slots = []
+
+        for m in managers_a + managers_b:
+            if m.get("active_chip") == "Bench Boost":
+                continue
+            picks = m.get("picks", [])
+            for pick in picks:
+                if not isinstance(pick, dict):
+                    continue
+                p_id = pick.get("element_id") or pick.get("element") or pick.get("id")
+                if p_id is not None and int(p_id) == pid:
+                    mult = int(pick.get("multiplier", 0))
+                    pos = int(pick.get("position", 0))
+                    if mult == 0:
+                        if pos in (13, 14, 15):
+                            slots.append(pos)
+                        elif pos < 12:
+                            # Player started in XI and was auto-subbed out; find which bench slot replaced them
+                            subbed_in_bench_slots = [
+                                int(p.get("position", 15))
+                                for p in picks
+                                if int(p.get("position", 0)) in (13, 14, 15) and int(p.get("multiplier", 0)) > 0
+                            ]
+                            if subbed_in_bench_slots:
+                                fallback_slots.append(min(subbed_in_bench_slots))
+                            else:
+                                fallback_slots.append(13)
+
+        if slots:
+            # Pick the most common bench slot across managers (tie-break by earliest slot)
+            counts = Counter(slots)
+            return sorted(counts.keys(), key=lambda s: (-counts[s], s))[0]
+
+        if fallback_slots:
+            return min(fallback_slots)
+
+        return 15
+
     # 1. Process Active Starting XI
     a_dict = {int(p["id"]): p for p in summary_a.get("ownership", [])}
     b_dict = {int(p["id"]): p for p in summary_b.get("ownership", [])}
@@ -99,6 +152,9 @@ def build_head_to_head_comparison(
             "id": pid,
             "name": name,
             "pos": pos,
+            "bench_slot": 0,
+            "bench_label": "",
+            "bench_group_title": "",
             "count_a": count_a,
             "count_b": count_b,
             "diff": diff,
@@ -119,6 +175,7 @@ def build_head_to_head_comparison(
             "has_injury": has_injury,
             "injury_title": news or default_news,
             "is_pos_changed": False,
+            "is_bench_changed": False,
             "managers_a": managers_owning_a,
             "managers_b": managers_owning_b,
         }
@@ -131,10 +188,20 @@ def build_head_to_head_comparison(
     b_bench_dict = {int(p["id"]): p for p in summary_b.get("bench_ownership", [])}
     all_bench_ids = set(a_bench_dict.keys()) | set(b_bench_dict.keys())
 
+    slot_label_map = {
+        12: ("Sub GKP", "SUB GOALKEEPER"),
+        13: ("Bench 1", "BENCH 1 — FIRST SUB"),
+        14: ("Bench 2", "BENCH 2 — SECOND SUB"),
+        15: ("Bench 3", "BENCH 3 — THIRD SUB"),
+    }
+
     for pid in all_bench_ids:
         info = a_bench_dict.get(pid) or b_bench_dict.get(pid)
         name = info.get("name", "Unknown")
         pos = info.get("position", "Unknown")
+
+        bench_slot = get_player_bench_slot(pid, pos)
+        bench_label, bench_group_title = slot_label_map.get(bench_slot, ("Bench 3", "BENCH 3 — THIRD SUB"))
 
         count_a = a_bench_dict[pid]["count"] if pid in a_bench_dict else 0
         count_b = b_bench_dict[pid]["count"] if pid in b_bench_dict else 0
@@ -169,6 +236,9 @@ def build_head_to_head_comparison(
             "id": pid,
             "name": name,
             "pos": pos,
+            "bench_slot": bench_slot,
+            "bench_label": bench_label,
+            "bench_group_title": bench_group_title,
             "count_a": count_a,
             "count_b": count_b,
             "diff": diff,
@@ -189,6 +259,7 @@ def build_head_to_head_comparison(
             "has_injury": has_injury,
             "injury_title": news or default_news,
             "is_pos_changed": False,
+            "is_bench_changed": False,
             "managers_a": managers_owning_a,
             "managers_b": managers_owning_b,
         }
@@ -208,27 +279,26 @@ def build_head_to_head_comparison(
     for pos in ["GKP", "DEF", "MID", "FWD"]:
         grouped[pos].sort(key=starters_sort_key, reverse=True)
 
-    # Sort Bench by Football Position (GKP -> DEF -> MID -> FWD) then Team Differential
-    pos_order = {"GKP": 1, "DEF": 2, "MID": 3, "FWD": 4}
-
+    # Sort Bench strictly by bench_slot (12=Sub GKP, 13=Bench 1, 14=Bench 2, 15=Bench 3) then Team Differential
     def bench_sort_key(item):
-        pos_weight = pos_order.get(item.get("pos"), 5)
+        slot = item.get("bench_slot", 15)
         diff = item.get("diff", 0)
         total_owners = item.get("count_a", 0) + item.get("count_b", 0)
         if diff > 0:
-            return (pos_weight, -1, -diff, -total_owners)
+            return (slot, -1, -diff, -total_owners)
         elif diff == 0:
-            return (pos_weight, 0, 0, -total_owners)
+            return (slot, 0, 0, -total_owners)
         else:
-            return (pos_weight, 1, -diff, -total_owners)
+            return (slot, 1, -diff, -total_owners)
 
     grouped["BENCH"].sort(key=bench_sort_key)
 
-    # Mark position transitions on the bench
+    # Mark transitions between bench groups (Sub GKP -> Bench 1 -> Bench 2 -> Bench 3)
     for idx, item in enumerate(grouped["BENCH"]):
-        if idx > 0:
-            prev_pos = grouped["BENCH"][idx - 1]["pos"]
-            if item["pos"] != prev_pos and item["pos"] != "GKP":
-                item["is_pos_changed"] = True
+        if idx == 0:
+            item["is_bench_changed"] = False
+        else:
+            prev_slot = grouped["BENCH"][idx - 1].get("bench_slot")
+            item["is_bench_changed"] = item.get("bench_slot") != prev_slot
 
     return grouped

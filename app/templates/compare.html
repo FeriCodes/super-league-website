@@ -243,7 +243,15 @@
             </thead>
             <tbody>
               {% for p in players %}
-                <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %} {% if p.is_pos_changed %}bench-pos-divider{% endif %}">
+                {% if pos == 'BENCH' and (loop.first or p.is_bench_changed) %}
+                  <tr class="bench-group-header {% if not loop.first %}bench-pos-divider{% endif %}">
+                    <td colspan="3" class="text-center">
+                      <span class="bench-group-label">{{ p.bench_group_title }}</span>
+                    </td>
+                  </tr>
+                {% endif %}
+
+                <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
 
                   <!-- Left Side: Team A -->
                   <td class="col-side text-start">
@@ -330,7 +338,6 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    // Initialize Bootstrap Tooltips with HTML support and mobile touch/click triggering
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl, {
@@ -340,7 +347,6 @@
       });
     });
 
-    // Mobile UX: Close any open tooltips when tapping another player or anywhere outside
     document.addEventListener('touchstart', function (e) {
       const targetBox = e.target.closest('[data-bs-toggle="tooltip"]');
       tooltipTriggerList.forEach(function (el) {
