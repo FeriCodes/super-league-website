@@ -12,7 +12,13 @@ async def get_gameweek_status(gameweek: int) -> dict:
     """
     data = await fetch_fpl_api("bootstrap-static")
     if not data or "events" not in data:
-        return {"valid": True, "finished": False, "data_checked": False, "message": ""}
+        return {
+            "valid": True,
+            "finished": False,
+            "data_checked": False,
+            "is_live": False,
+            "message": "",
+        }
 
     for event in data.get("events", []):
         if event.get("id") == gameweek:
@@ -20,17 +26,22 @@ async def get_gameweek_status(gameweek: int) -> dict:
             is_finished = bool(event.get("finished", False))
             data_checked = bool(event.get("data_checked", False))
 
+            # A gameweek is live if it is the current active week and scores aren't finalized yet
+            is_live = is_current and not data_checked
+
             if not is_current and not is_finished and not data_checked:
                 return {
                     "valid": False,
                     "finished": False,
                     "data_checked": False,
+                    "is_live": False,
                     "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
                 }
             return {
                 "valid": True,
                 "finished": is_finished,
                 "data_checked": data_checked,
+                "is_live": is_live,
                 "message": "",
             }
 
@@ -38,6 +49,7 @@ async def get_gameweek_status(gameweek: int) -> dict:
         "valid": False,
         "finished": False,
         "data_checked": False,
+        "is_live": False,
         "message": f"Gameweek {gameweek} not found.",
     }
 
