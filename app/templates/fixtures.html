@@ -3,9 +3,16 @@
 {% block title %}Super League - Fixtures GW {{ selected_gw }}{% endblock %}
 
 {% block content %}
-<!-- Fixtures Page Title -->
+<!-- Fixtures Page Header -->
 <header class="text-center mb-3">
-  <h1 class="page-title mb-1">Fixtures</h1>
+  <h1 class="page-title mb-1 d-inline-flex align-items-center justify-content-center gap-2">
+    Fixtures
+    {% if is_live %}
+      <span class="badge-live" style="font-size: 0.7rem; vertical-align: middle;">
+        <span class="live-dot"></span> LIVE
+      </span>
+    {% endif %}
+  </h1>
   <p class="subtitle-text small mb-0">Official Schedule & Results</p>
 </header>
 
