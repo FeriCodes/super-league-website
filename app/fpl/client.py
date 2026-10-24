@@ -26,8 +26,8 @@ HEADERS = {
 # Live GW data (event/{gw}/live): refreshed every minute while matches are on.
 live_cache = TTLCache(maxsize=500, ttl=60)
 
-# Picks of a running GW: lineups are locked at the deadline, so 10 minutes is safe.
-picks_cache = TTLCache(maxsize=2000, ttl=600)
+# Picks of a running GW: lineups/chips/hits are locked at the deadline, so 2 hours is completely safe.
+picks_cache = TTLCache(maxsize=2000, ttl=7200)
 
 # bootstrap-static / fixtures: 5 minutes, so injury news and data_checked stay fresh.
 static_cache = TTLCache(maxsize=50, ttl=300)

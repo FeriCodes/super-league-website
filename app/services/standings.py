@@ -1,25 +1,27 @@
 import asyncio
 from typing import List, Tuple
+from cachetools import TTLCache
 
-from app.fpl.managers import get_manager_gw_data
-from app.fpl.managers import get_players_dict, get_team_summary
+from app.fpl.managers import get_manager_gw_data, get_players_dict, get_team_summary
 from app.fpl.live import get_live_scores_and_status
 from app.fpl.gameweek import get_gameweek_status
 from app.services.storage import get_team_roster
 
+# In-memory cache for computed live league team scores (60 seconds TTL)
+live_league_scores_cache = TTLCache(maxsize=10, ttl=60)
+
 
 async def get_team_total_points_fast(team_ids: List[int], gw: int) -> Tuple[int, bool]:
     """
-    Sum the gameweek points of every manager in a team.
+    Sum the gameweek points of every manager in a team without fetching unnecessary profile endpoints.
 
     Returns (total_points, complete). `complete` is False when the roster is
-    empty or any manager could not be fetched. In that case total_points is
-    only a partial sum and must not be persisted as a final result.
+    empty or any manager could not be fetched.
     """
     if not team_ids:
         return 0, False
 
-    tasks = [get_manager_gw_data(m_id, gw) for m_id in team_ids]
+    tasks = [get_manager_gw_data(m_id, gw, include_profile=False) for m_id in team_ids]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     total = 0
@@ -95,10 +97,13 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
 
 
 async def get_live_league_scores_if_active(gw: int, teams: dict) -> dict:
-    """Check if gameweek is live and compute live team scores on the fly if needed."""
+    """Check if gameweek is live and compute live team scores on the fly with 60s caching."""
     gw_status = await get_gameweek_status(gw)
     if not gw_status.get("is_live", False):
         return {}
+
+    if gw in live_league_scores_cache:
+        return live_league_scores_cache[gw]
 
     players = await get_players_dict()
     live_data = await get_live_scores_and_status(gw)
@@ -106,7 +111,14 @@ async def get_live_league_scores_if_active(gw: int, teams: dict) -> dict:
 
     for team_name in teams.keys():
         team_ids = get_team_roster(teams, team_name, gw)
-        summary = await get_team_summary(team_ids, gw, players, live_data)
+        summary = await get_team_summary(
+            team_ids,
+            gw,
+            players,
+            live_data,
+            include_profile=False,
+        )
         computed_scores[team_name] = summary.get("total_team_points", 0)
 
+    live_league_scores_cache[gw] = computed_scores
     return computed_scores

@@ -1,3 +1,4 @@
+import asyncio
 from collections import Counter
 from typing import Any, Dict, List, Set
 
@@ -32,13 +33,20 @@ async def get_players_dict() -> Dict[int, Dict[str, Any]]:
     return players_dict
 
 
-async def get_manager_gw_data(manager_id: int, gameweek: int) -> Dict[str, Any]:
-    """Fetch manager gameweek score, transfer hits, active chip, and manager/team profile info."""
+async def get_manager_gw_data(
+    manager_id: int,
+    gameweek: int,
+    include_profile: bool = True,
+) -> Dict[str, Any]:
+    """Fetch manager gameweek score, transfer hits, active chip, and optional manager/team profile info."""
     picks_endpoint = f"entry/{manager_id}/event/{gameweek}/picks"
-    profile_endpoint = f"entry/{manager_id}"
 
-    # Fetch picks and profile for this single manager (only 2 requests)
-    data, profile_data = await fetch_many([picks_endpoint, profile_endpoint], allow_stale=True)
+    if include_profile:
+        profile_endpoint = f"entry/{manager_id}"
+        data, profile_data = await fetch_many([picks_endpoint, profile_endpoint], allow_stale=True)
+    else:
+        data = await fetch_fpl_api(picks_endpoint, allow_stale=True)
+        profile_data = None
 
     if not data:
         print(f"Manager {manager_id} GW {gameweek} failed to fetch.")
@@ -98,6 +106,7 @@ async def get_team_summary(
     gameweek: int,
     players_dict: Dict[int, Dict[str, Any]],
     live_data: Dict[int, Dict[str, Any]],
+    include_profile: bool = True,
 ) -> Dict[str, Any]:
     """Aggregate total points, hit costs, active chips, captains, and count effective player ownership with live auto-sub."""
 
@@ -115,11 +124,9 @@ async def get_team_summary(
     left_to_play_count = 0
     total_slots_count = 0
 
-    # Fetch managers sequentially to avoid triggering FPL rate-limits
-    managers_raw_data = []
-    for m_id in manager_ids:
-        res = await get_manager_gw_data(m_id, gameweek)
-        managers_raw_data.append(res)
+    # Fetch the 7 managers of this team concurrently (safely throttled to 4 at a time by fpl_semaphore in client.py)
+    tasks = [get_manager_gw_data(m_id, gameweek, include_profile=include_profile) for m_id in manager_ids]
+    managers_raw_data = await asyncio.gather(*tasks)
 
     for data in managers_raw_data:
         if data.get("status") == "success":
