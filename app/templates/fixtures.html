@@ -1,21 +1,10 @@
 {% extends "base.html" %}
 
 {% block title %}Super League - Fixtures GW {{ selected_gw }}{% endblock %}
+{% block page_heading %}Fixtures{% endblock %}
+{% block page_subtitle %}Official Schedule & Results{% endblock %}
 
 {% block content %}
-<!-- Fixtures Page Header -->
-<header class="text-center mb-3">
-  <h1 class="page-title mb-1 d-inline-flex align-items-center justify-content-center gap-2">
-    Fixtures
-    {% if is_live %}
-      <span class="badge-live" style="font-size: 0.7rem; vertical-align: middle;">
-        <span class="live-dot"></span> LIVE
-      </span>
-    {% endif %}
-  </h1>
-  <p class="subtitle-text small mb-0">Official Schedule & Results</p>
-</header>
-
 <!-- Gameweek Switcher -->
 <div class="custom-card p-2 p-sm-3 mb-3 mb-md-4 text-center">
   <form method="get" action="/fixtures" class="d-inline-flex align-items-center justify-content-center gap-2">

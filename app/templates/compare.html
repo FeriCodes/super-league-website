@@ -1,21 +1,33 @@
 {% extends "base.html" %}
 
 {% block title %}Super League H2H - Compare{% endblock %}
+{% block page_heading %}Super League H2H{% endblock %}
+{% block page_subtitle %}7v7 Squad Head-to-Head & Player Differentials{% endblock %}
 
-{# Macro to render Team A and Team B score & breakdown cards without code duplication #}
+{# 1. Macro for Team Select Dropdown (Used for both Team A and Team B) #}
+{% macro render_team_select(field_id, label, selected_val, team_names) %}
+  <div class="col-12 col-md-5">
+    <label for="{{ field_id }}" class="form-label text-light fw-semibold small">{{ label }}</label>
+    <select class="form-select" id="{{ field_id }}" name="{{ field_id }}" required>
+      <option value="" disabled {% if not selected_val %}selected{% endif %}>Select {{ label }}</option>
+      {% for team in team_names %}
+        <option value="{{ team }}" {% if selected_val == team %}selected{% endif %}>{{ team }}</option>
+      {% endfor %}
+    </select>
+  </div>
+{% endmacro %}
+
+{# 2. Macro for Team Score & Breakdown Card (Used for both Team A and Team B) #}
 {% macro render_team_card(team_name, summary, gameweek, collapse_id, score_class="", pts_class="breakdown-pts-a") %}
   <div class="col-12 col-md-6">
     <div class="unified-team-card">
-      <!-- Upper: Main Score -->
       <div class="main-score-section">
         <div class="team-card-title text-truncate">{{ team_name }}</div>
         <div class="team-score-num {{ score_class }}">{{ summary.total_team_points }}</div>
         <div class="team-score-lbl">TOTAL POINTS</div>
       </div>
 
-      <!-- Lower: Attached Details -->
       <div class="sub-details-section">
-        <!-- 1. Transfer Hits -->
         <div class="meta-row align-items-center">
           <span class="meta-label">Transfer Hits:</span>
           <div class="meta-badges-wrap">
@@ -27,35 +39,28 @@
           </div>
         </div>
 
-        <!-- 2. Active Chips -->
         <div class="meta-row align-items-center">
           <span class="meta-label">Active Chips:</span>
           <div class="meta-badges-wrap">
-            {% if summary.chips_list %}
-              {% for chip in summary.chips_list %}
-                <span class="meta-pill pill-chip">{{ chip.count }}x {{ chip.name }}</span>
-              {% endfor %}
+            {% for chip in summary.chips_list %}
+              <span class="meta-pill pill-chip">{{ chip.count }}x {{ chip.name }}</span>
             {% else %}
               <span class="meta-pill pill-neutral">None</span>
-            {% endif %}
+            {% endfor %}
           </div>
         </div>
 
-        <!-- 3. Captains -->
         <div class="meta-row meta-row-captains">
           <span class="meta-label">Captains:</span>
           <div class="meta-badges-wrap">
-            {% if summary.captains_list %}
-              {% for cap in summary.captains_list %}
-                <span class="meta-pill pill-captain">{{ cap.name }} <strong class="cap-mult">{{ cap.count }}x</strong></span>
-              {% endfor %}
+            {% for cap in summary.captains_list %}
+              <span class="meta-pill pill-captain">{{ cap.name }} <strong class="cap-mult">{{ cap.count }}x</strong></span>
             {% else %}
               <span class="meta-pill pill-neutral">None</span>
-            {% endif %}
+            {% endfor %}
           </div>
         </div>
 
-        <!-- 4. Left to Play -->
         <div class="meta-row align-items-center">
           <span class="meta-label">Left to Play:</span>
           <div class="meta-badges-wrap">
@@ -65,13 +70,9 @@
           </div>
         </div>
 
-        <!-- 5. Squad Breakdown (7 Players) -->
         <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
           <button class="btn btn-sm btn-breakdown w-100 d-flex justify-content-between align-items-center"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#{{ collapse_id }}"
-                  aria-expanded="false">
+                  type="button" data-bs-toggle="collapse" data-bs-target="#{{ collapse_id }}" aria-expanded="false">
             <span>👥 Squad Breakdown (7 Players)</span>
             <span class="collapse-icon">▼</span>
           </button>
@@ -92,15 +93,13 @@
                     <tr>
                       <td class="col-squad">
                         <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ gameweek }}"
-                           target="_blank"
-                           class="fpl-manager-link"
-                           title="{{ m.team_name }} ({{ m.manager_name }})">
+                           target="_blank" class="fpl-manager-link" title="{{ m.team_name }} ({{ m.manager_name }})">
                           <span class="link-team-title">{{ m.team_name }}</span>
                           <span class="link-manager-subtitle">{{ m.manager_name }} <span class="link-ext-icon">↗</span></span>
                         </a>
                       </td>
                       <td class="col-cap">
-                        {% if m.captain_name and m.captain_name != '—' and m.captain_name != '-' %}
+                        {% if m.captain_name and m.captain_name not in ('—', '-') %}
                           <span class="meta-pill pill-captain small-badge" title="{{ m.captain_name }}">{{ m.captain_name }}</span>
                         {% else %}
                           <span class="text-muted small">—</span>
@@ -132,68 +131,73 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 {% endmacro %}
 
-{% block content %}
-<!-- Header (Only on Compare Page) -->
-<header class="text-center mb-3">
-  <h1 class="page-title mb-1">Super League H2H</h1>
-  <p class="subtitle-text small mb-0">7v7 Squad Head-to-Head & Player Differentials</p>
-</header>
+{# 3. Single Unified Macro for Player Cell (Mirrored automatically for Team B via flex-row-reverse) #}
+{% macro render_player_cell(p, side, pos) %}
+  {% set is_a = (side == 'a') %}
+  {% set count = p.count_a if is_a else p.count_b %}
+  {% set managers = p.managers_a if is_a else p.managers_b %}
+  {% set is_sub_in = p.is_sub_in_a if is_a else p.is_sub_in_b %}
+  {% set is_sub_out = p.is_sub_out_a if is_a else p.is_sub_out_b %}
+  {% set dir_class = 'justify-content-start' if is_a else 'flex-row-reverse justify-content-start' %}
 
+  <td class="col-side {{ 'text-start' if is_a else 'text-end' }}">
+    {% if count > 0 %}
+      <div class="player-cell-stack player-interactive-box"
+           tabindex="0" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="top"
+           title="<div class='tt-header tt-header-{{ side }}'>{{ p.name }} ({{ count }}x)</div><div class='tt-list'>{% for m_name in managers %}<div class='tt-item'><span class='tt-dot-{{ side }}'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
+        <div class="player-row-top {{ dir_class }}">
+          <span class="count-badge count-{{ side }}">{{ count }}x</span>
+          <span class="player-name {% if is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
+          {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
+          {% if p.has_injury %}<span class="badge-injury" data-chance="{{ p.chance }}" title="{{ p.injury_title }}">{{ p.chance }}%</span>{% endif %}
+          {% if is_sub_in %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
+          {% if is_sub_out %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
+        </div>
+        <div class="player-row-bottom {{ dir_class }}">
+          <span class="player-pts-mini">{{ p.player_points }}</span>
+          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
+          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
+        </div>
+      </div>
+    {% else %}
+      <span class="text-muted small {{ 'ps-2' if is_a else 'pe-2' }}">—</span>
+    {% endif %}
+  </td>
+{% endmacro %}
+
+{% block content %}
 <!-- Selection Form Card -->
 <div class="custom-card p-3 p-md-4 mb-4 shadow-sm">
   <form id="compare-form" action="/compare" method="get">
     <div class="row g-2 g-md-3 align-items-end justify-content-center">
+      {{ render_team_select("team_a_name", "Team A", selected_team_a, team_names) }}
 
-      <!-- Column 1: Team A -->
-      <div class="col-12 col-md-5">
-        <label for="team_a_name" class="form-label text-light fw-semibold small">Team A</label>
-        <select class="form-select" id="team_a_name" name="team_a_name" required>
-          <option value="" disabled {% if not selected_team_a %}selected{% endif %}>Select Team A</option>
-          {% for team in team_names %}
-            <option value="{{ team }}" {% if selected_team_a == team %}selected{% endif %}>{{ team }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <!-- Column 2: Centered Gameweek -->
       <div class="col-12 col-md-2 text-center">
         <label for="gameweek" class="form-label text-light fw-semibold small w-100 text-center mb-1">Gameweek</label>
         <select class="form-select text-center fw-bold mx-auto" id="gameweek" name="gameweek" required>
-          {% for week in range(1, 39) %}
+          {% for week in range(1, 31) %}
             <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>
           {% endfor %}
         </select>
       </div>
 
-      <!-- Column 3: Team B -->
-      <div class="col-12 col-md-5">
-        <label for="team_b_name" class="form-label text-light fw-semibold small">Team B</label>
-        <select class="form-select" id="team_b_name" name="team_b_name" required>
-          <option value="" disabled {% if not selected_team_b %}selected{% endif %}>Select Team B</option>
-          {% for team in team_names %}
-            <option value="{{ team }}" {% if selected_team_b == team %}selected{% endif %}>{{ team }}</option>
-          {% endfor %}
-        </select>
-      </div>
+      {{ render_team_select("team_b_name", "Team B", selected_team_b, team_names) }}
 
-      <!-- Submit Button -->
       <div class="col-12 text-center mt-3">
         <button type="submit" id="btn-submit" class="btn btn-compare px-4 py-2">
           <span id="btn-text">Compare Teams ⚔️</span>
         </button>
       </div>
-
     </div>
   </form>
 </div>
 
-<!-- Unified Alert Box (Client & Server) -->
+<!-- Unified Alert Box -->
 <div id="client-error-box" class="custom-card alert-warning-card p-3 mb-4 text-center" style="display: {% if error_message %}block{% else %}none{% endif %};">
   <div class="d-inline-flex align-items-center justify-content-center gap-2">
     <span class="alert-icon">⚠️</span>
@@ -201,7 +205,6 @@
   </div>
 </div>
 
-<!-- Comparison Results Section -->
 {% if results %}
   <!-- Team Score Summary Cards -->
   <div class="row g-3 mb-4">
@@ -209,128 +212,64 @@
     {{ render_team_card(results.team_b_name, results.summary_b, results.gameweek, "breakdownTeamB", "team-score-num-b", "breakdown-pts-b") }}
   </div>
 
-  <!-- Position Breakdown Tables (Versus Mode) -->
-  {% for pos, players in results.grouped.items() %}
-    {% if players %}
-      <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
-        <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2 d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-1">
-            <span class="pos-dot">●</span>
-            <span class="pos-title">{{ pos }} {% if pos == 'BENCH' %}PLAYERS / SUBS{% else %}DIFFERENCE{% endif %}</span>
-          </div>
-
-          {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
-            <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
-          {% endif %}
+  <!-- Position Breakdown Tables -->
+  {% for pos, players in results.grouped.items() if players %}
+    <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
+      <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-1">
+          <span class="pos-dot">●</span>
+          <span class="pos-title">{{ pos }} {{ 'PLAYERS / SUBS' if pos == 'BENCH' else 'DIFFERENCE' }}</span>
         </div>
-        <div class="compare-table-wrapper">
-          <table class="table table-dark table-dark-custom align-middle mb-0 compare-table versus-table {% if pos == 'BENCH' %}table-bench{% endif %}">
-            <thead>
-              <tr class="compare-thead-row">
-                <!-- Left: Team A -->
-                <th class="col-side text-start col-team-a" title="{{ results.team_a_name }}">
-                  <span class="d-none d-sm-inline">{{ results.team_a_name }}</span>
-                  <span class="d-inline d-sm-none">T-A</span>
-                </th>
-                <!-- Center: Differential -->
-                <th class="text-center col-diff">Diff</th>
-                <!-- Right: Team B -->
-                <th class="col-side text-end col-team-b" title="{{ results.team_b_name }}">
-                  <span class="d-none d-sm-inline">{{ results.team_b_name }}</span>
-                  <span class="d-inline d-sm-none">T-B</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in players %}
-                {% if pos == 'BENCH' and (loop.first or p.is_bench_changed) %}
-                  <tr class="bench-group-header {% if not loop.first %}bench-pos-divider{% endif %}">
-                    <td colspan="3" class="text-center">
-                      <span class="bench-group-label">{{ p.bench_group_title }}</span>
-                    </td>
-                  </tr>
-                {% endif %}
-
-                <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
-
-                  <!-- Left Side: Team A -->
-                  <td class="col-side text-start">
-                    {% if p.count_a > 0 %}
-                      <div class="player-cell-stack player-interactive-box"
-                           tabindex="0"
-                           data-bs-toggle="tooltip"
-                           data-bs-html="true"
-                           data-bs-placement="top"
-                           title="<div class='tt-header tt-header-a'>{{ p.name }} ({{ p.count_a }}x)</div><div class='tt-list'>{% for m_name in p.managers_a %}<div class='tt-item'><span class='tt-dot-a'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
-                        <div class="player-row-top justify-content-start">
-                          <span class="count-badge count-a">{{ p.count_a }}x</span>
-                          <span class="player-name {% if p.is_sub_out_a %}text-subbed-out{% endif %}">{{ p.name }}</span>
-
-                          {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
-                          {% if p.has_injury %}<span class="badge-injury" data-chance="{{ p.chance }}" title="{{ p.injury_title }}">{{ p.chance }}%</span>{% endif %}
-                          {% if p.is_sub_in_a %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
-                          {% if p.is_sub_out_a %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
-                        </div>
-
-                        <div class="player-row-bottom justify-content-start">
-                          <span class="player-pts-mini">{{ p.player_points }}</span>
-                          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
-                          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
-                        </div>
-                      </div>
-                    {% else %}
-                      <span class="text-muted small ps-2">—</span>
-                    {% endif %}
-                  </td>
-
-                  <!-- Center: Differential -->
-                  <td class="text-center col-diff">
-                    {% if p.diff > 0 %}
-                      <span class="diff-badge badge-advantage">◀ +{{ p.diff }}</span>
-                    {% elif p.diff < 0 %}
-                      <span class="diff-badge badge-disadvantage">+{{ p.abs_diff }} ▶</span>
-                    {% else %}
-                      <span class="badge-shared-dot" title="Equal Ownership">●</span>
-                    {% endif %}
-                  </td>
-
-                  <!-- Right Side: Team B -->
-                  <td class="col-side text-end">
-                    {% if p.count_b > 0 %}
-                      <div class="player-cell-stack player-interactive-box"
-                           tabindex="0"
-                           data-bs-toggle="tooltip"
-                           data-bs-html="true"
-                           data-bs-placement="top"
-                           title="<div class='tt-header tt-header-b'>{{ p.name }} ({{ p.count_b }}x)</div><div class='tt-list'>{% for m_name in p.managers_b %}<div class='tt-item'><span class='tt-dot-b'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
-                        <div class="player-row-top justify-content-end">
-                          {% if p.is_sub_out_b %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
-                          {% if p.is_sub_in_b %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
-                          {% if p.has_injury %}<span class="badge-injury" data-chance="{{ p.chance }}" title="{{ p.injury_title }}">{{ p.chance }}%</span>{% endif %}
-                          {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
-
-                          <span class="player-name {% if p.is_sub_out_b %}text-subbed-out{% endif %}">{{ p.name }}</span>
-                          <span class="count-badge count-b">{{ p.count_b }}x</span>
-                        </div>
-
-                        <div class="player-row-bottom justify-content-end">
-                          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
-                          {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
-                          <span class="player-pts-mini">{{ p.player_points }}</span>
-                        </div>
-                      </div>
-                    {% else %}
-                      <span class="text-muted small pe-2">—</span>
-                    {% endif %}
-                  </td>
-
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+        {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
+          <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
+        {% endif %}
       </div>
-    {% endif %}
+
+      <div class="compare-table-wrapper">
+        <table class="table table-dark table-dark-custom align-middle mb-0 compare-table versus-table {% if pos == 'BENCH' %}table-bench{% endif %}">
+          <thead>
+            <tr class="compare-thead-row">
+              <th class="col-side text-start col-team-a" title="{{ results.team_a_name }}">
+                <span class="d-none d-sm-inline">{{ results.team_a_name }}</span>
+                <span class="d-inline d-sm-none">T-A</span>
+              </th>
+              <th class="text-center col-diff">Diff</th>
+              <th class="col-side text-end col-team-b" title="{{ results.team_b_name }}">
+                <span class="d-none d-sm-inline">{{ results.team_b_name }}</span>
+                <span class="d-inline d-sm-none">T-B</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in players %}
+              {% if pos == 'BENCH' and (loop.first or p.is_bench_changed) %}
+                <tr class="bench-group-header {% if not loop.first %}bench-pos-divider{% endif %}">
+                  <td colspan="3" class="text-center">
+                    <span class="bench-group-label">{{ p.bench_group_title }}</span>
+                  </td>
+                </tr>
+              {% endif %}
+
+              <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
+                {{ render_player_cell(p, 'a', pos) }}
+
+                <td class="text-center col-diff">
+                  {% if p.diff > 0 %}
+                    <span class="diff-badge badge-advantage">◀ +{{ p.diff }}</span>
+                  {% elif p.diff < 0 %}
+                    <span class="diff-badge badge-disadvantage">+{{ p.abs_diff }} ▶</span>
+                  {% else %}
+                    <span class="badge-shared-dot" title="Equal Ownership">●</span>
+                  {% endif %}
+                </td>
+
+                {{ render_player_cell(p, 'b', pos) }}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   {% endfor %}
 {% endif %}
 {% endblock %}
@@ -339,12 +278,8 @@
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl, {
-        html: true,
-        trigger: 'hover focus',
-        boundary: 'window'
-      });
+    tooltipTriggerList.forEach(function (el) {
+      new bootstrap.Tooltip(el, { html: true, trigger: 'hover focus', boundary: 'window' });
     });
 
     document.addEventListener('touchstart', function (e) {
@@ -373,26 +308,16 @@
           }
           return;
         }
-
-        if (errorBox) {
-          errorBox.style.display = "none";
-        }
-
+        if (errorBox) errorBox.style.display = "none";
         btn.disabled = true;
-        btn.innerHTML = `
-          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          Comparing... Please wait
-        `;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Comparing... Please wait`;
       });
     }
 
     if (selectA && selectB && errorBox) {
-      selectA.addEventListener("change", function() {
-        errorBox.style.display = "none";
-      });
-      selectB.addEventListener("change", function() {
-        errorBox.style.display = "none";
-      });
+      const hideErr = () => errorBox.style.display = "none";
+      selectA.addEventListener("change", hideErr);
+      selectB.addEventListener("change", hideErr);
     }
   });
 </script>

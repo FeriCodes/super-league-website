@@ -39,6 +39,21 @@
         </a>
       </nav>
 
+      <!-- Unified Page Header -->
+      <header class="text-center mb-3">
+        <h1 class="page-title mb-1 d-inline-flex align-items-center justify-content-center gap-2">
+          {% block page_heading %}Super League H2H{% endblock %}
+          {% if is_live %}
+            <span class="badge-live" style="font-size: 0.7rem; vertical-align: middle;">
+              <span class="live-dot"></span> LIVE
+            </span>
+          {% endif %}
+        </h1>
+        <p class="subtitle-text small mb-0">
+          {% block page_subtitle %}7v7 Squad Head-to-Head & Player Differentials{% endblock %}
+        </p>
+      </header>
+
       <!-- Child Pages Content Block -->
       {% block content %}{% endblock %}
 
