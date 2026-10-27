@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 
 {% block title %}Super League - Fixtures GW {{ selected_gw }}{% endblock %}
-{% block page_heading %}Fixtures{% endblock %}
-{% block page_subtitle %}Official Schedule & Results{% endblock %}
 
 {% block content %}
 <!-- Gameweek Switcher -->
 <div class="custom-card p-2 p-sm-3 mb-3 mb-md-4 text-center">
   <form method="get" action="/fixtures" class="d-inline-flex align-items-center justify-content-center gap-2">
-    <label for="gw-select" class="text-white fw-bold small mb-0">Gameweek:</label>
+    <label for="gw-select" class="fw-bold small mb-0" style="color: var(--text-bright);">Gameweek:</label>
     <select id="gw-select" name="gw" class="form-select form-select-sm text-center fw-bold" style="width: 105px;" onchange="this.form.submit()">
       {% for week in range(1, 31) %}
         <option value="{{ week }}" {% if selected_gw == week %}selected{% endif %}>GW {{ week }}</option>

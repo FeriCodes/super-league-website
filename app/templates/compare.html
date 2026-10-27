@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 
 {% block title %}Super League H2H - Compare{% endblock %}
-{% block page_heading %}Super League H2H{% endblock %}
-{% block page_subtitle %}7v7 Squad Head-to-Head & Player Differentials{% endblock %}
 
 {# 1. Macro for Team Select Dropdown (Used for both Team A and Team B) #}
 {% macro render_team_select(field_id, label, selected_val, team_names) %}
   <div class="col-12 col-md-5">
-    <label for="{{ field_id }}" class="form-label text-light fw-semibold small">{{ label }}</label>
+    <label for="{{ field_id }}" class="form-label fw-semibold small">{{ label }}</label>
     <select class="form-select" id="{{ field_id }}" name="{{ field_id }}" required>
       <option value="" disabled {% if not selected_val %}selected{% endif %}>Select {{ label }}</option>
       {% for team in team_names %}
@@ -178,7 +176,7 @@
       {{ render_team_select("team_a_name", "Team A", selected_team_a, team_names) }}
 
       <div class="col-12 col-md-2 text-center">
-        <label for="gameweek" class="form-label text-light fw-semibold small w-100 text-center mb-1">Gameweek</label>
+        <label for="gameweek" class="form-label fw-semibold small w-100 text-center mb-1">Gameweek</label>
         <select class="form-select text-center fw-bold mx-auto" id="gameweek" name="gameweek" required>
           {% for week in range(1, 31) %}
             <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>

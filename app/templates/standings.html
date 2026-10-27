@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
 {% block title %}Super League - Standings{% endblock %}
-{% block page_heading %}Standings{% endblock %}
-{% block page_subtitle %}All Teams Standings{% endblock %}
 
 {% block content %}
 {% set short_names = {
@@ -35,7 +33,7 @@
       {% for row in standings %}
       <tr>
         <td class="font-monospace fw-semibold col-pos" style="padding: 9px 1px;">{{ row.pos }}</td>
-        <td class="text-start fw-bold text-white text-truncate col-team" style="padding: 9px 3px;" title="{{ row.team }}">
+        <td class="text-start fw-bold text-truncate col-team" style="padding: 9px 3px;" title="{{ row.team }}">
           {{ short_names.get(row.team, row.team) }}
         </td>
         <td class="font-monospace" style="padding: 9px 1px;">{{ row.played }}</td>

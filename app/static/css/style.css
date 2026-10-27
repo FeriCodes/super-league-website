@@ -1,14 +1,20 @@
-:root {
+/* =========================================
+   1. Theme Variables (Dark Default + Light Mode)
+========================================= */
+:root,
+[data-bs-theme="dark"] {
   --bg-main: #1e2227;
   --bg-card: #282c34;
   --bg-card-subtle: #21252b;
   --bg-table-header: #21252b;
+  --bg-subhead: #1c1f24;
   --border-color: #3b4048;
   --border-light: rgba(255, 255, 255, 0.08);
+  --row-hover: rgba(255, 255, 255, 0.04);
 
   --text-main: #abb2bf;
   --text-bright: #ffffff;
-  --text-muted: #5c6370;
+  --text-muted: #6c7380;
 
   --accent-cyan: #56b6c2;
   --accent-blue-soft: #61afef;
@@ -16,6 +22,35 @@
   --accent-red: #e06c75;
   --accent-yellow: #e5c07b;
   --accent-purple: #c678dd;
+
+  /* Sky-Steel Blue Navbar */
+  --navbar-bg: linear-gradient(90deg, #2b5876 0%, #3b6998 50%, #4678a8 100%);
+  --navbar-border: rgba(86, 182, 194, 0.35);
+}
+
+[data-bs-theme="light"] {
+  --bg-main: #f0f4f8;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f8fafc;
+  --bg-table-header: #e2e8f0;
+  --bg-subhead: #edf2f7;
+  --border-color: #cbd5e1;
+  --border-light: rgba(0, 0, 0, 0.08);
+  --row-hover: rgba(0, 0, 0, 0.035);
+
+  --text-main: #334155;
+  --text-bright: #0f172a;
+  --text-muted: #64748b;
+
+  --accent-cyan: #0891b2;
+  --accent-blue-soft: #2563eb;
+  --accent-green: #16a34a;
+  --accent-red: #dc2626;
+  --accent-yellow: #ca8a04;
+  --accent-purple: #9333ea;
+
+  --navbar-bg: linear-gradient(90deg, #2563eb 0%, #3b82f6 50%, #0284c7 100%);
+  --navbar-border: rgba(0, 0, 0, 0.12);
 }
 
 body {
@@ -24,15 +59,138 @@ body {
   font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Header & Titles */
+/* =========================================
+   2. Style Top Navbar (Desktop 1-Row / Mobile 2-Row)
+========================================= */
+.cs-navbar {
+  background: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--navbar-border);
+  padding: 0.55rem 0;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cs-brand {
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+
+.cs-brand:hover {
+  color: #e0f2fe !important;
+}
+
+.cs-nav-links-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cs-nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.85rem !important;
+  border-radius: 6px;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.cs-nav-link:hover {
+  color: #ffffff !important;
+  background-color: rgba(0, 0, 0, 0.16);
+}
+
+.cs-nav-link.active {
+  color: #ffffff !important;
+  font-weight: 700;
+  background-color: rgba(0, 0, 0, 0.32);
+}
+
+/* Mobile Layout: 3 Equal, Always-Visible Buttons right inside the top bar */
+@media (max-width: 767.98px) {
+  .cs-nav-links-wrap {
+    width: 100% !important;
+    background-color: rgba(0, 0, 0, 0.15);
+    padding: 0.25rem;
+    border-radius: 8px;
+    justify-content: space-between;
+  }
+
+  .cs-nav-link {
+    flex: 1;
+    font-size: 0.76rem;
+    padding: 0.42rem 0.3rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .cs-nav-links-wrap {
+    width: auto !important;
+  }
+}
+
+.cs-theme-btn {
+  color: #ffffff !important;
+  background-color: rgba(0, 0, 0, 0.24) !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.75rem !important;
+  border-radius: 6px !important;
+  transition: background-color 0.18s ease;
+}
+
+.cs-theme-btn:hover,
+.cs-theme-btn:focus,
+.cs-theme-btn.show {
+  background-color: rgba(0, 0, 0, 0.38) !important;
+  color: #ffffff !important;
+}
+
+.cs-theme-menu {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 0.35rem !important;
+  min-width: 120px !important;
+}
+
+.cs-theme-menu .dropdown-item {
+  color: var(--text-main) !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 0.4rem 0.65rem;
+}
+
+.cs-theme-menu .dropdown-item:hover {
+  background-color: var(--row-hover) !important;
+  color: var(--text-bright) !important;
+}
+
+.cs-theme-menu .dropdown-item.active {
+  background-color: var(--accent-cyan) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* =========================================
+   3. Header & Titles
+========================================= */
 .page-title {
   color: var(--accent-cyan);
   font-weight: 800;
   font-size: clamp(1.6rem, 4vw, 2.2rem);
   letter-spacing: -0.5px;
-  text-shadow: 0 0 16px rgba(86, 182, 194, 0.25);
+  text-shadow: 0 0 16px rgba(86, 182, 194, 0.2);
 }
 
 .subtitle-text {
@@ -42,57 +200,12 @@ body {
   opacity: 0.9;
 }
 
-/* App Segmented Pill Navbar */
-.app-navbar {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 0.4rem !important;
-  background-color: var(--bg-card) !important;
-  border: 1px solid var(--border-color) !important;
-  padding: 0.35rem !important;
-  border-radius: 30px !important;
-  width: fit-content !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-}
-
-.nav-pill-btn {
-  color: var(--text-main) !important;
-  text-decoration: none !important;
-  font-size: 0.84rem !important;
-  font-weight: 700 !important;
-  padding: 0.45rem 1.1rem !important;
-  border-radius: 20px !important;
-  transition: all 0.2s ease !important;
-  white-space: nowrap !important;
-  display: inline-block !important;
-}
-
-.nav-pill-btn:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.nav-pill-btn.active {
-  background-color: var(--accent-cyan) !important;
-  color: #181a1f !important;
-  box-shadow: 0 2px 8px rgba(86, 182, 194, 0.35) !important;
-}
-
-.disabled-pill {
-  opacity: 0.4 !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-}
-
 /* Card Styling */
 .custom-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .alert-warning-card {
@@ -118,8 +231,7 @@ body {
 
 .form-select:hover,
 .form-control:hover {
-  background-color: #232832;
-  border-color: rgba(97, 175, 239, 0.45);
+  border-color: var(--accent-blue-soft);
 }
 
 .form-select:focus,
@@ -160,28 +272,30 @@ body {
 .btn-compare {
   background-color: var(--accent-cyan);
   border: 1px solid var(--accent-cyan);
-  color: #181a1f !important;
+  color: #ffffff !important;
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.3px;
   border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease-in-out;
+}
+
+[data-bs-theme="dark"] .btn-compare {
+  color: #181a1f !important;
 }
 
 .btn-compare:hover {
   background-color: var(--accent-blue-soft);
   border-color: var(--accent-blue-soft);
-  color: #181a1f !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .btn-compare:disabled,
 .btn-compare[disabled] {
   background-color: var(--accent-cyan) !important;
   border-color: var(--accent-cyan) !important;
-  color: #181a1f !important;
   opacity: 0.85 !important;
   cursor: not-allowed;
 }
@@ -193,7 +307,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   background-color: var(--bg-card);
 }
 
@@ -210,7 +324,6 @@ body {
   letter-spacing: 0.3px;
 }
 
-/* Team A Score (Default Green) */
 .team-score-num {
   font-size: clamp(2.2rem, 5vw, 3.2rem);
   font-weight: 800;
@@ -219,7 +332,6 @@ body {
   margin: 0.3rem 0;
 }
 
-/* Team B Score (Accent Soft Blue) */
 .team-score-num-b {
   color: var(--accent-blue-soft) !important;
 }
@@ -301,7 +413,7 @@ body {
 }
 
 .pill-captain .cap-mult {
-  color: #ffffff;
+  color: var(--text-bright);
   margin-left: 3px;
   font-weight: 700;
 }
@@ -314,16 +426,17 @@ body {
 }
 
 .pill-neutral {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--row-hover);
   color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-light);
 }
 
-/* Table Dark Base */
+/* Table Base */
 .table-dark-custom {
   --bs-table-bg: var(--bg-card) !important;
   --bs-table-color: var(--text-bright) !important;
   background-color: var(--bg-card) !important;
+  color: var(--text-bright) !important;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid var(--border-color);
@@ -333,9 +446,11 @@ body {
 
 .table-dark-custom th,
 .table-dark-custom td {
+  background-color: transparent !important;
+  color: var(--text-bright) !important;
   border-bottom: 1px solid var(--border-light) !important;
-  border-left: 1px solid rgba(255, 255, 255, 0.03) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
+  border-left: 1px solid var(--border-light) !important;
+  border-right: 1px solid var(--border-light) !important;
   padding: 6px 8px;
   font-size: 0.86rem;
 }
@@ -355,12 +470,11 @@ body {
 }
 
 .table-dark-custom tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.03) !important;
+  background-color: var(--row-hover) !important;
 }
 
-/* Subhead for breakdown tables */
 .table-subhead th {
-  background-color: #1c1f24 !important;
+  background-color: var(--bg-subhead) !important;
   color: var(--text-muted) !important;
   font-size: 0.72rem !important;
   letter-spacing: 0.6px;
@@ -380,33 +494,33 @@ body {
 }
 
 .pos-header-gkp {
-  color: #e5c07b;
-  background: rgba(229, 192, 123, 0.08);
-  border-left: 3px solid #e5c07b;
+  color: var(--accent-yellow);
+  background: rgba(229, 192, 123, 0.1);
+  border-left: 3px solid var(--accent-yellow);
 }
 
 .pos-header-def {
-  color: #61afef;
-  background: rgba(97, 175, 239, 0.08);
-  border-left: 3px solid #61afef;
+  color: var(--accent-blue-soft);
+  background: rgba(97, 175, 239, 0.1);
+  border-left: 3px solid var(--accent-blue-soft);
 }
 
 .pos-header-mid {
-  color: #98c379;
-  background: rgba(152, 195, 121, 0.08);
-  border-left: 3px solid #98c379;
+  color: var(--accent-green);
+  background: rgba(152, 195, 121, 0.1);
+  border-left: 3px solid var(--accent-green);
 }
 
 .pos-header-fwd {
-  color: #e06c75;
-  background: rgba(224, 108, 117, 0.08);
-  border-left: 3px solid #e06c75;
+  color: var(--accent-red);
+  background: rgba(224, 108, 117, 0.1);
+  border-left: 3px solid var(--accent-red);
 }
 
 .pos-header-bench {
-  color: #abb2bf;
-  background: rgba(171, 178, 191, 0.08);
-  border-left: 3px solid #abb2bf;
+  color: var(--text-main);
+  background: rgba(171, 178, 191, 0.1);
+  border-left: 3px solid var(--text-main);
 }
 
 .card-bench-boost-active {
@@ -438,15 +552,15 @@ body {
 }
 
 .versus-table th.col-team-a {
-  color: #98c379 !important;
+  color: var(--accent-green) !important;
 }
 
 .versus-table th.col-team-b {
-  color: #61afef !important;
+  color: var(--accent-blue-soft) !important;
 }
 
 .versus-table th.col-diff {
-  color: #e5c07b !important;
+  color: var(--accent-yellow) !important;
 }
 
 .versus-table th.col-side,
@@ -490,7 +604,7 @@ body {
 }
 
 .player-name {
-  color: #ffffff;
+  color: var(--text-bright);
   font-weight: 600;
   font-size: 0.82rem;
   white-space: nowrap;
@@ -527,7 +641,6 @@ body {
   border: 1px solid rgba(97, 175, 239, 0.38);
 }
 
-/* Points Badge */
 .player-pts-mini {
   color: var(--accent-cyan) !important;
   font-size: 0.74rem;
@@ -537,34 +650,31 @@ body {
   flex-shrink: 0;
 }
 
-/* Opponent Badge */
 .opponent-badge {
   display: inline-block;
   font-size: 0.64rem;
   font-weight: 600;
-  color: #abb2bf;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  background: var(--row-hover);
+  border: 1px solid var(--border-light);
   padding: 0 4px;
   border-radius: 3px;
   white-space: nowrap !important;
   flex-shrink: 0;
 }
 
-/* Mini Position Badge */
 .badge-pos-mini {
   font-size: 0.6rem;
   font-weight: 700;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--row-hover);
+  border: 1px solid var(--border-light);
   padding: 0 3px;
   border-radius: 3px;
   white-space: nowrap !important;
   flex-shrink: 0;
 }
 
-/* Bench Order Slot Badge (Sub GKP, Bench 1, 2, 3) */
 .badge-bench-slot {
   font-size: 0.6rem;
   font-weight: 800;
@@ -577,7 +687,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Bench Section Subheader & Blue Divider */
 .bench-group-header td {
   background-color: rgba(86, 182, 194, 0.09) !important;
   padding: 4px 8px !important;
@@ -596,7 +705,6 @@ body {
   text-transform: uppercase;
 }
 
-/* Bench Position Transition Divider */
 .bench-pos-divider td {
   border-top: 2px solid rgba(86, 182, 194, 0.6) !important;
 }
@@ -722,7 +830,6 @@ body {
   border: 1px solid rgba(97, 175, 239, 0.4);
 }
 
-/* Enlarged Clean Dot for Shared/Equal (Mobile Friendly & No Shared Text) */
 .badge-shared-dot {
   display: inline-flex;
   align-items: center;
@@ -809,7 +916,7 @@ tr.player-row-ft:hover > td {
 }
 
 .team-text {
-  color: #ffffff !important;
+  color: var(--text-bright) !important;
   font-weight: 700 !important;
   font-size: 0.85rem !important;
   white-space: nowrap !important;
@@ -855,7 +962,7 @@ tr.player-row-ft:hover > td {
 }
 
 .score-dash {
-  color: #abb2bf !important;
+  color: var(--text-main) !important;
   font-size: 0.85rem !important;
   font-weight: 500 !important;
   width: 10px !important;
@@ -863,7 +970,7 @@ tr.player-row-ft:hover > td {
 }
 
 .fixture-details-btn {
-  color: #56b6c2 !important;
+  color: var(--accent-cyan) !important;
   font-size: 0.68rem !important;
   font-weight: 600 !important;
   text-decoration: none !important;
@@ -881,7 +988,7 @@ tr.player-row-ft:hover > td {
   font-family: var(--bs-font-monospace) !important;
   font-size: 0.75rem !important;
   font-weight: 700 !important;
-  color: #56b6c2 !important;
+  color: var(--accent-cyan) !important;
   border: 1px solid rgba(86, 182, 194, 0.4) !important;
   background: rgba(86, 182, 194, 0.08) !important;
   border-radius: 6px !important;
@@ -890,8 +997,8 @@ tr.player-row-ft:hover > td {
 }
 
 .fixture-vs-btn:hover {
-  background: #56b6c2 !important;
-  color: #181a1f !important;
+  background: var(--accent-cyan) !important;
+  color: #ffffff !important;
 }
 
 .standings-table {
@@ -913,10 +1020,11 @@ tr.player-row-ft:hover > td {
 }
 
 .standings-table td.col-pos {
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
 }
 
 .standings-table td.col-team {
+  color: var(--text-bright) !important;
   letter-spacing: 0.2px;
 }
 
@@ -973,7 +1081,7 @@ td.gd-zero {
 
 /* Manager Squad Breakdown Accordion */
 .btn-breakdown {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--row-hover);
   color: var(--text-main);
   border: 1px solid var(--border-color);
   font-size: 0.74rem;
@@ -984,9 +1092,9 @@ td.gd-zero {
 }
 
 .btn-breakdown:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(97, 175, 239, 0.12);
+  color: var(--text-bright);
+  border-color: var(--accent-blue-soft);
 }
 
 .btn-breakdown[aria-expanded="true"] .collapse-icon {
@@ -1100,18 +1208,9 @@ td.gd-zero {
 }
 
 /* =========================================
-   Unified Mobile Optimization (< 576px)
+   4. Unified Mobile Optimization (< 576px)
 ========================================= */
 @media (max-width: 576px) {
-  .app-navbar {
-    width: 100% !important;
-    justify-content: space-around !important;
-  }
-  .nav-pill-btn {
-    padding: 0.4rem 0.75rem !important;
-    font-size: 0.78rem !important;
-  }
-
   .page-title {
     font-size: 1.3rem !important;
     margin-bottom: 0.2rem !important;
@@ -1228,7 +1327,7 @@ td.gd-zero {
 
 .player-interactive-box:hover,
 .player-interactive-box:focus {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--row-hover);
 }
 
 .tooltip {
@@ -1243,7 +1342,7 @@ td.gd-zero {
   font-size: 0.72rem !important;
   padding: 8px 11px !important;
   border-radius: 8px !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
   text-align: left !important;
   min-width: 145px;
   max-width: 230px;
@@ -1303,7 +1402,7 @@ td.gd-zero {
 }
 
 /* =========================================
-   Accessible Footer Contrast Styling
+   5. Accessible Footer Contrast Styling
 ========================================= */
 .footer-text {
   color: var(--text-main) !important;
@@ -1320,4 +1419,42 @@ td.gd-zero {
 .footer-github-link:hover {
   color: var(--accent-blue-soft) !important;
   text-decoration: underline;
+}
+
+/* =========================================
+   Right-to-Left Offcanvas Drawer Styles
+========================================= */
+.cs-offcanvas {
+  background-color: var(--bg-card) !important;
+  color: var(--text-bright) !important;
+  width: 280px !important;
+  border-left: 1px solid var(--border-color) !important;
+}
+
+.drawer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.18s ease;
+}
+
+.drawer-nav-item:hover {
+  background-color: var(--row-hover);
+  color: var(--text-bright);
+}
+
+.drawer-nav-item.active {
+  background-color: var(--accent-cyan);
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+[data-bs-theme="light"] .drawer-nav-item.active {
+  color: #ffffff !important;
 }
