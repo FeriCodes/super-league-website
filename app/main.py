@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.fpl.client import close_fpl_client
+from app.routes.home import router as home_router
 from app.routes.fixtures import router as fixtures_router
 from app.routes.compare import router as compare_router
 from app.routes.standings import router as standings_router
@@ -26,6 +27,7 @@ app = FastAPI(title="Super League H2H", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Register all modular route handlers (APIRouters)
+app.include_router(home_router)
 app.include_router(fixtures_router)
 app.include_router(compare_router)
 app.include_router(standings_router)

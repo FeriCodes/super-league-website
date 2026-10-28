@@ -17,28 +17,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-@router.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def home(request: Request):
-    """Render home page with dynamic current gameweek."""
-    teams = load_teams()
-    team_names = sorted(list(teams.keys()))
-    current_gw = await get_current_gameweek()
-
-    return templates.TemplateResponse(
-        request=request,
-        name="compare.html",
-        context={
-            "team_names": team_names,
-            "results": None,
-            "error_message": None,
-            "selected_team_a": "",
-            "selected_team_b": "",
-            "gw": current_gw,
-            "active_page": "compare",
-        },
-    )
-
-
 @router.get("/compare", response_class=HTMLResponse, include_in_schema=False)
 async def compare_teams(
     request: Request,
@@ -51,7 +29,7 @@ async def compare_teams(
         gameweek = await get_current_gameweek()
 
     if not team_a_name or not team_b_name:
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url="/compare", status_code=303)
 
     teams = load_teams()
 

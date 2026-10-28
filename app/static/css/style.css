@@ -1458,3 +1458,305 @@ td.gd-zero {
 [data-bs-theme="light"] .drawer-nav-item.active {
   color: #ffffff !important;
 }
+
+/* =========================================
+   6. Home Highlights & Squad Pitch Viewer
+========================================= */
+.highlight-stat-card {
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.highlight-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-cyan);
+}
+
+.highlight-val-green {
+  color: var(--accent-green);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.highlight-val-blue {
+  color: var(--accent-blue-soft);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.highlight-mgr-link {
+  color: var(--accent-green) !important;
+  font-weight: 800;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.highlight-mgr-link:hover {
+  color: var(--accent-cyan) !important;
+  text-decoration: underline dotted 1px;
+}
+
+.pill-advantage-pts {
+  background-color: rgba(152, 195, 121, 0.16);
+  color: var(--accent-green);
+  border: 1px solid rgba(152, 195, 121, 0.4);
+  font-weight: 800;
+}
+
+/* Football Pitch Arena */
+.fpl-pitch-arena {
+  position: relative;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  overflow: hidden;
+  padding: 1.5rem 0.5rem 1.75rem;
+  background: repeating-linear-gradient(
+    to bottom,
+    #1b4d3e 0px,
+    #1b4d3e 56px,
+    #164034 56px,
+    #164034 112px
+  );
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+}
+
+[data-bs-theme="light"] .fpl-pitch-arena {
+  background: repeating-linear-gradient(
+    to bottom,
+    #2d7a53 0px,
+    #2d7a53 56px,
+    #266947 56px,
+    #266947 112px
+  );
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Pitch White Markings */
+.pitch-lines-top-box {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48%;
+  height: 95px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-top: none;
+  pointer-events: none;
+}
+
+.pitch-lines-six-yard {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24%;
+  height: 42px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-top: none;
+  pointer-events: none;
+}
+
+.pitch-lines-halfway {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+
+.pitch-lines-center-circle {
+  position: absolute;
+  bottom: -55px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 110px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Formation Rows */
+.pitch-rows-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.pitch-formation-row {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+/* Individual Player Card on Pitch */
+.pitch-player-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 96px;
+  max-width: 20%;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+
+.pitch-player-card:hover {
+  transform: translateY(-3px);
+}
+
+.pitch-player-ft {
+  opacity: 0.88;
+}
+
+.pitch-player-sub-out {
+  opacity: 0.65;
+}
+
+.pitch-card-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 16px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
+}
+
+.pitch-cap-badge {
+  background-color: var(--accent-yellow);
+  color: #181a1f;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0 5px;
+  border-radius: 4px;
+  line-height: 1.25;
+}
+
+.pitch-tc-badge {
+  background-color: var(--accent-purple);
+  color: #ffffff;
+}
+
+/* Kit Image & Fallback SVG */
+.pitch-kit-wrap {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3px;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.45));
+}
+
+.pitch-kit-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pitch-kit-svg {
+  width: 48px;
+  height: 48px;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2.5;
+}
+
+.kit-gkp { fill: #e5c07b; }
+.kit-def { fill: #61afef; }
+.kit-mid { fill: #56b6c2; }
+.kit-fwd { fill: #e06c75; }
+
+/* Player Name, Points & Opponent Bars */
+.pitch-player-name {
+  background-color: #1c1f24;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  width: 100%;
+  padding: 2px 4px;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pitch-player-pts {
+  background-color: var(--bg-card);
+  color: var(--accent-cyan);
+  font-size: 0.72rem;
+  font-weight: 800;
+  width: 100%;
+  padding: 2px 4px;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid var(--border-color);
+  line-height: 1.2;
+}
+
+.pitch-player-pts.pts-haul {
+  background-color: rgba(152, 195, 121, 0.22);
+  color: var(--accent-green);
+  border-color: rgba(152, 195, 121, 0.5);
+}
+
+.pitch-player-pts.pts-neg {
+  background-color: rgba(224, 108, 117, 0.22);
+  color: var(--accent-red);
+}
+
+.pitch-player-opp {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(0, 0, 0, 0.42);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* Bench Tray */
+.fpl-bench-tray {
+  background-color: var(--bg-card-subtle);
+}
+
+.bench-formation-row .pitch-player-opp {
+  color: var(--text-main);
+  background-color: var(--row-hover);
+  border: 1px solid var(--border-light);
+}
+
+@media (max-width: 576px) {
+  .fpl-pitch-arena {
+    padding: 1.1rem 0.25rem 1.25rem;
+  }
+  .pitch-rows-wrapper {
+    gap: 1rem;
+  }
+  .pitch-player-card {
+    width: 72px;
+  }
+  .pitch-kit-wrap {
+    width: 42px;
+    height: 42px;
+  }
+  .pitch-kit-svg {
+    width: 38px;
+    height: 38px;
+  }
+  .pitch-player-name,
+  .pitch-player-pts {
+    font-size: 0.63rem;
+    padding: 1px 2px;
+  }
+  .pitch-player-opp {
+    font-size: 0.55rem;
+  }
+}
