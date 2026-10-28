@@ -65,29 +65,38 @@
     </div>
   </div>
 
-  <!-- 3. Most Popular Captain Card (New & Awesome!) -->
+  <!-- 3. Top 3 Captains Card -->
   <div class="col-12 col-md-4">
-    <div class="custom-card highlight-stat-card p-3 text-center h-100 d-flex flex-column justify-content-center">
-      <div class="team-score-lbl text-uppercase mb-1">🎯 Most Popular Captain</div>
-      <div class="d-flex align-items-center justify-content-center gap-2 my-1">
-        {% if most_captained.team_code %}
-          <div style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
-            <img src="https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ most_captained.team_code }}-110.webp"
-                 alt="{{ most_captained.name }}"
-                 style="width: 100%; height: 100%; object-fit: contain;"
-                 loading="lazy"
-                 onerror="this.style.display='none';">
-          </div>
-        {% endif %}
-        <span class="fs-6 fw-bold" style="color: var(--text-bright);">{{ most_captained.name }}</span>
-      </div>
-      <div class="d-flex justify-content-center gap-2 mt-1">
-        <span class="meta-pill pill-captain">{{ most_captained.pct }}% of League</span>
-        <span class="meta-pill pill-left-to-play">{{ most_captained.pts }} PTS</span>
-      </div>
+    <div class="custom-card highlight-stat-card p-3 h-100 d-flex flex-column justify-content-center">
+      <div class="team-score-lbl text-uppercase text-center mb-2">🎯 Top 3 League Captains</div>
+      {% if top_captains %}
+        <div class="d-flex flex-column gap-2">
+          {% for cap in top_captains %}
+            <div class="d-flex align-items-center justify-content-between px-2 py-1 rounded" style="background-color: var(--row-hover);">
+              <div class="d-flex align-items-center gap-2">
+                {% if cap.team_code %}
+                  <div style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">
+                    <img src="https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ cap.team_code }}-110.webp"
+                         alt="{{ cap.name }}"
+                         style="width: 100%; height: 100%; object-fit: contain;"
+                         loading="lazy"
+                         onerror="this.style.display='none';">
+                  </div>
+                {% endif %}
+                <span class="fw-bold" style="font-size: 0.82rem; color: var(--text-bright);">{{ loop.index }}. {{ cap.name }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-1">
+                <span class="meta-pill pill-captain" style="font-size: 0.65rem;">{{ cap.pct }}%</span>
+                <span class="meta-pill pill-left-to-play" style="font-size: 0.65rem;">{{ cap.pts }}p</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center text-muted small">No captain data available</div>
+      {% endif %}
     </div>
   </div>
-</div>
 
 <!-- FPL ID Squad Pitch Viewer Search Card -->
 <div id="pitch-section" class="custom-card p-3 p-md-4 text-center mb-4">

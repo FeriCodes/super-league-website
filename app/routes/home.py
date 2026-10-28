@@ -34,7 +34,7 @@ async def home_page(
             "active_page": "home",
             "mvp_manager": highlights["mvp_manager"],
             "top_team": highlights["top_team"],
-            "most_captained": highlights["most_captained"],
+            "top_captains": highlights["top_captains"],
             "live_data": highlights["live_data"],
             "manager_pitch": manager_pitch,
             "searched_fpl_id": fpl_id or "",
