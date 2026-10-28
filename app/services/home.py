@@ -1,32 +1,32 @@
+import httpx
 from app.services.storage import load_teams, get_team_roster
 from app.services.compare import build_head_to_head_comparison
 from app.fpl.managers import get_players_dict, get_team_summary
 from app.fpl.live import get_live_scores_and_status
 from app.fpl.gameweek import get_team_fixtures_map
 
-# Premier League team_id (1..20) to official FPL shirt team_code map
-PL_TEAM_CODES = {
-    1: 3,  # Arsenal
-    2: 7,  # Aston Villa
-    3: 91,  # Bournemouth
-    4: 94,  # Brentford
-    5: 36,  # Brighton
-    6: 8,  # Chelsea
-    7: 31,  # Crystal Palace
-    8: 11,  # Everton
-    9: 54,  # Fulham
-    10: 40,  # Ipswich
-    11: 13,  # Leicester
-    12: 14,  # Liverpool
-    13: 43,  # Man City
-    14: 1,  # Man Utd
-    15: 4,  # Newcastle
-    16: 17,  # Nott'm Forest
-    17: 20,  # Southampton
-    18: 6,  # Spurs
-    19: 21,  # West Ham
-    20: 39,  # Wolves
-}
+# In-memory cache mapping current season FPL team_id -> official club team_code
+_TEAM_CODE_CACHE: dict[int, int] = {}
+
+
+async def get_dynamic_team_codes() -> dict[int, int]:
+    """Fetch and cache the exact {team_id: team_code} map from FPL bootstrap-static."""
+    global _TEAM_CODE_CACHE
+    if _TEAM_CODE_CACHE:
+        return _TEAM_CODE_CACHE
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get("https://fantasy.premierleague.com/api/bootstrap-static/")
+            if resp.status_code == 200:
+                data = resp.json()
+                _TEAM_CODE_CACHE = {
+                    int(t["id"]): int(t["code"]) for t in data.get("teams", []) if "id" in t and "code" in t
+                }
+    except Exception as e:
+        print(f"Error fetching dynamic team codes: {e}")
+
+    return _TEAM_CODE_CACHE
 
 
 async def get_home_highlights(current_gw: int):
@@ -94,6 +94,7 @@ async def get_manager_pitch_data(fpl_id: int, current_gw: int):
         players = await get_players_dict()
         live_data = await get_live_scores_and_status(current_gw)
         fixtures_map = await get_team_fixtures_map(current_gw)
+        team_codes_map = await get_dynamic_team_codes()
 
         summary = await get_team_summary(team_ids, current_gw, players, live_data)
         if not summary or not summary.get("managers"):
@@ -101,7 +102,6 @@ async def get_manager_pitch_data(fpl_id: int, current_gw: int):
 
         manager_info = summary["managers"][0]
 
-        # Build pick multiplier and position order maps from manager's raw picks
         pick_multipliers = {}
         pick_positions = {}
         for pick in manager_info.get("picks", []):
@@ -137,9 +137,10 @@ async def get_manager_pitch_data(fpl_id: int, current_gw: int):
 
                     p_cached = players.get(pid, {}) if isinstance(players, dict) else {}
                     team_id = p_cached.get("team_id") or p_cached.get("team")
-                    team_code = p_cached.get("team_code") or PL_TEAM_CODES.get(team_id)
+                    team_code = p_cached.get("team_code") or (
+                        team_codes_map.get(int(team_id)) if team_id is not None else None
+                    )
 
-                    # Read raw player_points from compare.py and apply captain multiplier for starters
                     raw_pts = row.get("player_points", 0)
                     mult = pick_multipliers.get(pid, 1)
 
@@ -176,7 +177,6 @@ async def get_manager_pitch_data(fpl_id: int, current_gw: int):
                         }
                     )
 
-                # Keep starters ordered by their natural squad formation position
                 if pos_key != "BENCH":
                     lineup[pos_key].sort(key=lambda x: x["pick_order"])
 
