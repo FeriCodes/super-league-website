@@ -5,7 +5,6 @@ from app.fpl.managers import get_players_dict, get_team_summary
 from app.fpl.live import get_live_scores_and_status
 from app.fpl.gameweek import get_team_fixtures_map
 
-# In-memory cache mapping current season FPL team_id -> official club team_code
 _TEAM_CODE_CACHE: dict[int, int] = {}
 
 
@@ -30,7 +29,7 @@ async def get_dynamic_team_codes() -> dict[int, int]:
 
 
 async def get_home_highlights(current_gw: int):
-    """Calculate both the MVP manager(s) and Top Scoring Team(s) in a single pass."""
+    """Calculate MVP manager, Top Team, and Most Captained player in a single pass."""
     teams = load_teams()
     players = await get_players_dict()
     live_data = await get_live_scores_and_status(current_gw)
@@ -41,13 +40,17 @@ async def get_home_highlights(current_gw: int):
     max_team_pts = -1
     top_teams = []
 
+    # Dictionary to count captains: {captain_name: count}
+    captain_counts = {}
+    total_managers_count = 0
+
     if teams:
         for team_name in teams.keys():
             team_ids = get_team_roster(teams, team_name, current_gw)
             if team_ids:
                 summary = await get_team_summary(team_ids, current_gw, players, live_data)
 
-                # Best team of the week calculation
+                # 1. Best team of the week calculation
                 team_pts = summary.get("total_team_points", 0)
                 if team_pts > max_team_pts:
                     max_team_pts = team_pts
@@ -55,8 +58,17 @@ async def get_home_highlights(current_gw: int):
                 elif team_pts == max_team_pts and max_team_pts > 0:
                     top_teams.append(team_name)
 
-                # Best manager calculation
+                # 2. Process managers for MVP and Captain stats
                 for m in summary.get("managers", []):
+                    total_managers_count += 1
+
+                    # Track Captains
+                    cap_raw = m.get("captain_name") or ""
+                    cap_clean = cap_raw.replace("(TC)", "").replace("(C)", "").strip()
+                    if cap_clean and cap_clean != "—":
+                        captain_counts[cap_clean] = captain_counts.get(cap_clean, 0) + 1
+
+                    # Best manager calculation
                     pts = m.get("gw_points", 0)
                     mgr_id = m.get("manager_id") or m.get("id") or m.get("entry")
                     mgr_entry = {
@@ -73,6 +85,30 @@ async def get_home_highlights(current_gw: int):
                     elif pts == max_mgr_pts and max_mgr_pts > 0:
                         mvp_list.append(mgr_entry)
 
+    # Determine Most Popular Captain
+    top_captain_name = "—"
+    top_captain_pct = 0
+    top_captain_pts = 0
+    top_captain_team_code = None
+
+    if captain_counts and total_managers_count > 0:
+        favorite_cap = max(captain_counts, key=captain_counts.get)
+        count = captain_counts[favorite_cap]
+        top_captain_pct = round((count / total_managers_count) * 100)
+        top_captain_name = favorite_cap
+
+        # Find player points and team_code from live_data / players cache
+        team_codes_map = await get_dynamic_team_codes()
+        for pid, pinfo in players.items():
+            if isinstance(pinfo, dict):
+                pname = pinfo.get("web_name") or pinfo.get("name")
+                if pname == favorite_cap:
+                    live_info = live_data.get(int(pid), {})
+                    top_captain_pts = live_info.get("points", 0)
+                    t_id = pinfo.get("team_id") or pinfo.get("team")
+                    top_captain_team_code = pinfo.get("team_code") or (team_codes_map.get(int(t_id)) if t_id else None)
+                    break
+
     return {
         "mvp_manager": {
             "name": " & ".join(item["display"] for item in mvp_list) if mvp_list else "—",
@@ -82,6 +118,12 @@ async def get_home_highlights(current_gw: int):
         "top_team": {
             "name": " & ".join(top_teams) if top_teams else "—",
             "pts": max_team_pts if max_team_pts > 0 else 0,
+        },
+        "most_captained": {
+            "name": top_captain_name,
+            "pct": top_captain_pct,
+            "pts": top_captain_pts,
+            "team_code": top_captain_team_code,
         },
         "live_data": live_data,
     }
