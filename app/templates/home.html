@@ -86,19 +86,19 @@
 
   <form id="pitch-viewer-form" method="GET" action="/#pitch-section" class="row g-2 justify-content-center align-items-center">
     <input type="hidden" name="gameweek" value="{{ gw }}">
-    <div class="col-12 col-sm-6 col-md-4">
+    <div class="col-8 col-sm-5 col-md-4">
       <input type="number"
              id="fpl_id_input"
              name="fpl_id"
              class="form-control text-center fw-bold"
-             placeholder="Enter FPL ID (e.g. 123456)"
+             placeholder="FPL ID (e.g. 123456)"
              value="{{ searched_fpl_id }}"
              min="1"
              required>
     </div>
-    <div class="col-12 col-sm-auto">
+    <div class="col-4 col-sm-auto">
       <button type="submit" class="btn btn-compare px-4 py-2 w-100">
-        Show Pitch 🏟️
+        Go
       </button>
     </div>
   </form>
@@ -124,9 +124,15 @@
     <div class="unified-team-card mb-3 {% if manager_pitch.active_chip in ['bboost', 'BB', 'Bench Boost'] %}card-bench-boost-active{% endif %}">
       <div class="main-score-section">
         <div class="team-card-title">{{ manager_pitch.team_name }}</div>
-        <div class="text-muted small fw-semibold mb-1">
-          👤 {{ manager_pitch.manager_name }}
-          <span class="badge-pos-mini ms-1">ID: {{ manager_pitch.manager_id }}</span>
+        <div class="text-muted small fw-semibold mb-1 d-flex justify-content-center align-items-center flex-wrap gap-2">
+          <span>👤 {{ manager_pitch.manager_name }}</span>
+          <span class="badge-pos-mini">ID: {{ manager_pitch.manager_id }}</span>
+          {% if manager_pitch.overall_rank %}
+            <span class="badge-bench-slot">🌍 Rank: {{ manager_pitch.overall_rank }}</span>
+          {% endif %}
+          {% if manager_pitch.overall_points %}
+            <span class="badge-pos-mini">Total: {{ manager_pitch.overall_points }} pts</span>
+          {% endif %}
         </div>
         <div class="team-score-num">{{ manager_pitch.gw_points }}</div>
         <div class="team-score-lbl">GW {{ gw }} NET POINTS</div>
@@ -183,8 +189,8 @@
           {% elif p.sub_out %}
             <span class="badge-sub-out" title="Subbed Out">▼</span>
           {% endif %}
-          {% if p.chance_of_playing is not none and p.chance_of_playing < 100 %}
-            <span class="badge-injury" data-chance="{{ p.chance_of_playing }}" title="{{ p.news or 'Injury / Doubt' }}">!</span>
+          {% if p.has_injury %}
+            <span class="badge-injury" data-chance="{{ p.chance_of_playing }}" title="{{ p.news }}">!</span>
           {% endif %}
         </div>
 
