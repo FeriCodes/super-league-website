@@ -28,10 +28,22 @@ async def compare_teams(
     if gameweek is None:
         gameweek = await get_current_gameweek()
 
-    if not team_a_name or not team_b_name:
-        return RedirectResponse(url="/compare", status_code=303)
-
     teams = load_teams()
+
+    if not team_a_name or not team_b_name:
+        return templates.TemplateResponse(
+            request=request,
+            name="compare.html",
+            context={
+                "team_names": sorted(list(teams.keys())),
+                "results": None,
+                "error_message": None,
+                "selected_team_a": team_a_name or "",
+                "selected_team_b": team_b_name or "",
+                "gw": gameweek,
+                "active_page": "compare",
+            },
+        )
 
     if team_a_name == team_b_name:
         return templates.TemplateResponse(
