@@ -27,7 +27,8 @@ async def get_home_highlights(current_gw: int):
                 summary = await get_team_summary(team_ids, current_gw, players, live_data)
 
                 team_pts = summary.get("total_team_points", 0)
-                if team_pts > max_team_pts:
+
+                if team_pts > max_team_pts and team_pts > 0:
                     max_team_pts = team_pts
                     top_teams = [team_name]
                 elif team_pts == max_team_pts and max_team_pts > 0:
@@ -51,12 +52,13 @@ async def get_home_highlights(current_gw: int):
                         "display": f"{m.get('manager_name', 'Unknown')} ({team_name})",
                     }
 
-                    if pts > max_mgr_pts:
+                    if pts > max_mgr_pts and pts > 0:
                         max_mgr_pts = pts
                         mvp_list = [mgr_entry]
                     elif pts == max_mgr_pts and max_mgr_pts > 0:
                         mvp_list.append(mgr_entry)
 
+    # Top 3 Popular Captains Calculation
     top_captains_list = []
     if captain_counts and total_managers_count > 0:
         team_codes_map = await get_dynamic_team_codes()

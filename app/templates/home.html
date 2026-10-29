@@ -4,19 +4,19 @@
 
 {% block content %}
 <!-- Top Gameweek Selector & Quick Status Bar -->
-<div class="custom-card p-3 mb-3">
+<div class="custom-card p-2 p-md-3 mb-3">
   <form method="GET" action="/" class="row g-2 justify-content-between align-items-center">
     {% if searched_fpl_id %}
       <input type="hidden" name="fpl_id" value="{{ searched_fpl_id }}">
     {% endif %}
     <div class="col-12 col-sm-auto text-center text-sm-start">
-      <span class="fw-bold" style="color: var(--text-bright); font-size: 0.95rem;">
+      <span class="fw-bold" style="color: var(--text-bright); font-size: 0.9rem;">
         ⚡ FPL Club Hub
       </span>
-      <span class="text-muted small ms-1">— Gameweek {{ gw }} Overview</span>
+      <span class="text-muted small ms-1">— GW {{ gw }}</span>
     </div>
     <div class="col-12 col-sm-auto d-flex justify-content-center align-items-center gap-2">
-      <label for="gameweek" class="meta-label mb-0">Gameweek:</label>
+      <label for="gameweek" class="meta-label mb-0 small">Gameweek:</label>
       <select name="gameweek" id="gameweek" class="form-select form-select-sm" onchange="this.form.submit()">
         {% for w in range(1, 39) %}
           <option value="{{ w }}" {% if w == gw %}selected{% endif %}>GW {{ w }}</option>
@@ -27,7 +27,7 @@
 </div>
 
 <!-- Gameweek Highlights Grid (Top Performers) -->
-<div class="row g-3 mb-4">
+<div class="row g-2 g-md-3 mb-4">
   <!-- 1. MVP Manager Card -->
   <div class="col-12 col-md-4">
     <div class="custom-card highlight-stat-card p-3 text-center h-100 d-flex flex-column justify-content-center">
@@ -57,7 +57,7 @@
   <!-- 2. Highest Scoring Super League Team Card -->
   <div class="col-12 col-md-4">
     <div class="custom-card highlight-stat-card p-3 text-center h-100 d-flex flex-column justify-content-center">
-      <div class="team-score-lbl text-uppercase mb-1">🔥 GW {{ gw }} Top Super League Team</div>
+      <div class="team-score-lbl text-uppercase mb-1">🔥 GW {{ gw }} Top Team</div>
       <div class="highlight-val-blue my-1">{{ top_team.name }}</div>
       <div>
         <span class="meta-pill pill-left-to-play">{{ top_team.pts }} PTS</span>
@@ -68,14 +68,14 @@
   <!-- 3. Top 3 Captains Card -->
   <div class="col-12 col-md-4">
     <div class="custom-card highlight-stat-card p-3 h-100 d-flex flex-column justify-content-center">
-      <div class="team-score-lbl text-uppercase text-center mb-2">🎯 Top 3 League Captains</div>
+      <div class="team-score-lbl text-uppercase text-center mb-2">🎯 Top 3 Captains</div>
       {% if top_captains %}
         <div class="d-flex flex-column gap-2">
           {% for cap in top_captains %}
             <div class="d-flex align-items-center justify-content-between px-2 py-1 rounded" style="background-color: var(--row-hover);">
               <div class="d-flex align-items-center gap-2">
                 {% if cap.team_code %}
-                  <div style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">
+                  <div style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;">
                     <img src="https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ cap.team_code }}-110.webp"
                          alt="{{ cap.name }}"
                          style="width: 100%; height: 100%; object-fit: contain;"
@@ -83,11 +83,11 @@
                          onerror="this.style.display='none';">
                   </div>
                 {% endif %}
-                <span class="fw-bold" style="font-size: 0.82rem; color: var(--text-bright);">{{ loop.index }}. {{ cap.name }}</span>
+                <span class="fw-bold" style="font-size: 0.8rem; color: var(--text-bright);">{{ loop.index }}. {{ cap.name }}</span>
               </div>
               <div class="d-flex align-items-center gap-1">
-                <span class="meta-pill pill-captain" style="font-size: 0.65rem;">{{ cap.pct }}%</span>
-                <span class="meta-pill pill-left-to-play" style="font-size: 0.65rem;">{{ cap.pts }}p</span>
+                <span class="meta-pill pill-captain" style="font-size: 0.6rem;">{{ cap.pct }}%</span>
+                <span class="meta-pill pill-left-to-play" style="font-size: 0.6rem;">{{ cap.pts }}p</span>
               </div>
             </div>
           {% endfor %}
@@ -100,24 +100,24 @@
 </div>
 
 <!-- FPL ID Squad Pitch Viewer Search Card -->
-<div id="pitch-section" class="custom-card p-3 p-md-4 text-center mb-4">
-  <h3 class="team-card-title mb-1">⚽ Squad Pitch Viewer</h3>
-  <p class="text-muted small mb-3">Enter any FPL Manager ID (or click a Manager link) to inspect their live GW {{ gw }} lineup:</p>
+<div id="pitch-section" class="custom-card p-3 text-center mb-4">
+  <h5 class="team-card-title mb-1" style="font-size: 1rem;">⚽ Squad Pitch Viewer</h5>
+  <p class="text-muted small mb-2" style="font-size: 0.78rem;">Enter FPL Manager ID to inspect lineup:</p>
 
   <form id="pitch-viewer-form" method="GET" action="/#pitch-section" class="row g-2 justify-content-center align-items-center">
     <input type="hidden" name="gameweek" value="{{ gw }}">
-    <div class="col-8 col-sm-5 col-md-4">
+    <div class="col-7 col-sm-4 col-md-3">
       <input type="number"
              id="fpl_id_input"
              name="fpl_id"
-             class="form-control text-center fw-bold"
-             placeholder="FPL ID (e.g. 123456)"
+             class="form-control form-control-sm text-center fw-bold"
+             placeholder="FPL ID"
              value="{{ searched_fpl_id }}"
              min="1"
              required>
     </div>
     <div class="col-4 col-sm-auto">
-      <button type="submit" class="btn btn-compare px-4 py-2 w-100">
+      <button type="submit" class="btn btn-compare btn-sm px-3 py-1 w-100">
         Go
       </button>
     </div>
@@ -128,10 +128,10 @@
 {% if searched_fpl_id and not manager_pitch %}
 <div class="custom-card alert-warning-card p-3 mb-4 text-center">
   <span class="alert-icon me-1">⚠️</span>
-  <span class="fw-semibold" style="color: var(--text-bright);">
-    Could not load squad data for FPL ID <code>{{ searched_fpl_id }}</code> in Gameweek {{ gw }}.
+  <span class="fw-semibold small" style="color: var(--text-bright);">
+    Could not load squad data for FPL ID <code>{{ searched_fpl_id }}</code> in GW {{ gw }}.
   </span>
-  <div class="text-muted small mt-1">Please verify the Manager ID or check if the gameweek has started.</div>
+  <div class="text-muted small mt-1">Please verify the ID or check if the gameweek has started.</div>
 </div>
 {% endif %}
 
@@ -142,9 +142,9 @@
 
     <!-- 1. Manager Summary Header -->
     <div class="unified-team-card mb-3 {% if manager_pitch.active_chip in ['bboost', 'BB', 'Bench Boost'] %}card-bench-boost-active{% endif %}">
-      <div class="main-score-section">
+      <div class="main-score-section py-2 py-md-3">
         <div class="team-card-title">{{ manager_pitch.team_name }}</div>
-        <div class="text-muted small fw-semibold mb-1 d-flex justify-content-center align-items-center flex-wrap gap-2">
+        <div class="text-muted small fw-semibold mb-1 d-flex justify-content-center align-items-center flex-wrap gap-2" style="font-size: 0.75rem;">
           <span>👤 {{ manager_pitch.manager_name }}</span>
           <span class="badge-pos-mini">ID: {{ manager_pitch.manager_id }}</span>
           {% if manager_pitch.overall_rank %}
@@ -158,7 +158,7 @@
         <div class="team-score-lbl">GW {{ gw }} NET POINTS</div>
       </div>
 
-      <div class="sub-details-section">
+      <div class="sub-details-section py-2">
         <div class="row g-2 text-center justify-content-center">
           <div class="col-6 col-sm-4 col-md">
             <div class="meta-label mb-1">Captain</div>
