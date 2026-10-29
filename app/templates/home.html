@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Super League - Home Dashboard{% endblock %}
+{% block title %}FPL Club - Home Dashboard{% endblock %}
 
 {% block content %}
 <!-- Top Gameweek Selector & Quick Status Bar -->
@@ -11,7 +11,7 @@
     {% endif %}
     <div class="col-12 col-sm-auto text-center text-sm-start">
       <span class="fw-bold" style="color: var(--text-bright); font-size: 0.95rem;">
-        ⚡ Super League Hub
+        ⚡ FPL Club Hub
       </span>
       <span class="text-muted small ms-1">— Gameweek {{ gw }} Overview</span>
     </div>
@@ -54,10 +54,10 @@
     </div>
   </div>
 
-  <!-- 2. Highest Scoring Team Card -->
+  <!-- 2. Highest Scoring Super League Team Card -->
   <div class="col-12 col-md-4">
     <div class="custom-card highlight-stat-card p-3 text-center h-100 d-flex flex-column justify-content-center">
-      <div class="team-score-lbl text-uppercase mb-1">🔥 Top Super League Team</div>
+      <div class="team-score-lbl text-uppercase mb-1">🔥 GW {{ gw }} Top Super League Team</div>
       <div class="highlight-val-blue my-1">{{ top_team.name }}</div>
       <div>
         <span class="meta-pill pill-left-to-play">{{ top_team.pts }} PTS</span>
@@ -102,7 +102,7 @@
 <!-- FPL ID Squad Pitch Viewer Search Card -->
 <div id="pitch-section" class="custom-card p-3 p-md-4 text-center mb-4">
   <h3 class="team-card-title mb-1">⚽ Squad Pitch Viewer</h3>
-  <p class="text-muted small mb-3">Enter any FPL Manager ID (or click the MVP Manager above) to inspect their live GW {{ gw }} lineup:</p>
+  <p class="text-muted small mb-3">Enter any FPL Manager ID (or click a Manager link) to inspect their live GW {{ gw }} lineup:</p>
 
   <form id="pitch-viewer-form" method="GET" action="/#pitch-section" class="row g-2 justify-content-center align-items-center">
     <input type="hidden" name="gameweek" value="{{ gw }}">
@@ -140,7 +140,7 @@
 <div class="row g-2 justify-content-center mb-4">
   <div class="col-12 col-lg-10 col-xl-9">
 
-    <!-- 1. Manager Summary Header (Unified Team Card Style) -->
+    <!-- 1. Manager Summary Header -->
     <div class="unified-team-card mb-3 {% if manager_pitch.active_chip in ['bboost', 'BB', 'Bench Boost'] %}card-bench-boost-active{% endif %}">
       <div class="main-score-section">
         <div class="team-card-title">{{ manager_pitch.team_name }}</div>
@@ -159,12 +159,16 @@
       </div>
 
       <div class="sub-details-section">
-        <div class="row g-2 text-center">
-          <div class="col-6 col-sm-3">
+        <div class="row g-2 text-center justify-content-center">
+          <div class="col-6 col-sm-4 col-md">
             <div class="meta-label mb-1">Captain</div>
             <span class="meta-pill pill-captain">{{ manager_pitch.captain_name }}</span>
           </div>
-          <div class="col-6 col-sm-3">
+          <div class="col-6 col-sm-4 col-md">
+            <div class="meta-label mb-1">Vice-Captain</div>
+            <span class="meta-pill pill-vc">{{ manager_pitch.vice_captain_name }}</span>
+          </div>
+          <div class="col-6 col-sm-4 col-md">
             <div class="meta-label mb-1">Active Chip</div>
             {% if manager_pitch.active_chip %}
               <span class="meta-pill pill-chip">{{ manager_pitch.active_chip }}</span>
@@ -172,7 +176,7 @@
               <span class="meta-pill pill-neutral">None</span>
             {% endif %}
           </div>
-          <div class="col-6 col-sm-3">
+          <div class="col-6 col-sm-6 col-md">
             <div class="meta-label mb-1">Transfer Cost</div>
             {% if manager_pitch.hits and manager_pitch.hits > 0 %}
               <span class="meta-pill pill-hits">-{{ manager_pitch.hits }} pts</span>
@@ -180,7 +184,7 @@
               <span class="meta-pill pill-neutral">0 pts</span>
             {% endif %}
           </div>
-          <div class="col-6 col-sm-3">
+          <div class="col-12 col-sm-6 col-md">
             <div class="meta-label mb-1">Left to Play</div>
             <span class="meta-pill pill-left-to-play">{{ manager_pitch.left_to_play }}</span>
           </div>
@@ -197,9 +201,12 @@
             <span class="badge-bench-slot">{{ p.bench_slot }}</span>
           {% endif %}
           {% if p.is_captain %}
-            <span class="pitch-cap-badge {% if p.is_tc %}pitch-tc-badge{% endif %}">
+            <span class="pitch-cap-badge {% if p.is_tc %}pitch-tc-badge{% endif %}" title="{% if p.is_tc %}Triple Captain{% else %}Captain{% endif %}">
               {% if p.is_tc %}TC{% else %}C{% endif %}
             </span>
+          {% endif %}
+          {% if p.is_vice_captain %}
+            <span class="pitch-vc-badge" title="Vice-Captain">V</span>
           {% endif %}
           {% if p.is_live %}
             <span class="badge-live"><span class="live-dot"></span></span>
@@ -256,28 +263,24 @@
 
       <!-- Starting XI Formation Rows -->
       <div class="pitch-rows-wrapper">
-        <!-- Goalkeeper Row -->
         <div class="pitch-formation-row">
           {% for p in manager_pitch.lineup.GKP %}
             {{ render_pitch_player(p) }}
           {% endfor %}
         </div>
 
-        <!-- Defenders Row -->
         <div class="pitch-formation-row">
           {% for p in manager_pitch.lineup.DEF %}
             {{ render_pitch_player(p) }}
           {% endfor %}
         </div>
 
-        <!-- Midfielders Row -->
         <div class="pitch-formation-row">
           {% for p in manager_pitch.lineup.MID %}
             {{ render_pitch_player(p) }}
           {% endfor %}
         </div>
 
-        <!-- Forwards Row -->
         <div class="pitch-formation-row">
           {% for p in manager_pitch.lineup.FWD %}
             {{ render_pitch_player(p) }}

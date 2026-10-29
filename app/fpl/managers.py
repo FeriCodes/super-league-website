@@ -64,6 +64,9 @@ async def get_manager_gw_data(
     net_gw_points = raw_points - hits
     active_chip = data.get("active_chip")
 
+    overall_rank = profile_data.get("summary_overall_rank") or entry_history.get("overall_rank")
+    overall_points = profile_data.get("summary_overall_points") or entry_history.get("total_points")
+
     chip_map = {
         "bboost": "Bench Boost",
         "3xc": "Triple Captain",
@@ -76,6 +79,7 @@ async def get_manager_gw_data(
         {
             "element_id": int(pick["element"]),
             "position": int(pick.get("position", idx + 1)),
+            "is_captain": bool(pick.get("is_captain", False)),
             "is_vice_captain": bool(pick.get("is_vice_captain", False)),
             "multiplier": int(pick.get("multiplier", 0)),
         }
@@ -92,6 +96,8 @@ async def get_manager_gw_data(
         "team_name": team_name,
         "gameweek": gameweek,
         "gw_points": net_gw_points,
+        "overall_rank": overall_rank,
+        "overall_points": overall_points,
         "hits": hits,
         "active_chip": readable_chip,
         "picks": picks_summary,
@@ -108,12 +114,12 @@ async def get_team_summary(
     live_data: Dict[int, Dict[str, Any]],
     include_profile: bool = True,
 ) -> Dict[str, Any]:
-    """Aggregate total points, hit costs, active chips, captains, and count effective player ownership with live auto-sub."""
-
+    """Aggregate total points, hit costs, active chips, captains, vice-captains, and ownership with live auto-sub."""
     managers_data = []
     active_player_counts: Dict[int, int] = Counter()
     bench_player_counts: Dict[int, int] = Counter()
     captain_counts: Dict[int, int] = Counter()
+    vice_captain_counts: Dict[int, int] = Counter()
     total_team_points = 0
     total_hits_cost = 0
     active_chips: List[str] = []
@@ -124,7 +130,6 @@ async def get_team_summary(
     left_to_play_count = 0
     total_slots_count = 0
 
-    # Fetch the 7 managers of this team concurrently (safely throttled to 4 at a time by fpl_semaphore in client.py)
     tasks = [get_manager_gw_data(m_id, gameweek, include_profile=include_profile) for m_id in manager_ids]
     managers_raw_data = await asyncio.gather(*tasks)
 
@@ -142,35 +147,51 @@ async def get_team_summary(
             manager_live_points = 0
             picks = data.get("picks", [])
 
+            # Preserve original C / VC IDs before auto-sub runs so flags are never lost
+            orig_cap_ids = {int(p["element_id"]) for p in picks if p.get("is_captain")}
+            orig_vc_ids = {int(p["element_id"]) for p in picks if p.get("is_vice_captain")}
+
             if not is_bench_boost:
                 api_in = data.get("api_sub_in_ids", [])
                 api_out = data.get("api_sub_out_ids", [])
 
                 if api_in or api_out:
-                    # Official FPL subs already applied in finished gameweeks
                     all_subbed_in_ids.update(api_in)
                     all_subbed_out_ids.update(api_out)
                 else:
-                    # Live auto-sub calculation during active gameweeks
                     picks, sub_in_ids, sub_out_ids = apply_manager_auto_subs(
                         picks, live_data, players_dict, data.get("manager_id")
                     )
                     all_subbed_in_ids.update(sub_in_ids)
                     all_subbed_out_ids.update(sub_out_ids)
-                    data["picks"] = picks
+
+            for item in picks:
+                pid_check = int(item["element_id"])
+                item["is_captain"] = bool(item.get("is_captain") or pid_check in orig_cap_ids)
+                item["is_vice_captain"] = bool(item.get("is_vice_captain") or pid_check in orig_vc_ids)
+            data["picks"] = picks
 
             manager_captain_name = "-"
+            manager_vice_captain_name = "-"
+            active_cap_pid = None
+
             for item in picks:
                 p_id = int(item["element_id"])
                 mult = int(item.get("multiplier", 0))
+                is_vc = bool(item.get("is_vice_captain", False))
 
                 player_live = live_data.get(p_id, {})
                 status = player_live.get("status", "Not Played Yet")
                 p_score = player_live.get("points", 0)
 
                 if mult >= 2:
+                    active_cap_pid = p_id
                     captain_counts[p_id] += 1
                     manager_captain_name = players_dict.get(p_id, {}).get("name", "Unknown")
+
+                if is_vc:
+                    vice_captain_counts[p_id] += 1
+                    manager_vice_captain_name = players_dict.get(p_id, {}).get("name", "Unknown")
 
                 if is_bench_boost:
                     effective_weight = mult if mult > 0 else 1
@@ -189,7 +210,14 @@ async def get_team_summary(
                     else:
                         bench_player_counts[p_id] += 1
 
+            # Fallback if both C and VC had 0 minutes (multiplier 0)
+            if active_cap_pid is None and orig_cap_ids:
+                fallback_cid = next(iter(orig_cap_ids))
+                captain_counts[fallback_cid] += 1
+                manager_captain_name = players_dict.get(fallback_cid, {}).get("name", "Unknown")
+
             data["captain_name"] = manager_captain_name
+            data["vice_captain_name"] = manager_vice_captain_name
             net_manager_points = manager_live_points - hits
             data["gw_points"] = net_manager_points
 
@@ -240,8 +268,15 @@ async def get_team_summary(
     for p_id, count in Counter(captain_counts).most_common():
         player_name = players_dict.get(p_id, {}).get("name", "Unknown")
         captains_list.append({"name": player_name, "count": count})
-
     captains_display = ", ".join(f"{c['name']} ({c['count']}x)" for c in captains_list) if captains_list else "None"
+
+    vice_captains_list = []
+    for p_id, count in Counter(vice_captain_counts).most_common():
+        player_name = players_dict.get(p_id, {}).get("name", "Unknown")
+        vice_captains_list.append({"name": player_name, "count": count})
+    vice_captains_display = (
+        ", ".join(f"{vc['name']} ({vc['count']}x)" for vc in vice_captains_list) if vice_captains_list else "None"
+    )
 
     return {
         "gameweek": gameweek,
@@ -252,6 +287,8 @@ async def get_team_summary(
         "has_bench_boost": has_bench_boost,
         "captains": captains_display,
         "captains_list": captains_list,
+        "vice_captains": vice_captains_display,
+        "vice_captains_list": vice_captains_list,
         "managers_count": len(managers_data),
         "managers": managers_data,
         "ownership": ownership_list,

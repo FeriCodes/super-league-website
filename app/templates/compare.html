@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Super League H2H - Compare{% endblock %}
+{% block title %}FPL Club - Compare{% endblock %}
 
 {# 1. Macro for Team Select Dropdown (Used for both Team A and Team B) #}
 {% macro render_team_select(field_id, label, selected_val, team_names) %}
@@ -59,6 +59,17 @@
           </div>
         </div>
 
+        <div class="meta-row meta-row-captains">
+          <span class="meta-label">Vice-Captains:</span>
+          <div class="meta-badges-wrap">
+            {% for vc in summary.vice_captains_list %}
+              <span class="meta-pill pill-vc">{{ vc.name }} <strong class="cap-mult">{{ vc.count }}x</strong></span>
+            {% else %}
+              <span class="meta-pill pill-neutral">None</span>
+            {% endfor %}
+          </div>
+        </div>
+
         <div class="meta-row align-items-center">
           <span class="meta-label">Left to Play:</span>
           <div class="meta-badges-wrap">
@@ -97,7 +108,7 @@
                       </td>
                       <td class="col-cap">
                         {% if m.captain_name and m.captain_name not in ('—', '-') %}
-                          <span class="meta-pill pill-captain small-badge" title="{{ m.captain_name }}">{{ m.captain_name }}</span>
+                          <span class="meta-pill pill-captain cap-table-pill">{{ m.captain_name }}</span>
                         {% else %}
                           <span class="text-muted small">—</span>
                         {% endif %}
@@ -133,8 +144,8 @@
   </div>
 {% endmacro %}
 
-{# 3. Single Unified Macro for Player Cell (Mirrored automatically for Team B via flex-row-reverse) #}
-{% macro render_player_cell(p, side, pos) %}
+{# 3. Clean Player Cell Macro — Popup content stays strictly hidden inside <template> #}
+{% macro render_player_cell(p, side, pos, gameweek) %}
   {% set is_a = (side == 'a') %}
   {% set count = p.count_a if is_a else p.count_b %}
   {% set managers = p.managers_a if is_a else p.managers_b %}
@@ -145,8 +156,30 @@
   <td class="col-side {{ 'text-start' if is_a else 'text-end' }}">
     {% if count > 0 %}
       <div class="player-cell-stack player-interactive-box"
-           tabindex="0" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="top"
-           title="<div class='tt-header tt-header-{{ side }}'>{{ p.name }} ({{ count }}x)</div><div class='tt-list'>{% for m_name in managers %}<div class='tt-item'><span class='tt-dot-{{ side }}'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
+           role="button"
+           tabindex="0"
+           data-player-popup="true">
+        <template class="popup-template d-none">
+          <div class="tt-header tt-header-{{ side }}">{{ p.name }} ({{ count }}x)</div>
+          <div class="tt-list">
+            {% for m in managers %}
+              {% if m is mapping and m.manager_id %}
+                <a href="/?gameweek={{ gameweek }}&fpl_id={{ m.manager_id }}#pitch-section" class="tt-mgr-link">
+                  <span class="tt-dot-{{ side }}">•</span>
+                  <span class="tt-mgr-text">{{ m.name }}</span>
+                  <span class="tt-mgr-arrow">↗</span>
+                </a>
+              {% elif m is mapping %}
+                <div class="tt-item"><span class="tt-dot-{{ side }}">•</span> {{ m.name }}</div>
+              {% else %}
+                <div class="tt-item"><span class="tt-dot-{{ side }}">•</span> {{ m }}</div>
+              {% endif %}
+            {% else %}
+              <div class="tt-empty">None</div>
+            {% endfor %}
+          </div>
+        </template>
+
         <div class="player-row-top {{ dir_class }}">
           <span class="count-badge count-{{ side }}">{{ count }}x</span>
           {% if p.team_code %}
@@ -184,7 +217,7 @@
       <div class="col-12 col-md-2 text-center">
         <label for="gameweek" class="form-label fw-semibold small w-100 text-center mb-1">Gameweek</label>
         <select class="form-select text-center fw-bold mx-auto" id="gameweek" name="gameweek" required>
-          {% for week in range(1, 31) %}
+          {% for week in range(1, 39) %}
             <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>
           {% endfor %}
         </select>
@@ -255,7 +288,7 @@
               {% endif %}
 
               <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
-                {{ render_player_cell(p, 'a', pos) }}
+                {{ render_player_cell(p, 'a', pos, results.gameweek) }}
 
                 <td class="text-center col-diff">
                   {% if p.diff > 0 %}
@@ -267,7 +300,7 @@
                   {% endif %}
                 </td>
 
-                {{ render_player_cell(p, 'b', pos) }}
+                {{ render_player_cell(p, 'b', pos, results.gameweek) }}
               </tr>
             {% endfor %}
           </tbody>
@@ -281,20 +314,67 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.forEach(function (el) {
-      new bootstrap.Tooltip(el, { html: true, trigger: 'hover focus', boundary: 'window' });
-    });
+    const popupBoxes = Array.from(document.querySelectorAll('[data-player-popup="true"]'));
 
-    document.addEventListener('touchstart', function (e) {
-      const targetBox = e.target.closest('[data-bs-toggle="tooltip"]');
-      tooltipTriggerList.forEach(function (el) {
-        if (el !== targetBox) {
-          const instance = bootstrap.Tooltip.getInstance(el);
-          if (instance) instance.hide();
+    function hideAllPopups(exceptEl = null) {
+      popupBoxes.forEach(function (el) {
+        if (el !== exceptEl) {
+          const inst = bootstrap.Tooltip.getInstance(el);
+          if (inst) inst.hide();
+          el.classList.remove("popup-open");
         }
       });
-    }, { passive: true });
+    }
+
+    popupBoxes.forEach(function (el) {
+      const tpl = el.querySelector("template.popup-template");
+      const htmlContent = tpl ? tpl.innerHTML.trim() : "";
+
+      const inst = new bootstrap.Tooltip(el, {
+        html: true,
+        sanitize: false,
+        trigger: "manual",
+        placement: "top",
+        boundary: "window",
+        container: "body",
+        title: htmlContent
+      });
+
+      el.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const isOpen = el.classList.contains("popup-open");
+        hideAllPopups(el);
+        if (isOpen) {
+          inst.hide();
+          el.classList.remove("popup-open");
+        } else {
+          inst.show();
+          el.classList.add("popup-open");
+        }
+      });
+
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
+
+    document.addEventListener("click", function (e) {
+      if (e.target.closest(".tooltip")) {
+        return;
+      }
+      if (!e.target.closest('[data-player-popup="true"]')) {
+        hideAllPopups();
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        hideAllPopups();
+      }
+    });
 
     const form = document.getElementById("compare-form");
     const btn = document.getElementById("btn-submit");
@@ -312,6 +392,7 @@
           }
           return;
         }
+        hideAllPopups();
         if (errorBox) errorBox.style.display = "none";
         btn.disabled = true;
         btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Comparing... Please wait`;
@@ -326,3 +407,4 @@
   });
 </script>
 {% endblock %}
+

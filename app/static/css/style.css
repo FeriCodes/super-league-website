@@ -1793,3 +1793,68 @@ td.gd-zero {
     max-width: 72px !important;
   }
 }
+
+/* Vice-Captain Badges & Clickable Manager Popup Links */
+.pill-vc {
+  background-color: rgba(97, 175, 239, 0.14);
+  color: var(--accent-blue-soft);
+  border: 1px solid rgba(97, 175, 239, 0.35);
+}
+
+.pill-vc .cap-mult {
+  color: var(--text-bright);
+  margin-left: 3px;
+  font-weight: 700;
+}
+
+.pitch-vc-badge {
+  background-color: #1f242d;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0 5px;
+  border-radius: 4px;
+  line-height: 1.25;
+}
+
+.player-interactive-box.popup-open {
+  background-color: var(--row-hover);
+}
+
+.tooltip {
+  pointer-events: auto !important;
+}
+
+.tt-mgr-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-bright) !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 3px 5px;
+  margin: 0 -4px;
+  border-radius: 5px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tt-mgr-link:hover {
+  background-color: var(--row-hover);
+  color: var(--accent-cyan) !important;
+}
+
+.tt-mgr-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 175px;
+}
+
+.tt-mgr-arrow {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--accent-cyan);
+  opacity: 0.85;
+}

@@ -9,7 +9,7 @@ def build_head_to_head_comparison(
     fixtures_map: dict,
     team_codes_map: dict | None = None,
 ) -> dict:
-    """Build positional player breakdown and point diffs for head-to-head matchup, including bench and managers list."""
+    """Build positional player breakdown and point diffs for head-to-head matchup, including bench and manager links."""
     grouped = {
         "GKP": [],
         "DEF": [],
@@ -23,7 +23,7 @@ def build_head_to_head_comparison(
     managers_b = summary_b.get("managers", [])
 
     def get_managers_for_starter(pid: int, managers_list: list) -> list:
-        """Return list of formatted manager/team names owning `pid` in active Starting XI."""
+        """Return list of dicts with manager details owning `pid` in active Starting XI."""
         owning_managers = []
         if not managers_list:
             return owning_managers
@@ -32,6 +32,7 @@ def build_head_to_head_comparison(
             picks = m.get("picks", [])
             is_bb = m.get("active_chip") == "Bench Boost"
             team_label = m.get("team_name") or m.get("manager_name") or "Manager"
+            mgr_id = m.get("manager_id") or m.get("id") or m.get("entry")
 
             for pick in picks:
                 if not isinstance(pick, dict):
@@ -41,13 +42,23 @@ def build_head_to_head_comparison(
                     continue
 
                 mult = int(pick.get("multiplier", 0))
+                is_vc = bool(pick.get("is_vice_captain", False))
+
                 if is_bb or mult > 0:
+                    suffix = ""
                     if mult == 2:
-                        owning_managers.append(f"{team_label} (C)")
+                        suffix = " (C)"
                     elif mult >= 3:
-                        owning_managers.append(f"{team_label} (TC)")
-                    else:
-                        owning_managers.append(team_label)
+                        suffix = " (TC)"
+                    elif is_vc:
+                        suffix = " (V)"
+
+                    owning_managers.append(
+                        {
+                            "name": f"{team_label}{suffix}",
+                            "manager_id": mgr_id,
+                        }
+                    )
 
         return owning_managers
 
@@ -129,7 +140,6 @@ def build_head_to_head_comparison(
         if pos in grouped:
             grouped[pos].append(row)
 
-    # Sort starters by Diff
     def starters_sort_key(item):
         diff = item.get("diff", 0)
         total_owners = item.get("count_a", 0) + item.get("count_b", 0)
@@ -150,10 +160,6 @@ def build_head_to_head_comparison(
     b_sub_out_ids = {int(p["id"]) for p in summary_b.get("bench_ownership", []) if p.get("is_sub_out", False)}
 
     def get_manager_exact_bench_slots(manager: dict, team_sub_out_ids: set) -> dict:
-        """
-        Return exact {12: (pid, is_sub_out), 13: (pid, is_sub_out), 14: ..., 15: ...}
-        for a single manager so every manager contributes at most 1 player per bench slot.
-        """
         if manager.get("active_chip") == "Bench Boost":
             return {}
 
@@ -171,15 +177,12 @@ def build_head_to_head_comparison(
                 }
 
         slot_assignment = {}
-
-        # --- Slot 12: Sub Goalkeeper ---
         if 12 in by_pos:
             if by_pos[12]["mult"] == 0:
                 slot_assignment[12] = (by_pos[12]["id"], False)
             elif 1 in by_pos and by_pos[1]["mult"] == 0:
                 slot_assignment[12] = (by_pos[1]["id"], True)
 
-        # --- Slots 13, 14, 15: Outfield Bench 1, 2, 3 ---
         subbed_in_bench_slots = []
         for s in (13, 14, 15):
             if s in by_pos:
@@ -199,14 +202,28 @@ def build_head_to_head_comparison(
 
         return slot_assignment
 
-    managers_a_slots = [
-        (m.get("team_name") or m.get("manager_name") or "Manager", get_manager_exact_bench_slots(m, a_sub_out_ids))
-        for m in managers_a
-    ]
-    managers_b_slots = [
-        (m.get("team_name") or m.get("manager_name") or "Manager", get_manager_exact_bench_slots(m, b_sub_out_ids))
-        for m in managers_b
-    ]
+    def build_bench_manager_entries(managers_list: list, sub_out_ids: set) -> list:
+        entries = []
+        for m in managers_list:
+            vc_ids = {
+                int(pk.get("element_id") or pk.get("element") or pk.get("id"))
+                for pk in m.get("picks", [])
+                if isinstance(pk, dict)
+                and pk.get("is_vice_captain")
+                and (pk.get("element_id") or pk.get("element") or pk.get("id")) is not None
+            }
+            entries.append(
+                {
+                    "label": m.get("team_name") or m.get("manager_name") or "Manager",
+                    "manager_id": m.get("manager_id") or m.get("id") or m.get("entry"),
+                    "vc_ids": vc_ids,
+                    "slots": get_manager_exact_bench_slots(m, sub_out_ids),
+                }
+            )
+        return entries
+
+    managers_a_slots = build_bench_manager_entries(managers_a, a_sub_out_ids)
+    managers_b_slots = build_bench_manager_entries(managers_b, b_sub_out_ids)
 
     slot_configs = [
         (12, "Sub GKP", "SUB GOALKEEPER"),
@@ -218,19 +235,33 @@ def build_head_to_head_comparison(
     for bench_slot, bench_label, bench_group_title in slot_configs:
         slot_owners_a = {}
         slot_sub_out_a = set()
-        for team_label, s_map in managers_a_slots:
+        for entry in managers_a_slots:
+            s_map = entry["slots"]
             if bench_slot in s_map:
                 pid, is_out = s_map[bench_slot]
-                slot_owners_a.setdefault(pid, []).append(team_label)
+                suffix = " (V)" if pid in entry["vc_ids"] else ""
+                slot_owners_a.setdefault(pid, []).append(
+                    {
+                        "name": f"{entry['label']}{suffix}",
+                        "manager_id": entry["manager_id"],
+                    }
+                )
                 if is_out:
                     slot_sub_out_a.add(pid)
 
         slot_owners_b = {}
         slot_sub_out_b = set()
-        for team_label, s_map in managers_b_slots:
+        for entry in managers_b_slots:
+            s_map = entry["slots"]
             if bench_slot in s_map:
                 pid, is_out = s_map[bench_slot]
-                slot_owners_b.setdefault(pid, []).append(team_label)
+                suffix = " (V)" if pid in entry["vc_ids"] else ""
+                slot_owners_b.setdefault(pid, []).append(
+                    {
+                        "name": f"{entry['label']}{suffix}",
+                        "manager_id": entry["manager_id"],
+                    }
+                )
                 if is_out:
                     slot_sub_out_b.add(pid)
 
