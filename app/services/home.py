@@ -1,30 +1,9 @@
-import httpx
 from app.services.storage import load_teams, get_team_roster
 from app.services.compare import build_head_to_head_comparison
 from app.fpl.managers import get_players_dict, get_team_summary
 from app.fpl.live import get_live_scores_and_status
 from app.fpl.gameweek import get_team_fixtures_map
-
-_TEAM_CODE_CACHE: dict[int, int] = {}
-
-
-async def get_dynamic_team_codes() -> dict[int, int]:
-    global _TEAM_CODE_CACHE
-    if _TEAM_CODE_CACHE:
-        return _TEAM_CODE_CACHE
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get("https://fantasy.premierleague.com/api/bootstrap-static/")
-            if resp.status_code == 200:
-                data = resp.json()
-                _TEAM_CODE_CACHE = {
-                    int(t["id"]): int(t["code"]) for t in data.get("teams", []) if "id" in t and "code" in t
-                }
-    except Exception as e:
-        print(f"Error fetching dynamic team codes: {e}")
-
-    return _TEAM_CODE_CACHE
+from app.fpl.kits import get_dynamic_team_codes, resolve_player_team_code
 
 
 async def get_home_highlights(current_gw: int):
@@ -95,8 +74,7 @@ async def get_home_highlights(current_gw: int):
                     if pname == cap_name:
                         live_info = live_data.get(int(pid), {})
                         c_pts = live_info.get("points", 0)
-                        t_id = pinfo.get("team_id") or pinfo.get("team")
-                        c_team_code = pinfo.get("team_code") or (team_codes_map.get(int(t_id)) if t_id else None)
+                        c_team_code = resolve_player_team_code(pinfo, team_codes_map)
                         break
 
             top_captains_list.append(
@@ -118,7 +96,7 @@ async def get_home_highlights(current_gw: int):
             "name": " & ".join(top_teams) if top_teams else "—",
             "pts": max_team_pts if max_team_pts > 0 else 0,
         },
-        "top_captains": top_captains_list,  # لیست ۳ کاپیتان برتر
+        "top_captains": top_captains_list,
         "live_data": live_data,
     }
 
@@ -171,10 +149,7 @@ async def get_manager_pitch_data(fpl_id: int, current_gw: int):
                     pos = row.get("pos", pos_key if pos_key != "BENCH" else "SUB")
 
                     p_cached = players.get(pid, {}) if isinstance(players, dict) else {}
-                    team_id = p_cached.get("team_id") or p_cached.get("team")
-                    team_code = p_cached.get("team_code") or (
-                        team_codes_map.get(int(team_id)) if team_id is not None else None
-                    )
+                    team_code = resolve_player_team_code(p_cached, team_codes_map)
 
                     raw_pts = row.get("player_points", 0)
                     mult = pick_multipliers.get(pid, 1)
