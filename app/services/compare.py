@@ -1,9 +1,13 @@
+from app.fpl.kits import resolve_player_team_code
+
+
 def build_head_to_head_comparison(
     summary_a: dict,
     summary_b: dict,
     live_data: dict,
     players_cache: dict,
     fixtures_map: dict,
+    team_codes_map: dict | None = None,
 ) -> dict:
     """Build positional player breakdown and point diffs for head-to-head matchup, including bench and managers list."""
     grouped = {
@@ -14,6 +18,7 @@ def build_head_to_head_comparison(
         "BENCH": [],
     }
 
+    codes_lookup = team_codes_map or {}
     managers_a = summary_a.get("managers", [])
     managers_b = summary_b.get("managers", [])
 
@@ -68,6 +73,7 @@ def build_head_to_head_comparison(
 
         p_cached = players_cache.get(pid, {})
         team_id = p_cached.get("team_id")
+        team_code = resolve_player_team_code(p_cached, codes_lookup)
         opp_short = fixtures_map.get(team_id, "")
         chance = p_cached.get("chance_of_playing")
         news = p_cached.get("news", "")
@@ -91,6 +97,7 @@ def build_head_to_head_comparison(
             "id": pid,
             "name": name,
             "pos": pos,
+            "team_code": team_code,
             "bench_slot": 0,
             "bench_label": "",
             "bench_group_title": "",
@@ -170,7 +177,6 @@ def build_head_to_head_comparison(
             if by_pos[12]["mult"] == 0:
                 slot_assignment[12] = (by_pos[12]["id"], False)
             elif 1 in by_pos and by_pos[1]["mult"] == 0:
-                # Bench GK subbed in; starting GK moved to slot 12 as subbed-out
                 slot_assignment[12] = (by_pos[1]["id"], True)
 
         # --- Slots 13, 14, 15: Outfield Bench 1, 2, 3 ---
@@ -183,20 +189,16 @@ def build_head_to_head_comparison(
                     subbed_in_bench_slots.append(s)
 
         if subbed_in_bench_slots:
-            # Find outfield starters (positions 2..11) who were subbed out (mult == 0)
             zero_mult_starters = [by_pos[p]["id"] for p in range(2, 12) if p in by_pos and by_pos[p]["mult"] == 0]
-            # Prioritize starters explicitly marked as subbed out
             confirmed_out = [pid for pid in zero_mult_starters if pid in team_sub_out_ids]
             other_zero = [pid for pid in zero_mult_starters if pid not in team_sub_out_ids]
             ordered_out_starters = confirmed_out + other_zero
 
-            # Pair 1-to-1: each subbed-in bench slot gets exactly one subbed-out starter
             for s, out_pid in zip(subbed_in_bench_slots, ordered_out_starters):
                 slot_assignment[s] = (out_pid, True)
 
         return slot_assignment
 
-    # Precompute exact per-slot maps for all managers in Team A and Team B
     managers_a_slots = [
         (m.get("team_name") or m.get("manager_name") or "Manager", get_manager_exact_bench_slots(m, a_sub_out_ids))
         for m in managers_a
@@ -251,6 +253,7 @@ def build_head_to_head_comparison(
             match_status = live_info.get("status", "Not Played Yet")
 
             team_id = p_cached.get("team_id")
+            team_code = resolve_player_team_code(p_cached, codes_lookup)
             opp_short = fixtures_map.get(team_id, "")
             chance = p_cached.get("chance_of_playing")
             news = p_cached.get("news", "")
@@ -272,6 +275,7 @@ def build_head_to_head_comparison(
                     "id": pid,
                     "name": name,
                     "pos": pos,
+                    "team_code": team_code,
                     "bench_slot": bench_slot,
                     "bench_label": bench_label,
                     "bench_group_title": bench_group_title,
@@ -301,14 +305,12 @@ def build_head_to_head_comparison(
                 }
             )
 
-        # Sort inside each bench slot by highest combined ownership (NOT by diff)
         slot_rows.sort(key=lambda r: (-(r["count_a"] + r["count_b"]), -r["count_a"], -r["count_b"], r["name"]))
 
         if slot_rows:
             slot_rows[0]["is_bench_changed"] = True
             grouped["BENCH"].extend(slot_rows)
 
-    # First row of BENCH is handled by loop.first in compare.html
     if grouped["BENCH"]:
         grouped["BENCH"][0]["is_bench_changed"] = False
 
