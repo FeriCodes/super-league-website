@@ -90,8 +90,7 @@
                   {% for m in summary.managers %}
                     <tr>
                       <td class="col-squad">
-                        <a href="https://fantasy.premierleague.com/entry/{{ m.manager_id }}/event/{{ gameweek }}"
-                           target="_blank" class="fpl-manager-link" title="{{ m.team_name }} ({{ m.manager_name }})">
+                        <a href="/?gameweek={{ gameweek }}&fpl_id={{ m.manager_id }}#pitch-section" class="fpl-manager-link" title="{{ m.team_name }} ({{ m.manager_name }})">
                           <span class="link-team-title">{{ m.team_name }}</span>
                           <span class="link-manager-subtitle">{{ m.manager_name }} <span class="link-ext-icon">↗</span></span>
                         </a>
@@ -150,6 +149,13 @@
            title="<div class='tt-header tt-header-{{ side }}'>{{ p.name }} ({{ count }}x)</div><div class='tt-list'>{% for m_name in managers %}<div class='tt-item'><span class='tt-dot-{{ side }}'>•</span> {{ m_name|e }}</div>{% else %}<div class='tt-empty'>None</div>{% endfor %}</div>">
         <div class="player-row-top {{ dir_class }}">
           <span class="count-badge count-{{ side }}">{{ count }}x</span>
+          {% if p.team_code %}
+            <img src="https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ p.team_code }}{% if p.pos == 'GKP' %}_1{% endif %}-110.webp"
+                 alt=""
+                 class="compare-kit-mini"
+                 loading="lazy"
+                 onerror="if (this.src.includes('_1-110.webp')) { this.src = 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ p.team_code }}-110.webp'; } else { this.style.display='none'; }">
+          {% endif %}
           <span class="player-name {% if is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
           {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
           {% if p.has_injury %}<span class="badge-injury" data-chance="{{ p.chance }}" title="{{ p.injury_title }}">{{ p.chance }}%</span>{% endif %}

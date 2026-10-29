@@ -1760,3 +1760,36 @@ td.gd-zero {
     font-size: 0.55rem;
   }
 }
+
+/* Compact Club Kit Icon inside H2H Compare Table */
+.compare-kit-mini {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.versus-table .player-row-top {
+  min-width: 0;
+}
+
+.versus-table .player-name {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+@media (max-width: 576px) {
+  .compare-kit-mini {
+    width: 15px;
+    height: 15px;
+  }
+
+  .versus-table .player-row-top {
+    gap: 3px !important;
+  }
+
+  .versus-table .player-name {
+    max-width: 72px !important;
+  }
+}

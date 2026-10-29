@@ -1,10 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.fpl.managers import get_players_dict, get_team_summary
 from app.fpl.live import get_live_scores_and_status
+from app.fpl.kits import get_dynamic_team_codes
 from app.fpl.gameweek import (
     get_gameweek_status,
     get_current_gameweek,
@@ -77,6 +78,7 @@ async def compare_teams(
         )
 
     players = await get_players_dict()
+    team_codes_map = await get_dynamic_team_codes()
 
     team_a_ids = get_team_roster(teams, team_a_name, gameweek)
     team_b_ids = get_team_roster(teams, team_b_name, gameweek)
@@ -87,7 +89,14 @@ async def compare_teams(
     summary_a = await get_team_summary(team_a_ids, gameweek, players, live_data)
     summary_b = await get_team_summary(team_b_ids, gameweek, players, live_data)
 
-    grouped_comparison = build_head_to_head_comparison(summary_a, summary_b, live_data, players, fixtures_map)
+    grouped_comparison = build_head_to_head_comparison(
+        summary_a,
+        summary_b,
+        live_data,
+        players,
+        fixtures_map,
+        team_codes_map=team_codes_map,
+    )
 
     results = {
         "team_a_name": team_a_name,
