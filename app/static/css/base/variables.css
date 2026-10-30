@@ -1,0 +1,87 @@
+/* =========================================
+   Theme Variables, Body & Scrollbar
+========================================= */
+:root,
+[data-bs-theme="dark"] {
+  --bg-main: #1e2227;
+  --bg-card: #282c34;
+  --bg-card-subtle: #21252b;
+  --bg-table-header: #21252b;
+  --bg-subhead: #1c1f24;
+  --border-color: #3b4048;
+  --border-light: rgba(255, 255, 255, 0.08);
+  --row-hover: rgba(255, 255, 255, 0.04);
+
+  --text-main: #abb2bf;
+  --text-bright: #ffffff;
+  --text-muted: #6c7380;
+
+  --accent-cyan: #56b6c2;
+  --accent-blue-soft: #61afef;
+  --accent-green: #98c379;
+  --accent-red: #e06c75;
+  --accent-yellow: #e5c07b;
+  --accent-purple: #c678dd;
+
+  /* Sky-Steel Blue Navbar */
+  --navbar-bg: linear-gradient(90deg, #2b5876 0%, #3b6998 50%, #4678a8 100%);
+  --navbar-border: rgba(86, 182, 194, 0.35);
+}
+
+[data-bs-theme="light"] {
+  --bg-main: #f0f4f8;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f8fafc;
+  --bg-table-header: #e2e8f0;
+  --bg-subhead: #edf2f7;
+  --border-color: #cbd5e1;
+  --border-light: rgba(0, 0, 0, 0.08);
+  --row-hover: rgba(0, 0, 0, 0.035);
+
+  --text-main: #334155;
+  --text-bright: #0f172a;
+  --text-muted: #64748b;
+
+  --accent-cyan: #0891b2;
+  --accent-blue-soft: #2563eb;
+  --accent-green: #16a34a;
+  --accent-red: #dc2626;
+  --accent-yellow: #ca8a04;
+  --accent-purple: #9333ea;
+
+  --navbar-bg: linear-gradient(90deg, #2563eb 0%, #3b82f6 50%, #0284c7 100%);
+  --navbar-border: rgba(0, 0, 0, 0.12);
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom Thin Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue-soft);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--bg-main);
+}

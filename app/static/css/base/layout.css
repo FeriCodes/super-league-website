@@ -1,0 +1,200 @@
+/* =========================================
+   Navbar, Offcanvas Drawer, Titles & Footer
+========================================= */
+.cs-navbar {
+  background: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--navbar-border);
+  padding: 0.55rem 0;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cs-brand {
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+
+.cs-brand:hover {
+  color: #e0f2fe !important;
+}
+
+.cs-nav-links-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cs-nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.85rem !important;
+  border-radius: 6px;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.cs-nav-link:hover {
+  color: #ffffff !important;
+  background-color: rgba(0, 0, 0, 0.16);
+}
+
+.cs-nav-link.active {
+  color: #ffffff !important;
+  font-weight: 700;
+  background-color: rgba(0, 0, 0, 0.32);
+}
+
+.cs-theme-btn {
+  color: #ffffff !important;
+  background-color: rgba(0, 0, 0, 0.24) !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  padding: 0.35rem 0.75rem !important;
+  border-radius: 6px !important;
+  transition: background-color 0.18s ease;
+}
+
+.cs-theme-btn:hover,
+.cs-theme-btn:focus,
+.cs-theme-btn.show {
+  background-color: rgba(0, 0, 0, 0.38) !important;
+  color: #ffffff !important;
+}
+
+.cs-theme-menu {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 0.35rem !important;
+  min-width: 120px !important;
+}
+
+.cs-theme-menu .dropdown-item {
+  color: var(--text-main) !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 0.4rem 0.65rem;
+}
+
+.cs-theme-menu .dropdown-item:hover {
+  background-color: var(--row-hover) !important;
+  color: var(--text-bright) !important;
+}
+
+.cs-theme-menu .dropdown-item.active {
+  background-color: var(--accent-cyan) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* Right-to-Left Offcanvas Drawer */
+.cs-offcanvas {
+  background-color: var(--bg-card) !important;
+  color: var(--text-bright) !important;
+  width: 280px !important;
+  border-left: 1px solid var(--border-color) !important;
+}
+
+.drawer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.18s ease;
+}
+
+.drawer-nav-item:hover {
+  background-color: var(--row-hover);
+  color: var(--text-bright);
+}
+
+.drawer-nav-item.active {
+  background-color: var(--accent-cyan);
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+[data-bs-theme="light"] .drawer-nav-item.active {
+  color: #ffffff !important;
+}
+
+/* Page Titles & Subtitles */
+.page-title {
+  color: var(--accent-cyan);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  letter-spacing: -0.5px;
+  text-shadow: 0 0 16px rgba(86, 182, 194, 0.2);
+}
+
+.subtitle-text {
+  color: var(--text-main);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  opacity: 0.9;
+}
+
+/* Footer */
+.footer-text {
+  color: var(--text-main) !important;
+  font-weight: 500;
+}
+
+.footer-github-link {
+  color: var(--accent-cyan) !important;
+  font-weight: 700;
+  text-decoration: underline dotted 1px;
+  transition: all 0.2s ease;
+}
+
+.footer-github-link:hover {
+  color: var(--accent-blue-soft) !important;
+  text-decoration: underline;
+}
+
+/* Responsive Layout Rules */
+@media (max-width: 767.98px) {
+  .cs-nav-links-wrap {
+    width: 100% !important;
+    background-color: rgba(0, 0, 0, 0.15);
+    padding: 0.25rem;
+    border-radius: 8px;
+    justify-content: space-between;
+  }
+
+  .cs-nav-link {
+    flex: 1;
+    font-size: 0.76rem;
+    padding: 0.42rem 0.3rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .cs-nav-links-wrap {
+    width: auto !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .subtitle-text {
+    font-size: 0.75rem !important;
+  }
+}

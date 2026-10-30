@@ -1,0 +1,215 @@
+/* =========================================
+   Fixtures & League Standings Table
+========================================= */
+.fixture-match-card {
+  display: grid !important;
+  grid-template-columns: 1fr 110px 1fr !important;
+  align-items: center !important;
+  padding: 0.65rem 0.75rem !important;
+  min-height: 58px;
+}
+
+.team-side {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.team-left {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.team-right {
+  justify-content: flex-end !important;
+  text-align: right !important;
+}
+
+.team-text {
+  color: var(--text-bright) !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+.fixture-center-block {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 110px !important;
+  margin: 0 auto !important;
+}
+
+.score-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  width: 100% !important;
+}
+
+.score-val {
+  display: inline-block !important;
+  width: 44px !important;
+  text-align: center !important;
+}
+
+.score-val-left {
+  text-align: right !important;
+  padding-right: 4px !important;
+}
+
+.score-val-right {
+  text-align: left !important;
+  padding-left: 4px !important;
+}
+
+.score-dash {
+  color: var(--text-main) !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  width: 10px !important;
+  text-align: center !important;
+}
+
+.fixture-details-btn {
+  color: var(--accent-cyan) !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  margin-top: 3px !important;
+  line-height: 1 !important;
+}
+
+.fixture-details-btn:hover {
+  text-decoration: underline !important;
+  opacity: 0.85;
+}
+
+.fixture-vs-btn {
+  display: inline-block !important;
+  font-family: var(--bs-font-monospace) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: var(--accent-cyan) !important;
+  border: 1px solid rgba(86, 182, 194, 0.4) !important;
+  background: rgba(86, 182, 194, 0.08) !important;
+  border-radius: 6px !important;
+  padding: 0.2rem 0.65rem !important;
+  text-decoration: none !important;
+}
+
+.fixture-vs-btn:hover {
+  background: var(--accent-cyan) !important;
+  color: #ffffff !important;
+}
+
+/* Standings Table */
+.standings-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  font-size: 0.88rem;
+}
+
+.standings-table thead th {
+  padding: 8px 3px !important;
+  color: var(--text-main) !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+}
+
+.standings-table tbody td {
+  padding: 8px 3px !important;
+  vertical-align: middle !important;
+}
+
+.standings-table td.col-pos {
+  color: var(--text-muted) !important;
+}
+
+.standings-table td.col-team {
+  color: var(--text-bright) !important;
+  letter-spacing: 0.2px;
+}
+
+.standings-table td.stat-win,
+td.stat-win {
+  color: var(--accent-green) !important;
+  font-weight: 700 !important;
+}
+
+.standings-table td.stat-draw,
+td.stat-draw {
+  color: var(--accent-yellow) !important;
+  font-weight: 600 !important;
+}
+
+.standings-table td.stat-loss,
+td.stat-loss {
+  color: var(--accent-red) !important;
+  font-weight: 700 !important;
+}
+
+.standings-table th.col-pts,
+.standings-table td.col-pts,
+td.col-pts {
+  color: var(--accent-cyan) !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  background-color: rgba(86, 182, 194, 0.05) !important;
+}
+
+.standings-table td.col-gd,
+td.col-gd {
+  font-weight: 700 !important;
+  direction: ltr;
+}
+
+.standings-table td.gd-pos,
+td.gd-pos {
+  color: var(--accent-green) !important;
+  font-weight: 700 !important;
+}
+
+.standings-table td.gd-neg,
+td.gd-neg {
+  color: var(--accent-red) !important;
+  font-weight: 700 !important;
+}
+
+.standings-table td.gd-zero,
+td.gd-zero {
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+}
+
+@media (max-width: 576px) {
+  .fixture-match-card {
+    grid-template-columns: 1fr 94px 1fr !important;
+    padding: 0.55rem 0.5rem !important;
+  }
+
+  .fixture-center-block {
+    width: 94px !important;
+  }
+
+  .score-val {
+    width: 38px !important;
+  }
+
+  .team-text {
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+  }
+
+  .score-row {
+    font-size: 0.88rem !important;
+  }
+}

@@ -1,0 +1,575 @@
+/* =========================================
+   Head-to-Head Compare, Squad Breakdown & Popups
+========================================= */
+
+/* Position Category Headers */
+.position-header-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.84rem;
+  letter-spacing: 0.8px;
+}
+
+.pos-header-gkp {
+  color: var(--accent-yellow);
+  background: rgba(229, 192, 123, 0.1);
+  border-left: 3px solid var(--accent-yellow);
+}
+
+.pos-header-def {
+  color: var(--accent-blue-soft);
+  background: rgba(97, 175, 239, 0.1);
+  border-left: 3px solid var(--accent-blue-soft);
+}
+
+.pos-header-mid {
+  color: var(--accent-green);
+  background: rgba(152, 195, 121, 0.1);
+  border-left: 3px solid var(--accent-green);
+}
+
+.pos-header-fwd {
+  color: var(--accent-red);
+  background: rgba(224, 108, 117, 0.1);
+  border-left: 3px solid var(--accent-red);
+}
+
+.pos-header-bench {
+  color: var(--text-main);
+  background: rgba(171, 178, 191, 0.1);
+  border-left: 3px solid var(--text-main);
+}
+
+/* Versus Table Architecture */
+.compare-table-wrapper {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.versus-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  margin-bottom: 0 !important;
+}
+
+.versus-table th.col-team-a {
+  color: var(--accent-green) !important;
+}
+
+.versus-table th.col-team-b {
+  color: var(--accent-blue-soft) !important;
+}
+
+.versus-table th.col-diff {
+  color: var(--accent-yellow) !important;
+}
+
+.versus-table th.col-side,
+.versus-table td.col-side {
+  width: 41% !important;
+  padding: 6px 8px !important;
+  vertical-align: middle;
+}
+
+.versus-table th.col-diff,
+.versus-table td.col-diff {
+  width: 18% !important;
+  padding: 6px 2px !important;
+  vertical-align: middle;
+}
+
+/* Player Stack Rows & Mini Kits */
+.player-cell-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1.15;
+  width: 100%;
+}
+
+.player-row-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;
+}
+
+.player-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.compare-kit-mini {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.player-name {
+  color: var(--text-bright);
+  font-weight: 600;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.count-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.count-a {
+  background: rgba(152, 195, 121, 0.18);
+  color: var(--accent-green);
+  border: 1px solid rgba(152, 195, 121, 0.38);
+}
+
+.count-b {
+  background: rgba(97, 175, 239, 0.18);
+  color: var(--accent-blue-soft);
+  border: 1px solid rgba(97, 175, 239, 0.38);
+}
+
+.player-pts-mini {
+  color: var(--accent-cyan) !important;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap !important;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.opponent-badge {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--row-hover);
+  border: 1px solid var(--border-light);
+  padding: 0 4px;
+  border-radius: 3px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+
+.bench-group-header td {
+  background-color: rgba(86, 182, 194, 0.09) !important;
+  padding: 4px 8px !important;
+  border-bottom: 1px solid rgba(86, 182, 194, 0.25) !important;
+}
+
+.bench-group-header:hover td {
+  background-color: rgba(86, 182, 194, 0.09) !important;
+}
+
+.bench-pos-divider td {
+  border-top: 2px solid rgba(86, 182, 194, 0.6) !important;
+}
+
+/* Differential Badges & Row Dimming */
+.diff-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.badge-advantage {
+  background-color: rgba(152, 195, 121, 0.16);
+  color: var(--accent-green) !important;
+  border: 1px solid rgba(152, 195, 121, 0.4);
+}
+
+.badge-disadvantage {
+  background-color: rgba(97, 175, 239, 0.16);
+  color: var(--accent-blue-soft) !important;
+  border: 1px solid rgba(97, 175, 239, 0.4);
+}
+
+.badge-shared-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background-color: rgba(171, 178, 191, 0.08);
+  color: var(--text-muted) !important;
+  border: 1px solid rgba(171, 178, 191, 0.2);
+  line-height: 1;
+}
+
+tr.player-row-ft,
+tr.player-row-ft > td {
+  opacity: 0.45 !important;
+  filter: grayscale(35%) !important;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+tr.player-row-ft:hover,
+tr.player-row-ft:hover > td {
+  opacity: 0.95 !important;
+  filter: none !important;
+}
+
+.player-row-subbed-out {
+  background-color: rgba(224, 108, 117, 0.04) !important;
+}
+
+.table-bench {
+  opacity: 0.9;
+}
+
+/* 7-Manager Squad Breakdown Accordion */
+.btn-breakdown {
+  background-color: var(--row-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 5px 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-breakdown:hover {
+  background-color: rgba(97, 175, 239, 0.12);
+  color: var(--text-bright);
+  border-color: var(--accent-blue-soft);
+}
+
+.btn-breakdown[aria-expanded="true"] .collapse-icon {
+  transform: rotate(180deg);
+}
+
+.collapse-icon {
+  display: inline-block;
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+
+.manager-list-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-main);
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.squad-breakdown-table {
+  width: 100% !important;
+  min-width: 320px;
+  table-layout: auto !important;
+  margin-bottom: 0 !important;
+}
+
+.squad-breakdown-table th,
+.squad-breakdown-table td {
+  padding: 6px 5px !important;
+  vertical-align: middle;
+}
+
+.squad-breakdown-table .col-squad { width: 39%; }
+.squad-breakdown-table .col-cap   { width: 27%; text-align: center; }
+.squad-breakdown-table .col-chip  { width: 16%; text-align: center; }
+.squad-breakdown-table .col-hit   { width: 8%;  text-align: center; }
+.squad-breakdown-table .col-pts   {
+  width: 10%;
+  text-align: center !important;
+  padding-right: 8px !important;
+}
+
+.fpl-manager-link {
+  text-decoration: none !important;
+  color: inherit !important;
+  display: flex !important;
+  flex-direction: column !important;
+  line-height: 1.2;
+  max-width: 135px;
+}
+
+.link-team-title {
+  color: var(--text-bright);
+  font-weight: 700;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.fpl-manager-link:hover .link-team-title {
+  color: var(--accent-cyan) !important;
+  text-decoration: underline dotted 1px;
+}
+
+.link-manager-subtitle {
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.cap-table-pill {
+  font-size: 0.63rem !important;
+  padding: 2px 6px !important;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.small-badge {
+  font-size: 0.62rem !important;
+  padding: 2px 5px !important;
+  max-width: 72px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.breakdown-pts-a {
+  color: var(--accent-green) !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.2px;
+}
+
+.breakdown-pts-b {
+  color: var(--accent-blue-soft) !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.2px;
+}
+
+/* Interactive Player Box & Clickable Manager Popup */
+.player-interactive-box {
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  outline: none !important;
+  transition: background-color 0.15s ease;
+}
+
+.player-interactive-box:hover,
+.player-interactive-box:focus,
+.player-interactive-box.popup-open {
+  background-color: var(--row-hover);
+}
+
+.tooltip {
+  --bs-tooltip-opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.tooltip-inner {
+  background-color: var(--bg-card-subtle) !important;
+  color: var(--text-bright) !important;
+  border: 1px solid var(--border-color) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.72rem !important;
+  padding: 8px 11px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  text-align: left !important;
+  min-width: 145px;
+  max-width: 230px;
+}
+
+.tt-header {
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding-bottom: 4px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid var(--border-light);
+  letter-spacing: 0.2px;
+}
+
+.tt-header-a { color: var(--accent-green); }
+.tt-header-b { color: var(--accent-blue-soft); }
+
+.tt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tt-item {
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.69rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tt-dot-a {
+  color: var(--accent-green);
+  font-weight: 800;
+  margin-right: 3px;
+}
+
+.tt-dot-b {
+  color: var(--accent-blue-soft);
+  font-weight: 800;
+  margin-right: 3px;
+}
+
+.tt-mgr-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-bright) !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 3px 5px;
+  margin: 0 -4px;
+  border-radius: 5px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tt-mgr-link:hover {
+  background-color: var(--row-hover);
+  color: var(--accent-cyan) !important;
+}
+
+.tt-mgr-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 175px;
+}
+
+.tt-mgr-arrow {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--accent-cyan);
+  opacity: 0.85;
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+  border-top-color: var(--border-color) !important;
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: var(--border-color) !important;
+}
+
+@media (max-width: 576px) {
+  .versus-table th.col-side,
+  .versus-table td.col-side {
+    width: 42% !important;
+    padding: 4px 4px !important;
+  }
+
+  .versus-table th.col-diff,
+  .versus-table td.col-diff {
+    width: 16% !important;
+    padding: 4px 1px !important;
+  }
+
+  .versus-table .player-row-top {
+    gap: 3px !important;
+  }
+
+  .compare-kit-mini {
+    width: 15px;
+    height: 15px;
+  }
+
+  .versus-table .player-name {
+    font-size: 0.72rem !important;
+    max-width: 72px !important;
+  }
+
+  .count-badge {
+    font-size: 0.62rem !important;
+    padding: 0 3px !important;
+  }
+
+  .player-pts-mini {
+    font-size: 0.65rem !important;
+  }
+
+  .opponent-badge {
+    font-size: 0.58rem !important;
+    padding: 0 2px !important;
+  }
+
+  .diff-badge {
+    padding: 2px 3px !important;
+    font-size: 0.6rem !important;
+  }
+
+  .squad-breakdown-table {
+    min-width: 290px;
+  }
+
+  .squad-breakdown-table th,
+  .squad-breakdown-table td {
+    padding: 5px 3px !important;
+  }
+
+  .squad-breakdown-table .col-pts {
+    padding-right: 6px !important;
+  }
+
+  .link-team-title {
+    font-size: 0.72rem !important;
+    max-width: 110px;
+  }
+
+  .link-manager-subtitle {
+    font-size: 0.60rem !important;
+    max-width: 110px;
+  }
+
+  .cap-table-pill {
+    font-size: 0.57rem !important;
+    padding: 1px 4px !important;
+  }
+
+  .small-badge {
+    font-size: 0.56rem !important;
+    padding: 1px 4px !important;
+    max-width: 60px;
+  }
+
+  .breakdown-pts-a,
+  .breakdown-pts-b {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+  }
+}
