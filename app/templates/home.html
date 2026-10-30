@@ -30,27 +30,42 @@
 <div class="row g-2 g-md-3 mb-4">
   <!-- 1. MVP Manager Card -->
   <div class="col-12 col-md-4">
-    <div class="custom-card highlight-stat-card p-3 text-center h-100 d-flex flex-column justify-content-center">
-      <div class="team-score-lbl text-uppercase mb-1">👑 GW {{ gw }} MVP Manager</div>
-      <div class="my-1">
-        {% if mvp_manager.managers %}
+    <div class="custom-card highlight-stat-card p-3 h-100 d-flex flex-column justify-content-between">
+      <div class="team-score-lbl text-uppercase text-center mb-2">👑 GW {{ gw }} MVP Manager</div>
+
+      {% if mvp_manager.managers %}
+        <div class="d-flex flex-column gap-2 my-auto">
           {% for m in mvp_manager.managers %}
-            {% if m.id %}
-              <a href="/?gameweek={{ gw }}&fpl_id={{ m.id }}#pitch-section" class="highlight-mgr-link">
-                {{ m.display }} <span class="link-ext-icon">🏟️</span>
-              </a>
-            {% else %}
-              <span class="highlight-val-green">{{ m.display }}</span>
-            {% endif %}
-            {% if not loop.last %}<span class="text-muted fw-bold"> &amp; </span>{% endif %}
+            <div class="d-flex align-items-center justify-content-between px-2 py-1.5 rounded" style="background-color: var(--row-hover);">
+              <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                {% if m.id %}
+                  <a href="/?gameweek={{ gw }}&fpl_id={{ m.id }}#pitch-section" class="highlight-mgr-link text-truncate fw-bold" style="font-size: 0.8rem;">
+                    {{ m.display }}
+                  </a>
+                {% else %}
+                  <span class="highlight-val-green text-truncate" style="font-size: 0.8rem;">{{ m.display }}</span>
+                {% endif %}
+              </div>
+              <div>
+                <span class="meta-pill pill-advantage-pts" style="font-size: 0.65rem;">{{ mvp_manager.pts }}p</span>
+              </div>
+            </div>
           {% endfor %}
-        {% else %}
-          <span class="highlight-val-green">{{ mvp_manager.name }}</span>
-        {% endif %}
-      </div>
-      <div>
-        <span class="meta-pill pill-advantage-pts">{{ mvp_manager.pts }} PTS</span>
-      </div>
+        </div>
+      {% else %}
+        <div class="text-center my-auto">
+          <span class="highlight-val-green" style="font-size: 0.9rem;">{{ mvp_manager.name }}</span>
+          <div class="mt-2">
+            <span class="meta-pill pill-advantage-pts">{{ mvp_manager.pts }} PTS</span>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if mvp_manager.managers and mvp_manager.managers|length > 0 %}
+        <div class="text-center mt-2 pt-1 border-top border-secondary border-opacity-25">
+          <span class="meta-pill pill-advantage-pts" style="font-size: 0.7rem;">Total: {{ mvp_manager.pts }} PTS</span>
+        </div>
+      {% endif %}
     </div>
   </div>
 

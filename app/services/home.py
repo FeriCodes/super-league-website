@@ -89,9 +89,8 @@ async def get_home_highlights(current_gw: int):
 
     return {
         "mvp_manager": {
-            "name": " & ".join(item["display"] for item in mvp_list) if mvp_list else "—",
-            "pts": max_mgr_pts if max_mgr_pts > 0 else 0,
             "managers": mvp_list,
+            "pts": max_mgr_pts if max_mgr_pts > 0 else 0,
         },
         "top_team": {
             "name": " & ".join(top_teams) if top_teams else "—",
