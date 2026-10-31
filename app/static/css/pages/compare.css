@@ -488,6 +488,11 @@ tr.player-row-ft:hover > td {
 }
 
 @media (max-width: 576px) {
+  .versus-table thead th {
+    font-size: 0.7rem !important;
+    letter-spacing: 0.2px !important;
+  }
+
   .versus-table th.col-side,
   .versus-table td.col-side {
     width: 42% !important;

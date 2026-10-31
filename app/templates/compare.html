@@ -266,14 +266,12 @@
         <table class="table table-dark table-dark-custom align-middle mb-0 compare-table versus-table {% if pos == 'BENCH' %}table-bench{% endif %}">
           <thead>
             <tr class="compare-thead-row">
-              <th class="col-side text-start col-team-a" title="{{ results.team_a_name }}">
-                <span class="d-none d-sm-inline">{{ results.team_a_name }}</span>
-                <span class="d-inline d-sm-none">T-A</span>
+              <th class="col-side text-start col-team-a text-truncate" title="{{ results.team_a_name }}">
+                {{ results.team_a_name }}
               </th>
               <th class="text-center col-diff">Diff</th>
-              <th class="col-side text-end col-team-b" title="{{ results.team_b_name }}">
-                <span class="d-none d-sm-inline">{{ results.team_b_name }}</span>
-                <span class="d-inline d-sm-none">T-B</span>
+              <th class="col-side text-end col-team-b text-truncate" title="{{ results.team_b_name }}">
+                {{ results.team_b_name }}
               </th>
             </tr>
           </thead>
@@ -407,4 +405,3 @@
   });
 </script>
 {% endblock %}
-
