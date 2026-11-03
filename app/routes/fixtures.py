@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
+from fastapi import HTTPException
 from fastapi.templating import Jinja2Templates
 
 from app.fpl.gameweek import get_current_gameweek, get_gameweek_status
@@ -106,3 +107,13 @@ async def fixtures_page(request: Request, gw: Optional[int] = Query(None)):
             "is_live": is_live,
         },
     )
+
+
+@router.get("/fixtures/{gw}", response_class=HTMLResponse, include_in_schema=False)
+async def fixtures_by_gw_path(request: Request, gw: int):
+
+    if not (1 <= gw <= 30):
+        raise HTTPException(
+            status_code=404, detail=f"Gameweek {gw} does not exist in Super League! Please choose between 1 and 30."
+        )
+    return await fixtures_page(request=request, gw=gw)

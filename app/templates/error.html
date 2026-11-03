@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ status_code | default(404) }} - FPL Club{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-5">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="custom-card p-4 p-md-5 text-center shadow-sm">
+
+      <!-- Error Code Badge / Number -->
+      <div class="mb-3">
+        <span class="badge px-3 py-2 font-monospace fw-bold" style="background-color: rgba(224, 108, 117, 0.15); color: #e06c75; font-size: 1.2rem;">
+          ERROR {{ status_code | default(404) }}
+        </span>
+      </div>
+
+      <!-- Heading -->
+      <h3 class="fw-bold mb-3" style="color: var(--text-bright);">
+        Oops! Something went wrong
+      </h3>
+
+      <!-- Detailed Message -->
+      <p class="text-muted small mb-4 px-md-3" style="line-height: 1.6;">
+        {{ detail | default("The page, gameweek, or resource you are looking for could not be found or is invalid.") }}
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <a href="/" class="btn btn-compare btn-sm px-4 py-2">
+          🏠 Home Dashboard
+        </a>
+        <a href="/fixtures" class="btn btn-sm btn-breakdown px-4 py-2">
+          📅 Fixtures
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

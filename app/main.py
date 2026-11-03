@@ -1,8 +1,10 @@
 import uvicorn
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.fpl.client import close_fpl_client
 from app.routes.home import router as home_router
@@ -23,7 +25,26 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Super League H2H", lifespan=lifespan)
 
-# Mount static files
+# Initialize Jinja2 templates directory
+templates = Jinja2Templates(directory="app/templates")
+
+
+# Custom exception handler to render the errors.html template on HTTP exceptions
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return templates.TemplateResponse(
+        request=request,
+        name="error.html",
+        context={
+            "request": request,
+            "status_code": exc.status_code,
+            "detail": exc.detail,
+        },
+        status_code=exc.status_code,
+    )
+
+
+# Mount static files directory
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Register all modular route handlers (APIRouters)
