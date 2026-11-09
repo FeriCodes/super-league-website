@@ -6,7 +6,10 @@
 {% macro render_team_select(field_id, label, selected_val, team_names) %}
   <div class="col-12 col-md-5">
     <label for="{{ field_id }}" class="form-label fw-semibold small">{{ label }}</label>
-    <select class="form-select" id="{{ field_id }}" name="{{ field_id }}" required>
+    <select class="form-select"
+            id="{{ field_id }}"
+            name="{{ field_id }}"
+            required>
       <option value="" disabled {% if not selected_val %}selected{% endif %}>Select {{ label }}</option>
       {% for team in team_names %}
         <option value="{{ team }}" {% if selected_val == team %}selected{% endif %}>{{ team }}</option>
@@ -81,7 +84,10 @@
 
         <div class="mt-2 pt-2 border-top border-secondary border-opacity-25">
           <button class="btn btn-sm btn-breakdown w-100 d-flex justify-content-between align-items-center"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#{{ collapse_id }}" aria-expanded="false">
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#{{ collapse_id }}"
+                  aria-expanded="false">
             <span>👥 Squad Breakdown (7 Players)</span>
             <span class="collapse-icon">▼</span>
           </button>
@@ -101,13 +107,15 @@
                   {% for m in summary.managers %}
                     <tr>
                       <td class="col-squad">
-                        <a href="/?gameweek={{ gameweek }}&fpl_id={{ m.manager_id }}#pitch-section" class="fpl-manager-link" title="{{ m.team_name }} ({{ m.manager_name }})">
+                        <a href="/?gameweek={{ gameweek }}&fpl_id={{ m.manager_id }}#pitch-section"
+                           class="fpl-manager-link"
+                           title="{{ m.team_name }} ({{ m.manager_name }})">
                           <span class="link-team-title">{{ m.team_name }}</span>
                           <span class="link-manager-subtitle">{{ m.manager_name }} <span class="link-ext-icon">↗</span></span>
                         </a>
                       </td>
                       <td class="col-cap">
-                        {% if m.captain_name and m.captain_name not in ('—', '-') %}
+                        {% if m.captain_name and m.captain_name not in ("—", "-") %}
                           <span class="meta-pill pill-captain cap-table-pill">{{ m.captain_name }}</span>
                         {% else %}
                           <span class="text-muted small">—</span>
@@ -164,7 +172,8 @@
           <div class="tt-list">
             {% for m in managers %}
               {% if m is mapping and m.manager_id %}
-                <a href="/?gameweek={{ gameweek }}&fpl_id={{ m.manager_id }}#pitch-section" class="tt-mgr-link">
+                <a href="/?gameweek={{ gameweek }}&fpl_id={{ m.manager_id }}#pitch-section"
+                   class="tt-mgr-link">
                   <span class="tt-dot-{{ side }}">•</span>
                   <span class="tt-mgr-text">{{ m.name }}</span>
                   <span class="tt-mgr-arrow">↗</span>
@@ -191,14 +200,16 @@
           {% endif %}
           <span class="player-name {% if is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
           {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
-          {% if p.has_injury %}<span class="badge-injury" data-chance="{{ p.chance }}" title="{{ p.injury_title }}">{{ p.chance }}%</span>{% endif %}
+          {% if p.has_injury %}<span class="badge-injury"
+      data-chance="{{ p.chance }}"
+      title="{{ p.injury_title }}">{{ p.chance }}%</span>{% endif %}
           {% if is_sub_in %}<span class="badge-sub-in">🔄 IN</span>{% endif %}
           {% if is_sub_out %}<span class="badge-sub-out">⛔ OUT</span>{% endif %}
         </div>
         <div class="player-row-bottom {{ dir_class }}">
           <span class="player-pts-mini">{{ p.player_points }}</span>
           {% if p.opponent %}<span class="opponent-badge">vs {{ p.opponent }}</span>{% endif %}
-          {% if pos == 'BENCH' %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
+          {% if pos == "BENCH" %}<span class="badge-pos-mini">{{ p.pos }}</span>{% endif %}
         </div>
       </div>
     {% else %}
@@ -208,200 +219,208 @@
 {% endmacro %}
 
 {% block content %}
-<!-- Selection Form Card -->
-<div class="custom-card p-3 p-md-4 mb-4 shadow-sm">
-  <form id="compare-form" action="/compare" method="get">
-    <div class="row g-2 g-md-3 align-items-end justify-content-center">
-      {{ render_team_select("team_a_name", "Team A", selected_team_a, team_names) }}
+  <!-- Selection Form Card -->
+  <div class="custom-card p-3 p-md-4 mb-4 shadow-sm">
+    <form id="compare-form" action="/compare" method="get">
+      <div class="row g-2 g-md-3 align-items-end justify-content-center">
+        {{ render_team_select("team_a_name", "Team A", selected_team_a, team_names) }}
 
-      <div class="col-12 col-md-2 text-center">
-        <label for="gameweek" class="form-label fw-semibold small w-100 text-center mb-1">Gameweek</label>
-        <select class="form-select text-center fw-bold mx-auto" id="gameweek" name="gameweek" required>
-          {% for week in range(1, 39) %}
-            <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      {{ render_team_select("team_b_name", "Team B", selected_team_b, team_names) }}
-
-      <div class="col-12 text-center mt-3">
-        <button type="submit" id="btn-submit" class="btn btn-compare px-4 py-2">
-          <span id="btn-text">Compare Teams ⚔️</span>
-        </button>
-      </div>
-    </div>
-  </form>
-</div>
-
-<!-- Unified Alert Box -->
-<div id="client-error-box" class="custom-card alert-warning-card p-3 mb-4 text-center" style="display: {% if error_message %}block{% else %}none{% endif %};">
-  <div class="d-inline-flex align-items-center justify-content-center gap-2">
-    <span class="alert-icon">⚠️</span>
-    <span id="client-error-text" class="text-warning fw-semibold">{{ error_message or 'Cannot compare a team with itself. Please select two different teams.' }}</span>
-  </div>
-</div>
-
-{% if results %}
-  <!-- Team Score Summary Cards -->
-  <div class="row g-3 mb-4">
-    {{ render_team_card(results.team_a_name, results.summary_a, results.gameweek, "breakdownTeamA", "", "breakdown-pts-a") }}
-    {{ render_team_card(results.team_b_name, results.summary_b, results.gameweek, "breakdownTeamB", "team-score-num-b", "breakdown-pts-b") }}
-  </div>
-
-  <!-- Position Breakdown Tables -->
-  {% for pos, players in results.grouped.items() if players %}
-    <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
-      <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2 d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-1">
-          <span class="pos-dot">●</span>
-          <span class="pos-title">{{ pos }} {{ 'PLAYERS / SUBS' if pos == 'BENCH' else 'DIFFERENCE' }}</span>
-        </div>
-        {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
-          <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
-        {% endif %}
-      </div>
-
-      <div class="compare-table-wrapper">
-        <table class="table table-dark table-dark-custom align-middle mb-0 compare-table versus-table {% if pos == 'BENCH' %}table-bench{% endif %}">
-          <thead>
-            <tr class="compare-thead-row">
-              <th class="col-side text-start col-team-a text-truncate" title="{{ results.team_a_name }}">
-                {{ results.team_a_name }}
-              </th>
-              <th class="text-center col-diff">Diff</th>
-              <th class="col-side text-end col-team-b text-truncate" title="{{ results.team_b_name }}">
-                {{ results.team_b_name }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in players %}
-              {% if pos == 'BENCH' and (loop.first or p.is_bench_changed) %}
-                <tr class="bench-group-header {% if not loop.first %}bench-pos-divider{% endif %}">
-                  <td colspan="3" class="text-center">
-                    <span class="bench-group-label">{{ p.bench_group_title }}</span>
-                  </td>
-                </tr>
-              {% endif %}
-
-              <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
-                {{ render_player_cell(p, 'a', pos, results.gameweek) }}
-
-                <td class="text-center col-diff">
-                  {% if p.diff > 0 %}
-                    <span class="diff-badge badge-advantage">◀ +{{ p.diff }}</span>
-                  {% elif p.diff < 0 %}
-                    <span class="diff-badge badge-disadvantage">+{{ p.abs_diff }} ▶</span>
-                  {% else %}
-                    <span class="badge-shared-dot" title="Equal Ownership">●</span>
-                  {% endif %}
-                </td>
-
-                {{ render_player_cell(p, 'b', pos, results.gameweek) }}
-              </tr>
+        <div class="col-12 col-md-2 text-center">
+          <label for="gameweek"
+                 class="form-label fw-semibold small w-100 text-center mb-1">Gameweek</label>
+          <select class="form-select text-center fw-bold mx-auto"
+                  id="gameweek"
+                  name="gameweek"
+                  required>
+            {% for week in range(1, 39) %}
+              <option value="{{ week }}" {% if gw|int == week %}selected{% endif %}>GW {{ week }}</option>
             {% endfor %}
-          </tbody>
-        </table>
+          </select>
+        </div>
+
+        {{ render_team_select("team_b_name", "Team B", selected_team_b, team_names) }}
+
+        <div class="col-12 text-center mt-3">
+          <button type="submit" id="btn-submit" class="btn btn-compare px-4 py-2">
+            <span id="btn-text">Compare Teams ⚔️</span>
+          </button>
+        </div>
       </div>
+    </form>
+  </div>
+
+  <!-- Unified Alert Box -->
+  <div id="client-error-box"
+       class="custom-card alert-warning-card p-3 mb-4 text-center"
+       style="display: {% if error_message %}block{% else %}none{% endif %}">
+    <div class="d-inline-flex align-items-center justify-content-center gap-2">
+      <span class="alert-icon">⚠️</span>
+      <span id="client-error-text"
+            class="text-warning fw-semibold">{{ error_message or 'Cannot compare a team with itself. Please select two different teams.' }}</span>
     </div>
-  {% endfor %}
-{% endif %}
+  </div>
+
+  {% if results %}
+    <!-- Team Score Summary Cards -->
+    <div class="row g-3 mb-4">
+      {{ render_team_card(results.team_a_name, results.summary_a, results.gameweek, "breakdownTeamA", "", "breakdown-pts-a") }}
+      {{ render_team_card(results.team_b_name, results.summary_b, results.gameweek, "breakdownTeamB", "team-score-num-b", "breakdown-pts-b") }}
+    </div>
+
+    <!-- Position Breakdown Tables -->
+    {% for pos, players in results.grouped.items() if players %}
+      <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
+        <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-1">
+            <span class="pos-dot">●</span>
+            <span class="pos-title">{{ pos }} {{ 'PLAYERS / SUBS' if pos == 'BENCH' else 'DIFFERENCE' }}</span>
+          </div>
+          {% if pos == "BENCH" and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
+            <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
+          {% endif %}
+        </div>
+
+        <div class="compare-table-wrapper">
+          <table class="table table-dark table-dark-custom align-middle mb-0 compare-table versus-table {% if pos == 'BENCH' %}table-bench{% endif %}">
+            <thead>
+              <tr class="compare-thead-row">
+                <th class="col-side text-start col-team-a text-truncate"
+                    title="{{ results.team_a_name }}">{{ results.team_a_name }}</th>
+                <th class="text-center col-diff">Diff</th>
+                <th class="col-side text-end col-team-b text-truncate"
+                    title="{{ results.team_b_name }}">{{ results.team_b_name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in players %}
+                {% if pos == "BENCH" and (loop.first or p.is_bench_changed) %}
+                  <tr class="bench-group-header {% if not loop.first %}bench-pos-divider{% endif %}">
+                    <td colspan="3" class="text-center">
+                      <span class="bench-group-label">{{ p.bench_group_title }}</span>
+                    </td>
+                  </tr>
+                {% endif %}
+
+                <tr class="{% if p.is_dimmed_ft %}player-row-ft{% endif %} {% if p.is_sub_out %}player-row-subbed-out{% endif %}">
+                  {{ render_player_cell(p, 'a', pos, results.gameweek) }}
+
+                  <td class="text-center col-diff">
+                    {% if p.diff > 0 %}
+                      <span class="diff-badge badge-advantage">◀ +{{ p.diff }}</span>
+                    {% elif p.diff < 0 %}
+                      <span class="diff-badge badge-disadvantage">+{{ p.abs_diff }} ▶</span>
+                    {% else %}
+                      <span class="badge-shared-dot" title="Equal Ownership">●</span>
+                    {% endif %}
+                  </td>
+
+                  {{ render_player_cell(p, 'b', pos, results.gameweek) }}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const popupBoxes = Array.from(document.querySelectorAll('[data-player-popup="true"]'));
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const popupBoxes = Array.from(document.querySelectorAll('[data-player-popup="true"]'));
 
-    function hideAllPopups(exceptEl = null) {
-      popupBoxes.forEach(function (el) {
-        if (el !== exceptEl) {
-          const inst = bootstrap.Tooltip.getInstance(el);
-          if (inst) inst.hide();
-          el.classList.remove("popup-open");
-        }
-      });
-    }
-
-    popupBoxes.forEach(function (el) {
-      const tpl = el.querySelector("template.popup-template");
-      const htmlContent = tpl ? tpl.innerHTML.trim() : "";
-
-      const inst = new bootstrap.Tooltip(el, {
-        html: true,
-        sanitize: false,
-        trigger: "manual",
-        placement: "top",
-        boundary: "window",
-        container: "body",
-        title: htmlContent
-      });
-
-      el.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const isOpen = el.classList.contains("popup-open");
-        hideAllPopups(el);
-        if (isOpen) {
-          inst.hide();
-          el.classList.remove("popup-open");
-        } else {
-          inst.show();
-          el.classList.add("popup-open");
-        }
-      });
-
-      el.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          el.click();
-        }
-      });
-    });
-
-    document.addEventListener("click", function (e) {
-      if (e.target.closest(".tooltip")) {
-        return;
-      }
-      if (!e.target.closest('[data-player-popup="true"]')) {
-        hideAllPopups();
-      }
-    });
-
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        hideAllPopups();
-      }
-    });
-
-    const form = document.getElementById("compare-form");
-    const btn = document.getElementById("btn-submit");
-    const selectA = document.getElementById("team_a_name");
-    const selectB = document.getElementById("team_b_name");
-    const errorBox = document.getElementById("client-error-box");
-
-    if (form && btn) {
-      form.addEventListener("submit", function(e) {
-        if (selectA && selectB && selectA.value && selectA.value === selectB.value) {
-          e.preventDefault();
-          if (errorBox) {
-            errorBox.style.display = "block";
-            errorBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          function hideAllPopups(exceptEl = null) {
+              popupBoxes.forEach(function(el) {
+                  if (el !== exceptEl) {
+                      const inst = bootstrap.Tooltip.getInstance(el);
+                      if (inst) inst.hide();
+                      el.classList.remove("popup-open");
+                  }
+              });
           }
-          return;
-        }
-        hideAllPopups();
-        if (errorBox) errorBox.style.display = "none";
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Comparing... Please wait`;
-      });
-    }
 
-    if (selectA && selectB && errorBox) {
-      const hideErr = () => errorBox.style.display = "none";
-      selectA.addEventListener("change", hideErr);
-      selectB.addEventListener("change", hideErr);
-    }
-  });
-</script>
+          popupBoxes.forEach(function(el) {
+              const tpl = el.querySelector("template.popup-template");
+              const htmlContent = tpl ? tpl.innerHTML.trim() : "";
+
+              const inst = new bootstrap.Tooltip(el, {
+                  html: true,
+                  sanitize: false,
+                  trigger: "manual",
+                  placement: "top",
+                  boundary: "window",
+                  container: "body",
+                  title: htmlContent
+              });
+
+              el.addEventListener("click", function(e) {
+                  e.stopPropagation();
+                  const isOpen = el.classList.contains("popup-open");
+                  hideAllPopups(el);
+                  if (isOpen) {
+                      inst.hide();
+                      el.classList.remove("popup-open");
+                  } else {
+                      inst.show();
+                      el.classList.add("popup-open");
+                  }
+              });
+
+              el.addEventListener("keydown", function(e) {
+                  if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      el.click();
+                  }
+              });
+          });
+
+          document.addEventListener("click", function(e) {
+              if (e.target.closest(".tooltip")) {
+                  return;
+              }
+              if (!e.target.closest('[data-player-popup="true"]')) {
+                  hideAllPopups();
+              }
+          });
+
+          document.addEventListener("keydown", function(e) {
+              if (e.key === "Escape") {
+                  hideAllPopups();
+              }
+          });
+
+          const form = document.getElementById("compare-form");
+          const btn = document.getElementById("btn-submit");
+          const selectA = document.getElementById("team_a_name");
+          const selectB = document.getElementById("team_b_name");
+          const errorBox = document.getElementById("client-error-box");
+
+          if (form && btn) {
+              form.addEventListener("submit", function(e) {
+                  if (selectA && selectB && selectA.value && selectA.value === selectB.value) {
+                      e.preventDefault();
+                      if (errorBox) {
+                          errorBox.style.display = "block";
+                          errorBox.scrollIntoView({
+                              behavior: "smooth",
+                              block: "nearest"
+                          });
+                      }
+                      return;
+                  }
+                  hideAllPopups();
+                  if (errorBox) errorBox.style.display = "none";
+                  btn.disabled = true;
+                  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Comparing... Please wait`;
+              });
+          }
+
+          if (selectA && selectB && errorBox) {
+              const hideErr = () => errorBox.style.display = "none";
+              selectA.addEventListener("change", hideErr);
+              selectB.addEventListener("change", hideErr);
+          }
+      });
+  </script>
 {% endblock %}

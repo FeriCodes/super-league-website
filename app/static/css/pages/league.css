@@ -157,6 +157,13 @@ td.stat-loss {
   font-weight: 700 !important;
 }
 
+.standings-table th.col-tot,
+.standings-table td.col-tot,
+td.col-tot {
+  color: var(--accent-blue-soft) !important;
+  font-weight: 700 !important;
+}
+
 .standings-table th.col-pts,
 .standings-table td.col-pts,
 td.col-pts {
@@ -211,5 +218,31 @@ td.gd-zero {
 
   .score-row {
     font-size: 0.88rem !important;
+  }
+
+  /* Responsive adjustments for 9-column Standings Table on mobile */
+  .standings-table {
+    font-size: 0.74rem !important;
+  }
+
+  .standings-table thead th {
+    font-size: 0.68rem !important;
+    padding: 6px 1px !important;
+  }
+
+  .standings-table tbody td {
+    padding: 8px 1px !important;
+  }
+
+  .standings-table td.col-team {
+    font-size: 0.75rem !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  .standings-table th.col-pts,
+  .standings-table td.col-pts,
+  td.col-pts {
+    font-size: 0.8rem !important;
   }
 }

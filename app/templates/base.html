@@ -6,7 +6,8 @@
     <title>{% block title %}Super League H2H{% endblock %}</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Super League H2H Fantasy Tracker, live team comparisons, fixtures, and standings.">
+    <meta name="description"
+          content="Super League H2H Fantasy Tracker, live team comparisons, fixtures, and standings.">
     <meta name="robots" content="index, follow">
 
     <!-- Custom FPL Club Favicon -->
@@ -15,25 +16,27 @@
     <!-- JetBrains Mono Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
 
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
     <!-- Custom Theme CSS -->
-    <link rel="stylesheet" href="/static/css/style.css?v=12.1">
+    <link rel="stylesheet" href="/static/css/style.css?v=12.2">
 
     <!-- Early Theme Loader -->
     <script>
-      (function() {
-        const storedTheme = localStorage.getItem('fpl_theme') || 'dark';
-        const getPreferredTheme = () => {
-          if (storedTheme === 'auto') {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          return storedTheme;
-        };
-        document.documentElement.setAttribute('data-bs-theme', getPreferredTheme());
-      })();
+        (function() {
+            const storedTheme = localStorage.getItem('fpl_theme') || 'dark';
+            const getPreferredTheme = () => {
+                if (storedTheme === 'auto') {
+                    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                return storedTheme;
+            };
+            document.documentElement.setAttribute('data-bs-theme', getPreferredTheme());
+        })();
     </script>
   </head>
   <body class="d-flex flex-column min-vh-100">
@@ -44,25 +47,26 @@
         <div class="container d-flex flex-wrap justify-content-between align-items-center px-2 px-md-3">
 
           <!-- Brand Name & Icon (Top-Left) -->
-          <a class="navbar-brand cs-brand mb-0 d-flex align-items-center gap-2" href="/">
-            <img src="/static/img/favicon.png" alt="FPL Club Logo" style="width: 24px; height: 24px; object-fit: contain;">
+          <a class="navbar-brand cs-brand mb-0 d-flex align-items-center gap-2"
+             href="/">
+            <img src="/static/img/favicon.png"
+                 alt="FPL Club Logo"
+                 style="width: 24px;
+                        height: 24px;
+                        object-fit: contain">
             <span>FPL Club</span>
           </a>
 
           <!-- Navigation Links (Inline on Desktop, Full-Width Second Row on Mobile) -->
           <div class="cs-nav-links-wrap order-3 order-md-2 w-100 w-md-auto mt-2 mt-md-0 me-md-auto ms-md-3">
-            <a class="cs-nav-link {% if active_page == 'home' %}active{% endif %}" href="/">
-              🏠 Home
-            </a>
-            <a class="cs-nav-link {% if active_page == 'compare' %}active{% endif %}" href="/compare">
-              ⚔️ Compare
-            </a>
-            <a class="cs-nav-link {% if active_page == 'fixtures' %}active{% endif %}" href="/fixtures">
-              📅 Fixtures
-            </a>
-            <a class="cs-nav-link {% if active_page == 'standings' %}active{% endif %}" href="/standings">
-              🏆 Standings
-            </a>
+            <a class="cs-nav-link {% if active_page == 'home' %}active{% endif %}"
+               href="/">🏠 Home</a>
+            <a class="cs-nav-link {% if active_page == 'compare' %}active{% endif %}"
+               href="/compare">⚔️ Compare</a>
+            <a class="cs-nav-link {% if active_page == 'fixtures' %}active{% endif %}"
+               href="/fixtures">📅 Fixtures</a>
+            <a class="cs-nav-link {% if active_page == 'standings' %}active{% endif %}"
+               href="/standings">🏆 Standings</a>
           </div>
 
           <!-- Top-Right Controls: LIVE Indicator + Theme Dropdown -->
@@ -74,23 +78,35 @@
             {% endif %}
 
             <div class="dropdown">
-              <button class="btn cs-theme-btn dropdown-toggle d-flex align-items-center gap-1" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme">
+              <button class="btn cs-theme-btn dropdown-toggle d-flex align-items-center gap-1"
+                      id="bd-theme"
+                      type="button"
+                      aria-expanded="false"
+                      data-bs-toggle="dropdown"
+                      aria-label="Toggle theme">
                 <span id="theme-active-icon">🌙</span>
                 <span id="theme-active-text">Dark</span>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end cs-theme-menu shadow" aria-labelledby="bd-theme">
+              <ul class="dropdown-menu dropdown-menu-end cs-theme-menu shadow"
+                  aria-labelledby="bd-theme">
                 <li>
-                  <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-bs-theme-value="light">
+                  <button type="button"
+                          class="dropdown-item d-flex align-items-center gap-2"
+                          data-bs-theme-value="light">
                     <span>☀️</span> Light
                   </button>
                 </li>
                 <li>
-                  <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-bs-theme-value="dark">
+                  <button type="button"
+                          class="dropdown-item d-flex align-items-center gap-2"
+                          data-bs-theme-value="dark">
                     <span>🌙</span> Dark
                   </button>
                 </li>
                 <li>
-                  <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-bs-theme-value="auto">
+                  <button type="button"
+                          class="dropdown-item d-flex align-items-center gap-2"
+                          data-bs-theme-value="auto">
                     <span>🌗</span> Auto
                   </button>
                 </li>
@@ -108,12 +124,23 @@
     </main>
 
     <!-- Accessible Developer Footer -->
-    <footer class="container text-center mt-4 py-3 border-top border-secondary border-opacity-25" style="font-size: 0.72rem;">
+    <footer class="container text-center mt-4 py-3 border-top border-secondary border-opacity-25"
+            style="font-size: 0.72rem">
       <p class="mb-0 footer-text">
         Developed by
-        <a href="https://github.com/FeriCodes" target="_blank" rel="noopener noreferrer" class="footer-github-link d-inline-flex align-items-center gap-1 ms-1" aria-label="FeriCodes GitHub Profile">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+        <a href="https://github.com/FeriCodes"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="footer-github-link d-inline-flex align-items-center gap-1 ms-1"
+           aria-label="FeriCodes GitHub Profile">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="12"
+               height="12"
+               fill="currentColor"
+               viewBox="0 0 16 16"
+               aria-hidden="true"
+               focusable="false">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8" />
           </svg>
           <span>FeriCodes</span>
         </a>
@@ -125,66 +152,76 @@
 
     <!-- Light / Dark / Auto Theme Switcher Script -->
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        const themeIcon = document.getElementById("theme-active-icon");
-        const themeText = document.getElementById("theme-active-text");
-        const themeButtons = document.querySelectorAll("[data-bs-theme-value]");
+        document.addEventListener("DOMContentLoaded", function() {
+            const themeIcon = document.getElementById("theme-active-icon");
+            const themeText = document.getElementById("theme-active-text");
+            const themeButtons = document.querySelectorAll("[data-bs-theme-value]");
 
-        const metaMap = {
-          light: { icon: "☀️", label: "Light" },
-          dark:  { icon: "🌙", label: "Dark" },
-          auto:  { icon: "🌗", label: "Auto" }
-        };
+            const metaMap = {
+                light: {
+                    icon: "☀️",
+                    label: "Light"
+                },
+                dark: {
+                    icon: "🌙",
+                    label: "Dark"
+                },
+                auto: {
+                    icon: "🌗",
+                    label: "Auto"
+                }
+            };
 
-        function applyTheme(themeChoice) {
-          localStorage.setItem("fpl_theme", themeChoice);
+            function applyTheme(themeChoice) {
+                localStorage.setItem("fpl_theme", themeChoice);
 
-          const effectiveTheme = (themeChoice === "auto")
-            ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-            : themeChoice;
+                const effectiveTheme = (themeChoice === "auto") ?
+                    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") :
+                    themeChoice;
 
-          document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
+                document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
 
-          const info = metaMap[themeChoice] || metaMap.dark;
-          if (themeIcon) themeIcon.textContent = info.icon;
-          if (themeText) themeText.textContent = info.label;
+                const info = metaMap[themeChoice] || metaMap.dark;
+                if (themeIcon) themeIcon.textContent = info.icon;
+                if (themeText) themeText.textContent = info.label;
 
-          themeButtons.forEach(btn => {
-            btn.classList.toggle("active", btn.getAttribute("data-bs-theme-value") === themeChoice);
-          });
-        }
+                themeButtons.forEach(btn => {
+                    btn.classList.toggle("active", btn.getAttribute("data-bs-theme-value") === themeChoice);
+                });
+            }
 
-        const currentStored = localStorage.getItem("fpl_theme") || "dark";
-        applyTheme(currentStored);
+            const currentStored = localStorage.getItem("fpl_theme") || "dark";
+            applyTheme(currentStored);
 
-        themeButtons.forEach(btn => {
-          btn.addEventListener("click", () => {
-            const val = btn.getAttribute("data-bs-theme-value");
-            applyTheme(val);
-          });
+            themeButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const val = btn.getAttribute("data-bs-theme-value");
+                    applyTheme(val);
+                });
+            });
+
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+                if ((localStorage.getItem("fpl_theme") || "dark") === "auto") {
+                    applyTheme("auto");
+                }
+            });
         });
-
-        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-          if ((localStorage.getItem("fpl_theme") || "dark") === "auto") {
-            applyTheme("auto");
-          }
-        });
-      });
     </script>
 
     {% block scripts %}{% endblock %}
 
     <!-- GoatCounter Private Analytics -->
     <script>
-      if (window.location.hash === '#ignore-me') {
-        localStorage.setItem('skipgc', 't');
-        alert('✅ Owner Mode Activated! Visits from this browser will no longer be counted.');
-      }
-      window.goatcounter = {
-        no_onload: (localStorage.getItem('skipgc') === 't')
-      };
+        if (window.location.hash === '#ignore-me') {
+            localStorage.setItem('skipgc', 't');
+            alert('✅ Owner Mode Activated! Visits from this browser will no longer be counted.');
+        }
+        window.goatcounter = {
+            no_onload: (localStorage.getItem('skipgc') === 't')
+        };
     </script>
     <script data-goatcounter="https://fericodes.goatcounter.com/count"
-            async src="//gc.zgo.at/count.js"></script>
+            async
+            src="//gc.zgo.at/count.js"></script>
   </body>
 </html>

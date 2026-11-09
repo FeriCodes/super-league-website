@@ -50,6 +50,7 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
             "drawn": 0,
             "lost": 0,
             "points": 0,
+            "total_score": 0,
             "gd": 0,
         }
 
@@ -65,6 +66,10 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
 
                 table[team_a]["played"] += 1
                 table[team_b]["played"] += 1
+
+                # Accumulate total fantasy points scored across all gameweeks
+                table[team_a]["total_score"] += score_a
+                table[team_b]["total_score"] += score_b
 
                 match_diff = score_a - score_b
                 table[team_a]["gd"] += match_diff
@@ -84,6 +89,7 @@ def compute_standings(fixtures: dict, results_cache: dict, teams: dict) -> list:
                     table[team_b]["drawn"] += 1
                     table[team_b]["points"] += 1
 
+    # Sort strictly by league points and goal difference (total_score does not affect rank)
     standings_list = sorted(
         table.values(),
         key=lambda x: (x["points"], x["gd"]),
