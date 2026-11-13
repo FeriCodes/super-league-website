@@ -170,7 +170,6 @@ td.col-pts {
   color: var(--accent-cyan) !important;
   font-weight: 800 !important;
   font-size: 0.95rem !important;
-  background-color: rgba(86, 182, 194, 0.05) !important;
 }
 
 .standings-table td.col-gd,
@@ -195,6 +194,41 @@ td.gd-neg {
 td.gd-zero {
   color: var(--text-muted) !important;
   font-weight: 600 !important;
+}
+
+/* Sortable Column Headers & Active Highlight */
+.standings-table th.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  border-bottom: 2px solid transparent !important;
+}
+
+.standings-table th.sortable-th:hover {
+  color: var(--text-bright) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.standings-table th.active-sort {
+  color: var(--accent-cyan) !important;
+  border-bottom: 2px solid var(--accent-cyan) !important;
+  background-color: rgba(86, 182, 194, 0.08) !important;
+}
+
+.sort-indicator {
+  font-size: 0.62rem;
+  margin-left: 2px;
+  opacity: 0.45;
+  vertical-align: middle;
+}
+
+.standings-table th.active-sort .sort-indicator {
+  opacity: 1;
+  color: var(--accent-cyan);
+}
+
+.standings-table td.active-col-cells {
+  background-color: rgba(86, 182, 194, 0.06) !important;
 }
 
 @media (max-width: 576px) {
@@ -244,5 +278,10 @@ td.gd-zero {
   .standings-table td.col-pts,
   td.col-pts {
     font-size: 0.8rem !important;
+  }
+
+  .sort-indicator {
+    font-size: 0.52rem;
+    margin-left: 1px;
   }
 }

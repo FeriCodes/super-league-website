@@ -14,25 +14,12 @@
     "Brighton and Hove Albion": "Brighton"
   } %}
 
-  <!-- Sort Dropdown Bar (Top Right) -->
-  <div class="custom-card p-2 p-sm-3 mb-2 mb-md-3 d-flex align-items-center justify-content-between">
-    <span class="fw-bold small" style="color: var(--text-muted);">League Table</span>
-    <div class="d-inline-flex align-items-center gap-2">
-      <label for="standings-sort"
-             class="fw-bold small mb-0"
-             style="color: var(--text-bright)">Sort by:</label>
-      <select id="standings-sort"
-              class="form-select form-select-sm fw-bold"
-              style="width: auto;
-                     min-width: 155px">
-        <option value="pts" selected>League Points (Pts)</option>
-        <option value="tot">Total Score (Tot)</option>
-        <option value="gd">Goal Diff (GD)</option>
-        <option value="won">Most Wins (W)</option>
-        <option value="drawn">Most Draws (D)</option>
-        <option value="lost">Most Losses (L)</option>
-      </select>
-    </div>
+  <!-- Subtle Hint Bar -->
+  <div class="d-flex justify-content-between align-items-center px-1 mb-2">
+    <span class="fw-bold small"
+          style="color: var(--text-bright);
+                 font-size: 0.8rem">League Standings</span>
+    <span class="text-muted" style="font-size: 0.72rem;">⇅ Tap column headers to sort</span>
   </div>
 
   <!-- Standings Table Card -->
@@ -44,17 +31,50 @@
       <thead>
         <tr class="small text-muted">
           <th style="width: 7%; padding: 8px 1px;">#</th>
-          <th class="text-start" style="width: 30%; padding: 8px 3px;">Team</th>
+          <th class="text-start" style="width: 29%; padding: 8px 3px;">Team</th>
           <th style="width: 7%; padding: 8px 1px;">Pl</th>
-          <th style="width: 7%; padding: 8px 1px;">W</th>
-          <th style="width: 7%; padding: 8px 1px;">D</th>
-          <th style="width: 7%; padding: 8px 1px;">L</th>
-          <th class="col-tot"
-              style="width: 13%;
+          <th class="sortable-th"
+              data-sort="won"
+              style="width: 8%;
                      padding: 8px 1px"
-              title="Total Fantasy Points">Tot</th>
-          <th class="col-pts" style="width: 11%; padding: 8px 1px;">Pts</th>
-          <th class="col-gd" style="width: 11%; padding: 8px 1px;">GD</th>
+              title="Sort by Wins">
+            W<span class="sort-indicator">⇅</span>
+          </th>
+          <th class="sortable-th"
+              data-sort="drawn"
+              style="width: 8%;
+                     padding: 8px 1px"
+              title="Sort by Draws">
+            D<span class="sort-indicator">⇅</span>
+          </th>
+          <th class="sortable-th"
+              data-sort="lost"
+              style="width: 8%;
+                     padding: 8px 1px"
+              title="Sort by Losses">
+            L<span class="sort-indicator">⇅</span>
+          </th>
+          <th class="col-tot sortable-th"
+              data-sort="tot"
+              style="width: 12%;
+                     padding: 8px 1px"
+              title="Sort by Total Fantasy Points">
+            Tot<span class="sort-indicator">⇅</span>
+          </th>
+          <th class="col-pts sortable-th active-sort"
+              data-sort="pts"
+              style="width: 11%;
+                     padding: 8px 1px"
+              title="Sort by League Points">
+            Pts<span class="sort-indicator">▼</span>
+          </th>
+          <th class="col-gd sortable-th"
+              data-sort="gd"
+              style="width: 10%;
+                     padding: 8px 1px"
+              title="Sort by Goal Difference">
+            GD<span class="sort-indicator">⇅</span>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -70,12 +90,23 @@
                 style="padding: 9px 3px"
                 title="{{ row.team }}">{{ short_names.get(row.team, row.team) }}</td>
             <td class="font-monospace" style="padding: 9px 1px;">{{ row.played }}</td>
-            <td class="font-monospace stat-win" style="padding: 9px 1px;">{{ row.won }}</td>
-            <td class="font-monospace stat-draw" style="padding: 9px 1px;">{{ row.drawn }}</td>
-            <td class="font-monospace stat-loss" style="padding: 9px 1px;">{{ row.lost }}</td>
-            <td class="col-tot font-monospace" style="padding: 9px 1px;">{{ row.total_score }}</td>
-            <td class="col-pts font-monospace" style="padding: 9px 1px;">{{ row.points }}</td>
+            <td class="font-monospace stat-win"
+                data-col="won"
+                style="padding: 9px 1px">{{ row.won }}</td>
+            <td class="font-monospace stat-draw"
+                data-col="drawn"
+                style="padding: 9px 1px">{{ row.drawn }}</td>
+            <td class="font-monospace stat-loss"
+                data-col="lost"
+                style="padding: 9px 1px">{{ row.lost }}</td>
+            <td class="col-tot font-monospace"
+                data-col="tot"
+                style="padding: 9px 1px">{{ row.total_score }}</td>
+            <td class="col-pts font-monospace active-col-cells"
+                data-col="pts"
+                style="padding: 9px 1px">{{ row.points }}</td>
             <td class="col-gd font-monospace {% if row.gd > 0 %}gd-pos{% elif row.gd < 0 %}gd-neg{% else %}gd-zero{% endif %}"
+                data-col="gd"
                 style="padding: 9px 1px">{% if row.gd > 0 %}+{{ row.gd }}{% else %}{{ row.gd }}{% endif %}</td>
           </tr>
         {% endfor %}
@@ -85,39 +116,66 @@
 
   <script>
       document.addEventListener("DOMContentLoaded", function() {
-          const sortSelect = document.getElementById("standings-sort");
-          const tbody = document.querySelector("#standings-table tbody");
+          const table = document.getElementById("standings-table");
+          const headers = table.querySelectorAll(".sortable-th");
+          const tbody = table.querySelector("tbody");
 
-          sortSelect.addEventListener("change", function() {
-              const sortKey = this.value;
-              const rows = Array.from(tbody.querySelectorAll("tr"));
+          let currentSort = "pts";
+          let isDescending = true;
 
-              rows.sort((a, b) => {
-                  const valA = parseInt(a.getAttribute(`data-${sortKey}`), 10);
-                  const valB = parseInt(b.getAttribute(`data-${sortKey}`), 10);
+          headers.forEach((header) => {
+              header.addEventListener("click", function() {
+                  const sortKey = this.getAttribute("data-sort");
 
-                  if (valA !== valB) {
-                      return valB - valA; // Sort descending (highest first)
+                  if (currentSort === sortKey) {
+                      isDescending = !isDescending;
+                  } else {
+                      currentSort = sortKey;
+                      isDescending = true;
                   }
 
-                  // Tie-breaker 1: Goal Difference (if sorting by Pts) or League Points
-                  const tie1Key = sortKey === "pts" ? "gd" : "pts";
-                  const tie1A = parseInt(a.getAttribute(`data-${tie1Key}`), 10);
-                  const tie1B = parseInt(b.getAttribute(`data-${tie1Key}`), 10);
-                  if (tie1A !== tie1B) {
-                      return tie1B - tie1A;
-                  }
+                  // Update header active state and icons
+                  headers.forEach((h) => {
+                      h.classList.remove("active-sort");
+                      h.querySelector(".sort-indicator").textContent = "⇅";
+                  });
+                  this.classList.add("active-sort");
+                  this.querySelector(".sort-indicator").textContent = isDescending ? "▼" : "▲";
 
-                  // Tie-breaker 2: Total Fantasy Score
-                  const totA = parseInt(a.getAttribute("data-tot"), 10);
-                  const totB = parseInt(b.getAttribute("data-tot"), 10);
-                  return totB - totA;
-              });
+                  // Highlight active column cells
+                  tbody.querySelectorAll("td[data-col]").forEach((td) => {
+                      td.classList.toggle("active-col-cells", td.getAttribute("data-col") === sortKey);
+                  });
 
-              // Update row order and rank numbers (#)
-              rows.forEach((row, index) => {
-                  row.querySelector(".col-pos").textContent = index + 1;
-                  tbody.appendChild(row);
+                  // Sort rows
+                  const rows = Array.from(tbody.querySelectorAll("tr"));
+                  rows.sort((a, b) => {
+                      const valA = parseInt(a.getAttribute(`data-${sortKey}`), 10);
+                      const valB = parseInt(b.getAttribute(`data-${sortKey}`), 10);
+
+                      if (valA !== valB) {
+                          return isDescending ? valB - valA : valA - valB;
+                      }
+
+                      // Tie-breaker 1: GD (if sorting by Pts) or Pts
+                      const tie1Key = sortKey === "pts" ? "gd" : "pts";
+                      const tie1A = parseInt(a.getAttribute(`data-${tie1Key}`), 10);
+                      const tie1B = parseInt(b.getAttribute(`data-${tie1Key}`), 10);
+                      if (tie1A !== tie1B) {
+                          return tie1B - tie1A;
+                      }
+
+                      // Tie-breaker 2: Total Fantasy Score
+                      const totA = parseInt(a.getAttribute("data-tot"), 10);
+                      const totB = parseInt(b.getAttribute("data-tot"), 10);
+                      return totB - totA;
+                  });
+
+                  // Re-append rows and update rank numbers (#)
+                  rows.forEach((row, index) => {
+                      row.querySelector(".col-pos").textContent = index + 1;
+                      tbody.appendChild(row);
+                  });
               });
           });
       });
