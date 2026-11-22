@@ -152,7 +152,7 @@
   </div>
 {% endmacro %}
 
-{# 3. Clean Player Cell Macro — Popup content stays strictly hidden inside <template> #}
+{# 3. Clean Player Cell Macro — Popup content stays strictly hidden inside template #}
 {% macro render_player_cell(p, side, pos, gameweek) %}
   {% set is_a = (side == 'a') %}
   {% set count = p.count_a if is_a else p.count_b %}
@@ -192,11 +192,11 @@
         <div class="player-row-top {{ dir_class }}">
           <span class="count-badge count-{{ side }}">{{ count }}x</span>
           {% if p.team_code %}
-            <img src="[https://fantasy.premierleague.com/dist/img/shirts/standard/shirt](https://fantasy.premierleague.com/dist/img/shirts/standard/shirt)_{{ p.team_code }}{% if p.pos == 'GKP' %}_1{% endif %}-110.webp"
+            <img src="https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ p.team_code }}{% if p.pos == 'GKP' %}_1{% endif %}-110.webp"
                  alt=""
                  class="compare-kit-mini"
                  loading="lazy"
-                 onerror="if (this.src.includes('_1-110.webp')) { this.src = '[https://fantasy.premierleague.com/dist/img/shirts/standard/shirt](https://fantasy.premierleague.com/dist/img/shirts/standard/shirt)_{{ p.team_code }}-110.webp'; } else { this.style.display='none'; }">
+                 onerror="if (this.src.includes('_1-110.webp')) { this.src = 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ p.team_code }}-110.webp'; } else { this.style.display='none'; }">
           {% endif %}
           <span class="player-name {% if is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
           {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
@@ -271,7 +271,7 @@
       </button>
     </div>
 
-    <!-- Structured JSON Data for Telegram Table Export -->
+    <!-- Structured JSON Data for Table Export -->
     <script id="compare-export-data" type="application/json">
         {
             "gameweek": {{ results.gameweek | tojson }},
@@ -463,7 +463,7 @@
               }
           });
 
-          // Copy for Telegram Table Feature
+          // Copy Table Feature
           const copyBtn = document.getElementById("btn-copy-telegram");
           const exportDataEl = document.getElementById("compare-export-data");
 
@@ -514,7 +514,7 @@
                   return caps.map((c) => `${c.name} ${c.count}x`).join(", ");
               };
 
-              const buildTelegramText = () => {
+              const buildTableText = () => {
                   const data = JSON.parse(exportDataEl.textContent);
                   const abbrA = getAbbr(data.team_a);
                   const abbrB = getAbbr(data.team_b);
@@ -579,7 +579,7 @@
 
               let copyTimer = null;
               copyBtn.addEventListener("click", async function() {
-                  const textToCopy = buildTelegramText();
+                  const textToCopy = buildTableText();
                   try {
                       if (navigator.clipboard && window.isSecureContext) {
                           await navigator.clipboard.writeText(textToCopy);
@@ -594,13 +594,13 @@
                   const labelEl = document.getElementById("copy-btn-label");
                   copyBtn.classList.add("is-copied");
                   if (iconEl) iconEl.textContent = "✅";
-                  if (labelEl) labelEl.textContent = "Copied for Telegram!";
+                  if (labelEl) labelEl.textContent = "Copied!";
 
                   clearTimeout(copyTimer);
                   copyTimer = setTimeout(() => {
                       copyBtn.classList.remove("is-copied");
                       if (iconEl) iconEl.textContent = "📋";
-                      if (labelEl) labelEl.textContent = "Copy for Telegram";
+                      if (labelEl) labelEl.textContent = "Copy";
                   }, 2000);
               });
           }
