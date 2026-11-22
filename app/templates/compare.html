@@ -192,11 +192,11 @@
         <div class="player-row-top {{ dir_class }}">
           <span class="count-badge count-{{ side }}">{{ count }}x</span>
           {% if p.team_code %}
-            <img src="https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ p.team_code }}{% if p.pos == 'GKP' %}_1{% endif %}-110.webp"
+            <img src="[https://fantasy.premierleague.com/dist/img/shirts/standard/shirt](https://fantasy.premierleague.com/dist/img/shirts/standard/shirt)_{{ p.team_code }}{% if p.pos == 'GKP' %}_1{% endif %}-110.webp"
                  alt=""
                  class="compare-kit-mini"
                  loading="lazy"
-                 onerror="if (this.src.includes('_1-110.webp')) { this.src = 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{{ p.team_code }}-110.webp'; } else { this.style.display='none'; }">
+                 onerror="if (this.src.includes('_1-110.webp')) { this.src = '[https://fantasy.premierleague.com/dist/img/shirts/standard/shirt](https://fantasy.premierleague.com/dist/img/shirts/standard/shirt)_{{ p.team_code }}-110.webp'; } else { this.style.display='none'; }">
           {% endif %}
           <span class="player-name {% if is_sub_out %}text-subbed-out{% endif %}">{{ p.name }}</span>
           {% if p.is_live %}<span class="badge-live"><span class="live-dot"></span> LIVE</span>{% endif %}
@@ -261,6 +261,82 @@
   </div>
 
   {% if results %}
+    <!-- Copy Toolbar -->
+    <div class="compare-actions-bar d-flex justify-content-end align-items-center mb-3">
+      <button type="button"
+              id="btn-copy-telegram"
+              class="btn btn-sm btn-copy-compare d-inline-flex align-items-center gap-2">
+        <span id="copy-btn-icon">📋</span>
+        <span id="copy-btn-label">Copy</span>
+      </button>
+    </div>
+
+    <!-- Structured JSON Data for Telegram Table Export -->
+    <script id="compare-export-data" type="application/json">
+        {
+            "gameweek": {{ results.gameweek | tojson }},
+            "team_a": {{ results.team_a_name | tojson }},
+            "team_b": {{ results.team_b_name | tojson }},
+            "summary_a": {
+                "points": {{ results.summary_a.total_team_points | tojson }},
+                "hits": {{ results.summary_a.total_hits_cost | tojson }},
+                "left": {{ results.summary_a.status_counts.left_to_play | tojson }},
+                "total_slots": {{ results.summary_a.status_counts.total_slots | tojson }},
+                "chips": [{% for chip in results.summary_a.chips_list %} {
+                        "name": {{ chip.name | tojson }},
+                        "count": {{ chip.count | tojson }}
+                    }
+                    {% if not loop.last %}, {% endif %}{% endfor %}
+                ],
+                "captains": [{% for cap in results.summary_a.captains_list %} {
+                        "name": {{ cap.name | tojson }},
+                        "count": {{ cap.count | tojson }}
+                    }
+                    {% if not loop.last %}, {% endif %}{% endfor %}
+                ]
+            },
+            "summary_b": {
+                "points": {{ results.summary_b.total_team_points | tojson }},
+                "hits": {{ results.summary_b.total_hits_cost | tojson }},
+                "left": {{ results.summary_b.status_counts.left_to_play | tojson }},
+                "total_slots": {{ results.summary_b.status_counts.total_slots | tojson }},
+                "chips": [{% for chip in results.summary_b.chips_list %} {
+                        "name": {{ chip.name | tojson }},
+                        "count": {{ chip.count | tojson }}
+                    }
+                    {% if not loop.last %}, {% endif %}{% endfor %}
+                ],
+                "captains": [{% for cap in results.summary_b.captains_list %} {
+                        "name": {{ cap.name | tojson }},
+                        "count": {{ cap.count | tojson }}
+                    }
+                    {% if not loop.last %}, {% endif %}{% endfor %}
+                ]
+            },
+            "sections": [
+                {% for pos, players in results.grouped.items() if players %}
+                {
+                    "pos": {{ pos | tojson }},
+                    "players": [
+                        {% for p in players %}
+                        {
+                            "name": {{ p.name | tojson }},
+                            "count_a": {{ p.count_a | tojson }},
+                            "count_b": {{ p.count_b | tojson }},
+                            "diff": {{ p.diff | tojson }},
+                            "abs_diff": {{ p.abs_diff | tojson }},
+                            "pts": {{ p.player_points | tojson }}
+                        }
+                        {% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    ]
+                }
+                {% if not loop.last %}, {% endif %}
+                {% endfor %}
+            ]
+        }
+    </script>
+
     <!-- Team Score Summary Cards -->
     <div class="row g-3 mb-4">
       {{ render_team_card(results.team_a_name, results.summary_a, results.gameweek, "breakdownTeamA", "", "breakdown-pts-a") }}
@@ -269,15 +345,12 @@
 
     <!-- Position Breakdown Tables -->
     {% for pos, players in results.grouped.items() if players %}
-      <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4 {% if pos == 'BENCH' and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}card-bench-boost-active{% endif %}">
+      <div class="custom-card p-1 p-sm-2 p-md-3 mb-3 mb-md-4">
         <div class="position-header-wrap pos-header-{{ pos|lower }} px-2 py-1 mb-2 d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center gap-1">
             <span class="pos-dot">●</span>
             <span class="pos-title">{{ pos }} {{ 'PLAYERS / SUBS' if pos == 'BENCH' else 'DIFFERENCE' }}</span>
           </div>
-          {% if pos == "BENCH" and (results.summary_a.has_bench_boost or results.summary_b.has_bench_boost) %}
-            <span class="badge-bench-boost">⚡ BENCH BOOST ACTIVE</span>
-          {% endif %}
         </div>
 
         <div class="compare-table-wrapper">
@@ -389,6 +462,148 @@
                   hideAllPopups();
               }
           });
+
+          // Copy for Telegram Table Feature
+          const copyBtn = document.getElementById("btn-copy-telegram");
+          const exportDataEl = document.getElementById("compare-export-data");
+
+          if (copyBtn && exportDataEl) {
+              const TEAM_ABBR = {
+                  "Arsenal": "ARS",
+                  "Aston Villa": "AVL",
+                  "Bournemouth": "BOU",
+                  "Brentford": "BRE",
+                  "Brighton": "BHA",
+                  "Burnley": "BUR",
+                  "Chelsea": "CHE",
+                  "Crystal Palace": "CRY",
+                  "Everton": "EVE",
+                  "Fulham": "FUL",
+                  "Leeds": "LEE",
+                  "Liverpool": "LIV",
+                  "Manchester City": "MCI",
+                  "Manchester United": "MUN",
+                  "Newcastle": "NEW",
+                  "Nottingham Forest": "NFO",
+                  "Sunderland": "SUN",
+                  "Tottenham": "TOT",
+                  "West Ham": "WHU",
+                  "Wolves": "WOL"
+              };
+
+              const getAbbr = (name) => {
+                  if (TEAM_ABBR[name]) return TEAM_ABBR[name];
+                  return String(name || "TM").replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase().padEnd(3, " ");
+              };
+
+              const trunc = (str, maxLen) => {
+                  const s = String(str || "");
+                  return s.length > maxLen ? s.slice(0, maxLen - 1) + "." : s;
+              };
+
+              const padR = (str, len) => String(str).padEnd(len, " ");
+              const padL = (str, len) => String(str).padStart(len, " ");
+
+              const formatChips = (chips) => {
+                  if (!chips || !chips.length) return "None";
+                  return chips.map((c) => `${c.count}x ${c.name}`).join(", ");
+              };
+
+              const formatCaps = (caps) => {
+                  if (!caps || !caps.length) return "None";
+                  return caps.map((c) => `${c.name} ${c.count}x`).join(", ");
+              };
+
+              const buildTelegramText = () => {
+                  const data = JSON.parse(exportDataEl.textContent);
+                  const abbrA = getAbbr(data.team_a);
+                  const abbrB = getAbbr(data.team_b);
+                  const sa = data.summary_a;
+                  const sb = data.summary_b;
+
+                  const hitsA = sa.hits > 0 ? `-${sa.hits}` : "0";
+                  const hitsB = sb.hits > 0 ? `-${sb.hits}` : "0";
+
+                  const headerLines = [
+                      `⚔️ ${data.team_a} vs ${data.team_b} (GW ${data.gameweek})`,
+                      `📊 Score: ${sa.points} - ${sb.points}`,
+                      `🎯 Hits: ${hitsA} | ${hitsB}`,
+                      `⏳ Left: ${sa.left}/${sa.total_slots} | ${sb.left}/${sb.total_slots}`,
+                      `⚡ Chips: ${abbrA} (${formatChips(sa.chips)}) | ${abbrB} (${formatChips(sb.chips)})`,
+                      `©️ Caps: ${abbrA} (${formatCaps(sa.captains)}) | ${abbrB} (${formatCaps(sb.captains)})`
+                  ];
+
+                  const tableHeader = `${padR("Player", 13)} ${padL(abbrA, 3)} ${padL(abbrB, 3)} ${padL("Diff", 4)} ${padL("Pt", 3)}`;
+                  const divider = "-".repeat(tableHeader.length);
+                  const tableBlocks = [];
+
+                  (data.sections || []).forEach((section) => {
+                      if (!section.players || !section.players.length) return;
+                      const rows = [section.pos, tableHeader, divider];
+
+                      section.players.forEach((p) => {
+                          const nameCol = padR(trunc(p.name, 13), 13);
+                          const colA = padL(p.count_a > 0 ? `${p.count_a}x` : "-", 3);
+                          const colB = padL(p.count_b > 0 ? `${p.count_b}x` : "-", 3);
+
+                          let diffStr = " = ";
+                          if (p.diff > 0) {
+                              diffStr = `<+${p.diff}`;
+                          } else if (p.diff < 0) {
+                              diffStr = `+${p.abs_diff}>`;
+                          }
+                          const colDiff = padL(diffStr, 4);
+                          const cleanPts = String(p.pts ?? "-").replace(/\s*pts?$/i, "").trim();
+                          const colPts = padL(cleanPts, 3);
+
+                          rows.push(`${nameCol} ${colA} ${colB} ${colDiff} ${colPts}`);
+                      });
+
+                      tableBlocks.push(rows.join("\n"));
+                  });
+
+                  return `${headerLines.join("\n")}\n\n\`\`\`\n${tableBlocks.join("\n\n")}\n\`\`\``;
+              };
+
+              const fallbackCopy = (text) => {
+                  const ta = document.createElement("textarea");
+                  ta.value = text;
+                  ta.setAttribute("readonly", "");
+                  ta.style.position = "fixed";
+                  ta.style.opacity = "0";
+                  document.body.appendChild(ta);
+                  ta.select();
+                  document.execCommand("copy");
+                  document.body.removeChild(ta);
+              };
+
+              let copyTimer = null;
+              copyBtn.addEventListener("click", async function() {
+                  const textToCopy = buildTelegramText();
+                  try {
+                      if (navigator.clipboard && window.isSecureContext) {
+                          await navigator.clipboard.writeText(textToCopy);
+                      } else {
+                          fallbackCopy(textToCopy);
+                      }
+                  } catch (err) {
+                      fallbackCopy(textToCopy);
+                  }
+
+                  const iconEl = document.getElementById("copy-btn-icon");
+                  const labelEl = document.getElementById("copy-btn-label");
+                  copyBtn.classList.add("is-copied");
+                  if (iconEl) iconEl.textContent = "✅";
+                  if (labelEl) labelEl.textContent = "Copied for Telegram!";
+
+                  clearTimeout(copyTimer);
+                  copyTimer = setTimeout(() => {
+                      copyBtn.classList.remove("is-copied");
+                      if (iconEl) iconEl.textContent = "📋";
+                      if (labelEl) labelEl.textContent = "Copy for Telegram";
+                  }, 2000);
+              });
+          }
 
           const form = document.getElementById("compare-form");
           const btn = document.getElementById("btn-submit");

@@ -2,6 +2,34 @@
    Head-to-Head Compare, Squad Breakdown & Popups
 ========================================= */
 
+/* Copy Toolbar */
+.btn-copy-compare {
+  background-color: var(--bg-card-subtle);
+  color: var(--text-bright);
+  border: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 7px;
+  transition: background-color 0.18s ease,
+              border-color 0.18s ease,
+              color 0.18s ease,
+              transform 0.15s ease;
+}
+
+.btn-copy-compare:hover {
+  background-color: rgba(97, 175, 239, 0.14);
+  border-color: var(--accent-blue-soft);
+  color: var(--text-bright);
+  transform: translateY(-1px);
+}
+
+.btn-copy-compare.is-copied {
+  background-color: rgba(152, 195, 121, 0.16);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
 /* Position Category Headers */
 .position-header-wrap {
   display: flex;
@@ -488,6 +516,11 @@ tr.player-row-ft:hover > td {
 }
 
 @media (max-width: 576px) {
+  .btn-copy-compare {
+    font-size: 0.72rem;
+    padding: 5px 10px;
+  }
+
   .versus-table thead th {
     font-size: 0.7rem !important;
     letter-spacing: 0.2px !important;
