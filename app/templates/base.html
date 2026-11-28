@@ -28,14 +28,14 @@
     <!-- Early Theme Loader -->
     <script>
         (function() {
-            const storedTheme = localStorage.getItem('fpl_theme') || 'dark';
+            const storedTheme = localStorage.getItem("fpl_theme") || "dark";
             const getPreferredTheme = () => {
-                if (storedTheme === 'auto') {
-                    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                if (storedTheme === "auto") {
+                    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
                 }
                 return storedTheme;
             };
-            document.documentElement.setAttribute('data-bs-theme', getPreferredTheme());
+            document.documentElement.setAttribute("data-bs-theme", getPreferredTheme());
         })();
     </script>
   </head>
@@ -118,7 +118,7 @@
       </nav>
     </header>
 
-    <!-- Main Content Container (Clean — No Redundant Page Headers) -->
+    <!-- Main Content Container -->
     <main class="container px-2 px-md-3 flex-grow-1" role="main">
       {% block content %}{% endblock %}
     </main>
@@ -150,76 +150,12 @@
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Light / Dark / Auto Theme Switcher Script -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const themeIcon = document.getElementById("theme-active-icon");
-            const themeText = document.getElementById("theme-active-text");
-            const themeButtons = document.querySelectorAll("[data-bs-theme-value]");
-
-            const metaMap = {
-                light: {
-                    icon: "☀️",
-                    label: "Light"
-                },
-                dark: {
-                    icon: "🌙",
-                    label: "Dark"
-                },
-                auto: {
-                    icon: "🌗",
-                    label: "Auto"
-                }
-            };
-
-            function applyTheme(themeChoice) {
-                localStorage.setItem("fpl_theme", themeChoice);
-
-                const effectiveTheme = (themeChoice === "auto") ?
-                    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") :
-                    themeChoice;
-
-                document.documentElement.setAttribute("data-bs-theme", effectiveTheme);
-
-                const info = metaMap[themeChoice] || metaMap.dark;
-                if (themeIcon) themeIcon.textContent = info.icon;
-                if (themeText) themeText.textContent = info.label;
-
-                themeButtons.forEach(btn => {
-                    btn.classList.toggle("active", btn.getAttribute("data-bs-theme-value") === themeChoice);
-                });
-            }
-
-            const currentStored = localStorage.getItem("fpl_theme") || "dark";
-            applyTheme(currentStored);
-
-            themeButtons.forEach(btn => {
-                btn.addEventListener("click", () => {
-                    const val = btn.getAttribute("data-bs-theme-value");
-                    applyTheme(val);
-                });
-            });
-
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-                if ((localStorage.getItem("fpl_theme") || "dark") === "auto") {
-                    applyTheme("auto");
-                }
-            });
-        });
-    </script>
-
+    <!-- Global Scripts -->
+    <script src="/static/js/theme.js?v=1.0"></script>
     {% block scripts %}{% endblock %}
 
     <!-- GoatCounter Private Analytics -->
-    <script>
-        if (window.location.hash === '#ignore-me') {
-            localStorage.setItem('skipgc', 't');
-            alert('✅ Owner Mode Activated! Visits from this browser will no longer be counted.');
-        }
-        window.goatcounter = {
-            no_onload: (localStorage.getItem('skipgc') === 't')
-        };
-    </script>
+    <script src="/static/js/analytics.js?v=1.0"></script>
     <script data-goatcounter="https://fericodes.goatcounter.com/count"
             async
             src="//gc.zgo.at/count.js"></script>
