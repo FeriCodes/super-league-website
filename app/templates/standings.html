@@ -113,71 +113,8 @@
       </tbody>
     </table>
   </div>
+{% endblock %}
 
-  <script>
-      document.addEventListener("DOMContentLoaded", function() {
-          const table = document.getElementById("standings-table");
-          const headers = table.querySelectorAll(".sortable-th");
-          const tbody = table.querySelector("tbody");
-
-          let currentSort = "pts";
-          let isDescending = true;
-
-          headers.forEach((header) => {
-              header.addEventListener("click", function() {
-                  const sortKey = this.getAttribute("data-sort");
-
-                  if (currentSort === sortKey) {
-                      isDescending = !isDescending;
-                  } else {
-                      currentSort = sortKey;
-                      isDescending = true;
-                  }
-
-                  // Update header active state and icons
-                  headers.forEach((h) => {
-                      h.classList.remove("active-sort");
-                      h.querySelector(".sort-indicator").textContent = "⇅";
-                  });
-                  this.classList.add("active-sort");
-                  this.querySelector(".sort-indicator").textContent = isDescending ? "▼" : "▲";
-
-                  // Highlight active column cells
-                  tbody.querySelectorAll("td[data-col]").forEach((td) => {
-                      td.classList.toggle("active-col-cells", td.getAttribute("data-col") === sortKey);
-                  });
-
-                  // Sort rows
-                  const rows = Array.from(tbody.querySelectorAll("tr"));
-                  rows.sort((a, b) => {
-                      const valA = parseInt(a.getAttribute(`data-${sortKey}`), 10);
-                      const valB = parseInt(b.getAttribute(`data-${sortKey}`), 10);
-
-                      if (valA !== valB) {
-                          return isDescending ? valB - valA : valA - valB;
-                      }
-
-                      // Tie-breaker 1: GD (if sorting by Pts) or Pts
-                      const tie1Key = sortKey === "pts" ? "gd" : "pts";
-                      const tie1A = parseInt(a.getAttribute(`data-${tie1Key}`), 10);
-                      const tie1B = parseInt(b.getAttribute(`data-${tie1Key}`), 10);
-                      if (tie1A !== tie1B) {
-                          return tie1B - tie1A;
-                      }
-
-                      // Tie-breaker 2: Total Fantasy Score
-                      const totA = parseInt(a.getAttribute("data-tot"), 10);
-                      const totB = parseInt(b.getAttribute("data-tot"), 10);
-                      return totB - totA;
-                  });
-
-                  // Re-append rows and update rank numbers (#)
-                  rows.forEach((row, index) => {
-                      row.querySelector(".col-pos").textContent = index + 1;
-                      tbody.appendChild(row);
-                  });
-              });
-          });
-      });
-  </script>
+{% block scripts %}
+  <script src="/static/js/standings-sort.js?v=1.0"></script>
 {% endblock %}
