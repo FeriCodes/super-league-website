@@ -1,6 +1,56 @@
-from typing import Any, Dict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
+
 from app.fpl.client import fetch_fpl_api
+
+IRAN_TZ = timezone(timedelta(hours=3, minutes=30))
+
+
+def _build_deadline_info(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Parse an FPL event deadline_time (UTC) and format it for Iran time (UTC+3:30)."""
+    deadline_str = event.get("deadline_time")
+    if not deadline_str:
+        return None
+
+    try:
+        deadline_utc = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+    deadline_iran = deadline_utc.astimezone(IRAN_TZ)
+    return {
+        "gw": event.get("id"),
+        "deadline_iso": deadline_utc.isoformat(),
+        "iran_date": deadline_iran.strftime("%a, %d %b %Y"),
+        "iran_time": deadline_iran.strftime("%H:%M"),
+        "iran_label": f"{deadline_iran.strftime('%a, %d %b - %H:%M')}",
+    }
+
+
+async def get_gw_deadline_info(target_gw: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """Fetch upcoming gameweek deadline info converted to Iran time."""
+    data = await fetch_fpl_api("bootstrap-static")
+    if not data or "events" not in data:
+        return None
+
+    events = data.get("events", [])
+    if target_gw is not None:
+        event = next((e for e in events if e.get("id") == target_gw), None)
+    else:
+        event = next((e for e in events if e.get("is_next")), None)
+
+    if not event:
+        return None
+
+    info = _build_deadline_info(event)
+    if not info:
+        return None
+
+    deadline_utc = datetime.fromisoformat(info["deadline_iso"])
+    if deadline_utc <= datetime.now(timezone.utc):
+        return None
+
+    return info
 
 
 async def get_gameweek_status(gameweek: int) -> dict:
@@ -18,6 +68,7 @@ async def get_gameweek_status(gameweek: int) -> dict:
             "data_checked": False,
             "is_live": False,
             "message": "",
+            "deadline": None,
         }
 
     for event in data.get("events", []):
@@ -36,6 +87,7 @@ async def get_gameweek_status(gameweek: int) -> dict:
                     "data_checked": False,
                     "is_live": False,
                     "message": f"Gameweek {gameweek} has not started yet. Team lineups and points will be available after the deadline.",
+                    "deadline": _build_deadline_info(event),
                 }
             return {
                 "valid": True,
@@ -43,6 +95,7 @@ async def get_gameweek_status(gameweek: int) -> dict:
                 "data_checked": data_checked,
                 "is_live": is_live,
                 "message": "",
+                "deadline": None,
             }
 
     return {
@@ -51,6 +104,7 @@ async def get_gameweek_status(gameweek: int) -> dict:
         "data_checked": False,
         "is_live": False,
         "message": f"Gameweek {gameweek} not found.",
+        "deadline": None,
     }
 
 

@@ -23,6 +23,10 @@
     </form>
   </div>
 
+  {% if gw_not_started %}
+    {% include "deadline_timer.html" %}
+  {% endif %}
+
   <!-- Matchup Cards Grid -->
   <div class="row g-2 g-md-3">
     {% for match in matches %}

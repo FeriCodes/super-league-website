@@ -3,7 +3,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.fpl.gameweek import get_current_gameweek
+from app.fpl.gameweek import get_current_gameweek, get_gameweek_status
 from app.services.home import get_home_highlights, get_manager_pitch_data
 
 router = APIRouter()
@@ -19,6 +19,28 @@ async def home_page(
     """Render the main Home dashboard with highlights and squad pitch viewer."""
     current_gw = await get_current_gameweek()
     target_gw = gameweek if gameweek is not None else current_gw
+    gw_status = await get_gameweek_status(target_gw)
+
+    if not gw_status["valid"]:
+        return templates.TemplateResponse(
+            request=request,
+            name="home.html",
+            context={
+                "gw": target_gw,
+                "current_gw": current_gw,
+                "active_page": "home",
+                "gw_not_started": True,
+                "gw_message": gw_status["message"],
+                "deadline_info": gw_status.get("deadline"),
+                "mvp_manager": None,
+                "top_team": None,
+                "top_captains": [],
+                "live_data": {},
+                "manager_pitch": None,
+                "searched_fpl_id": fpl_id or "",
+            },
+        )
+
     highlights = await get_home_highlights(target_gw)
 
     manager_pitch = None
@@ -32,6 +54,9 @@ async def home_page(
             "gw": target_gw,
             "current_gw": current_gw,
             "active_page": "home",
+            "gw_not_started": False,
+            "gw_message": None,
+            "deadline_info": None,
             "mvp_manager": highlights["mvp_manager"],
             "top_team": highlights["top_team"],
             "top_captains": highlights["top_captains"],

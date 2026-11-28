@@ -260,6 +260,10 @@
     </div>
   </div>
 
+  {% if gw_not_started %}
+    {% include "deadline_timer.html" %}
+  {% endif %}
+
   {% if results %}
     <!-- Copy Toolbar -->
     <div class="compare-actions-bar d-flex justify-content-end align-items-center mb-3">

@@ -470,3 +470,137 @@
     padding: 0 2px !important;
   }
 }
+
+/* =========================================
+   Upcoming Gameweek Deadline Countdown Card
+   ========================================= */
+.deadline-empty-card {
+  border-top: 3px solid var(--accent-yellow, #e5c07b);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.deadline-empty-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.deadline-empty-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent-yellow, #e5c07b);
+}
+
+.deadline-iran-pill {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-bright, #ffffff);
+  background-color: var(--row-hover, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+
+.deadline-countdown-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-unit {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 54px;
+  background-color: var(--bg-card-subtle, rgba(0, 0, 0, 0.28));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.cd-num {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent-cyan, #56b6c2);
+}
+
+.cd-lbl {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+  color: var(--text-muted, #8b949e);
+}
+
+.cd-sep {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text-muted, #8b949e);
+}
+
+.deadline-passed-pill {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-green, #98c379);
+  background: rgba(152, 195, 121, 0.14);
+  border: 1px solid rgba(152, 195, 121, 0.4);
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+/* Full-Width Compact Deadline Banner (Fixtures) */
+.deadline-banner-bar {
+  width: 100%;
+  border-left: 3px solid var(--accent-yellow, #e5c07b);
+}
+
+.deadline-compact-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-yellow, #e5c07b);
+}
+
+.deadline-compact-time {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-bright, #ffffff);
+  background-color: var(--row-hover, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.deadline-compact-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--bg-card-subtle, rgba(0, 0, 0, 0.28));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.cd-mini-num {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--accent-cyan, #56b6c2);
+}
+
+.cd-mini-lbl {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted, #8b949e);
+  margin-left: 1px;
+}
+
+.cd-mini-sep {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted, #8b949e);
+  margin: 0 2px;
+}

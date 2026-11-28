@@ -1,0 +1,109 @@
+{% if active_page == "fixtures" %}
+    <div class="custom-card deadline-banner-bar px-3 py-2 mb-3 mb-md-4"
+         {% if deadline_info %}id="gw-deadline-box" data-deadline="{{ deadline_info.deadline_iso }}"{% endif %}>
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2">
+                <span class="deadline-compact-badge">⏳ Next Deadline · GW {{ gw }}</span>
+                {% if deadline_info %}
+                    <span class="deadline-compact-time">🇮🇷 {{ deadline_info.iran_label }}</span>
+                {% endif %}
+            </div>
+
+            {% if deadline_info %}
+                <div class="deadline-compact-timer" id="gw-countdown-wrap">
+                    <span class="cd-mini-num" id="cd-days">--</span><span class="cd-mini-lbl">d</span>
+                    <span class="cd-mini-sep">:</span>
+                    <span class="cd-mini-num" id="cd-hours">--</span><span class="cd-mini-lbl">h</span>
+                    <span class="cd-mini-sep">:</span>
+                    <span class="cd-mini-num" id="cd-mins">--</span><span class="cd-mini-lbl">m</span>
+                    <span class="cd-mini-sep">:</span>
+                    <span class="cd-mini-num" id="cd-secs">--</span><span class="cd-mini-lbl">s</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="custom-card deadline-empty-card p-4 mb-4 text-center"
+         {% if deadline_info %}id="gw-deadline-box" data-deadline="{{ deadline_info.deadline_iso }}"{% endif %}>
+        <div class="deadline-empty-icon mb-2">⏳</div>
+        <h5 class="deadline-empty-title mb-2">Gameweek {{ gw }} Has Not Started Yet</h5>
+        <p class="text-muted small mb-3">
+            {{ gw_message or "Team lineups, scores, and stats will be available after the deadline." }}
+        </p>
+
+        {% if deadline_info %}
+            <div class="mb-3">
+                <span class="deadline-iran-pill">🇮🇷 Deadline: {{ deadline_info.iran_label }}</span>
+            </div>
+
+            <div class="deadline-countdown-wrap justify-content-center"
+                 id="gw-countdown-wrap">
+                <div class="cd-unit">
+                    <span class="cd-num" id="cd-days">--</span>
+                    <span class="cd-lbl">DAYS</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit">
+                    <span class="cd-num" id="cd-hours">--</span>
+                    <span class="cd-lbl">HRS</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit">
+                    <span class="cd-num" id="cd-mins">--</span>
+                    <span class="cd-lbl">MIN</span>
+                </div>
+                <span class="cd-sep">:</span>
+                <div class="cd-unit">
+                    <span class="cd-num" id="cd-secs">--</span>
+                    <span class="cd-lbl">SEC</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if deadline_info %}
+    <script>
+        (function() {
+            const box = document.getElementById("gw-deadline-box");
+            const wrap = document.getElementById("gw-countdown-wrap");
+            if (!box || !wrap) return;
+
+            const targetMs = new Date(box.dataset.deadline).getTime();
+            if (Number.isNaN(targetMs)) return;
+
+            const daysEl = document.getElementById("cd-days");
+            const hoursEl = document.getElementById("cd-hours");
+            const minsEl = document.getElementById("cd-mins");
+            const secsEl = document.getElementById("cd-secs");
+            const pad = (n) => String(n).padStart(2, "0");
+
+            function updateCountdown() {
+                const diff = targetMs - Date.now();
+                if (diff <= 0) {
+                    wrap.innerHTML = '<span class="deadline-passed-pill">Deadline Passed - Refresh Page</span>';
+                    return false;
+                }
+
+                const days = Math.floor(diff / 86400000);
+                const hours = Math.floor((diff % 86400000) / 3600000);
+                const mins = Math.floor((diff % 3600000) / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+
+                if (daysEl) daysEl.textContent = pad(days);
+                if (hoursEl) hoursEl.textContent = pad(hours);
+                if (minsEl) minsEl.textContent = pad(mins);
+                if (secsEl) secsEl.textContent = pad(secs);
+                return true;
+            }
+
+            if (updateCountdown()) {
+                const timerId = setInterval(function() {
+                    if (!updateCountdown()) {
+                        clearInterval(timerId);
+                    }
+                }, 1000);
+            }
+        })();
+    </script>
+{% endif %}
